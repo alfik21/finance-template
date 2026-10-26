@@ -169,3 +169,18 @@ Anda dapat menyalin teks promosi ini untuk deskripsi produk di Lynk.id, Mayar, S
 > - Link Akses Google Sheets Master Siap Duplikasi Instan (1 Klik)  
 > - Skrip Antarmuka Web App Terintegrasi  
 > - Dokumen Panduan Pemasangan & Pemakaian Lengkap (Mudah dipahami pemula)
+
+---
+
+## 8. Berkas Dokumen Penjualan & Panduan Resmi
+
+Paket template ini telah dilengkapi 4 berkas dokumentasi resmi di folder [`docs/`](file:///J:/Aplikasi/finance-template/docs) sesuai standar format dan PIC:
+
+| No. | Dokumen | Fungsi | Format | PIC | Berkas Siap Baca (DOCX / XLSX) |
+|---|---|---|---|---|---|
+| 1 | [**Product Brief & Requirements**](file:///J:/Aplikasi/finance-template/docs/01_PRODUCT_BRIEF_AND_REQUIREMENTS.md) | Menjelaskan target pengguna, tujuan produk, fitur, dan batasannya | Google Docs | Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/01_PRODUCT_BRIEF_AND_REQUIREMENTS.docx) |
+| 2a | [**Panduan & SOP Pengujian Produk**](file:///J:/Aplikasi/finance-template/docs/02_PANDUAN_PENGUJIAN_PRODUK.md) | Petunjuk teknis prosedur pengujian langkah demi langkah | Google Docs / PDF | Finance + Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/02_PANDUAN_PENGUJIAN_PRODUK.docx) |
+| 2b | [**Product Testing Checklist (Blank Template)**](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.md) | Lembar kerja kosong verifikasi rumus & fungsi fitur | Google Sheets | Finance + Operations | [**Workbook XLSX 2 Tab**](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx) |
+| 3 | [**User Guide**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.md) | Panduan penggunaan untuk pembeli | PDF | Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.docx) |
+| 4 | [**License & Terms of Use**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.md) | Mengatur hak penggunaan, distribusi, dan ketentuan pembelian | PDF | Operations + Finance | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.docx) |
+

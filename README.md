@@ -36,6 +36,11 @@ Bebas biaya langganan bulanan (*Zero-Subscription*), 100% data tersimpan aman di
 │       ├── Index.html             # Shell struktur aplikasi & navigasi bawah HP
 │       ├── Styles.html            # Desain CSS sistem Sage Green utilitarian
 │       └── App.html               # Logika antarmuka klien & interaksi reaktif
+├── docs/
+│   ├── 01_PRODUCT_BRIEF_AND_REQUIREMENTS.md  # Product Brief, target market, & model harga
+│   ├── 02_PRODUCT_TESTING_CHECKLIST.md       # Matriks pengujian QA sebelum rilis penjualan
+│   ├── 03_USER_GUIDE.md                      # Panduan lengkap pembeli (salin, input, dashboard, & HP)
+│   └── 04_LICENSE_AND_TERMS_OF_USE.md        # Perjanjian lisensi, hak modifikasi, & ketentuan refund
 ├── demo/
 │   ├── index.html                 # Interactive Product Preview (Showcase simulator untuk calon pembeli)
 │   └── WebApp.html                # Standalone Web App client untuk frame preview demo
@@ -108,3 +113,17 @@ Buka link Web App tersebut di smartphone Anda:
 - **Di Android (Chrome)**: Buka URL > tap menu titik tiga di pojok kanan atas > pilih **Add to Home screen** / **Install app**.
 
 Kini aplikasi dapat dibuka dalam 1 detik langsung dari layar HP tanpa perlu membuka spreadsheet manual.
+
+---
+
+## Dokumentasi Resmi & Berkas Penjualan
+
+Seluruh dokumen pelengkap komersial dan acuan operasional tersedia di folder [`docs/`](file:///J:/Aplikasi/finance-template/docs):
+
+| No. | Dokumen | Fungsi | Format | PIC | Berkas Siap Baca (DOCX / XLSX) |
+|---|---|---|---|---|---|
+| 1 | [**Product Brief & Requirements**](file:///J:/Aplikasi/finance-template/docs/01_PRODUCT_BRIEF_AND_REQUIREMENTS.md) | Menjelaskan target pengguna, tujuan produk, fitur, dan batasannya | Google Docs | Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/01_PRODUCT_BRIEF_AND_REQUIREMENTS.docx) |
+| 2a | [**Panduan & SOP Pengujian Produk**](file:///J:/Aplikasi/finance-template/docs/02_PANDUAN_PENGUJIAN_PRODUK.md) | Petunjuk teknis prosedur pengujian langkah demi langkah | Google Docs / PDF | Finance + Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/02_PANDUAN_PENGUJIAN_PRODUK.docx) |
+| 2b | [**Product Testing Checklist (Blank Template)**](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.md) | Lembar kerja kosong verifikasi rumus & fungsi fitur | Google Sheets | Finance + Operations | [**Workbook XLSX 2 Tab**](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx) |
+| 3 | [**User Guide**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.md) | Panduan penggunaan untuk pembeli | PDF | Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.docx) |
+| 4 | [**License & Terms of Use**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.md) | Mengatur hak penggunaan, distribusi, dan ketentuan pembelian | PDF | Operations + Finance | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.docx) |
