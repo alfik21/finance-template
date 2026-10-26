@@ -27,7 +27,7 @@ indexContent = indexContent.replace(/<\?=\s*typeof\s+userEmail[^>]*\?>/g, 'test@
 indexContent = indexContent.replace(/<\?=\s*typeof\s+mode[^>]*\?>/g, 'FULL');
 indexContent = indexContent.replace(/<\?=\s*new\s+Date\(\)\.toISOString\(\)\.substring\(0,\s*10\)\s*\?>/g, todayStr);
 
-// 5. Simpan ke tests/fixtures/app-test.html
+// 5. Simpan standalone web app ke tests/fixtures/app-test.html
 const fixtureDir = path.join(rootDir, 'tests', 'fixtures');
 if (!fs.existsSync(fixtureDir)) fs.mkdirSync(fixtureDir, { recursive: true });
 
@@ -35,14 +35,23 @@ const targetPath = path.join(fixtureDir, 'app-test.html');
 fs.writeFileSync(targetPath, indexContent, 'utf-8');
 console.log('Test fixture berhasil digenerate di: ' + targetPath);
 
-const previewPath = path.join(rootDir, 'preview.html');
-fs.writeFileSync(previewPath, indexContent, 'utf-8');
-console.log('Preview HTML berhasil diperbarui di: ' + previewPath);
+// 6. Simpan WebApp.html di root dan di demo/
+const rootWebAppPath = path.join(rootDir, 'WebApp.html');
+fs.writeFileSync(rootWebAppPath, indexContent, 'utf-8');
+console.log('Root WebApp.html berhasil diperbarui di: ' + rootWebAppPath);
 
-// 6. Simpan salinan ke folder demo/WebApp.html untuk kebutuhan hosting interactive showcase
 const demoDir = path.join(rootDir, 'demo');
 if (!fs.existsSync(demoDir)) fs.mkdirSync(demoDir, { recursive: true });
 
 const demoWebAppPath = path.join(demoDir, 'WebApp.html');
 fs.writeFileSync(demoWebAppPath, indexContent, 'utf-8');
 console.log('Demo WebApp HTML berhasil disinkronkan di: ' + demoWebAppPath);
+
+// 7. Simpan preview.html sebagai Halaman Showcase Interaktif (sinkron dengan demo/index.html)
+const demoIndexPath = path.join(demoDir, 'index.html');
+if (fs.existsSync(demoIndexPath)) {
+  const showcaseContent = fs.readFileSync(demoIndexPath, 'utf-8');
+  const previewPath = path.join(rootDir, 'preview.html');
+  fs.writeFileSync(previewPath, showcaseContent, 'utf-8');
+  console.log('Showcase preview.html berhasil diperbarui di: ' + previewPath);
+}

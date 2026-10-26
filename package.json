@@ -1,6 +1,6 @@
 {
   "name": "finance-template",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "description": "Edisi **Template Spreadsheet Terpadu (Container-Bound)** yang menempel langsung di dalam Google Spreadsheet pembeli.",
   "main": "index.js",
   "scripts": {
@@ -13,10 +13,7 @@
     "deploy": "npm test && clasp push --force",
     "watch": "clasp push --watch"
   },
-  "keywords": [],
-  "type": "commonjs",
   "devDependencies": {
-    "@google/clasp": "^3.4.1",
-    "@playwright/test": "^1.64.1"
+    "@playwright/test": "^1.50.0"
   }
 }

@@ -74,6 +74,16 @@
 
       <!-- Simulator Controls -->
       <div class="flex flex-wrap items-center gap-2">
+        <!-- Standalone Mode Button -->
+        <a href="WebApp.html" target="_blank" class="touch-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1b4332] text-white text-xs font-bold hover:bg-[#2d6a4f] transition-all shadow-xs border border-emerald-950" title="Buka aplikasi langsung di tab baru layar penuh tanpa bingkai simulator">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+          <span>Buka Demo Layar Penuh / Mode Aplikasi</span>
+        </a>
+
         <!-- Viewport Switcher -->
         <div class="flex items-center rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-semibold">
           <button id="btnViewMobile" onclick="setViewMode('mobile')" class="touch-btn px-3 py-1.5 rounded-lg bg-slate-800 text-white transition-all">

@@ -2,23 +2,24 @@
 const { test, expect } = require('@playwright/test');
 const path = require('path');
 
-test.describe('E2E: Interactive Demo Showcase (demo/index.html)', () => {
-  test('Halaman demo dapat dibuka, me-load iframe WebApp, dan merender simulasi realtime', async ({ page }) => {
-    const demoPath = 'file://' + path.resolve(__dirname, '../../demo/index.html').replace(/\\/g, '/');
-    await page.goto(demoPath);
+test.describe('E2E: Showcase Preview & Standalone Mode', () => {
+  test('Root preview.html memuat showcase interaktif dan tombol Mode Aplikasi Layar Penuh', async ({ page }) => {
+    const previewPath = 'file://' + path.resolve(__dirname, '../../preview.html').replace(/\\/g, '/');
+    await page.goto(previewPath);
 
-    // 1. Cek Header & Selling Points
+    // 1. Cek Header Showcase
     await expect(page.locator('h1')).toContainText('Finance Tracker');
     await expect(page.locator('#deviceContainer')).toBeVisible();
 
-    // 2. Cek Tabel Simulasi Spreadsheet Awal
+    // 2. Cek Tombol Buka Demo Layar Penuh / Mode Aplikasi
+    const btnFullscreen = page.locator('a:has-text("Buka Demo Layar Penuh / Mode Aplikasi")');
+    await expect(btnFullscreen).toBeVisible();
+    await expect(btnFullscreen).toHaveAttribute('href', 'WebApp.html');
+    await expect(btnFullscreen).toHaveAttribute('target', '_blank');
+
+    // 3. Cek Simulasi Spreadsheet Realtime
     await expect(page.locator('#simulatedTxTableBody')).toBeVisible();
     await expect(page.locator('#simulatedTxTableBody tr')).toHaveCount(2);
-
-    // 3. Switch Tab ke DOMPET
-    await page.click('#btnTabSheetWallets');
-    await expect(page.locator('#simulatedWalletsTableWrapper')).toBeVisible();
-    await expect(page.locator('#simulatedWalletsTableBody tr')).toHaveCount(3);
 
     // 4. Toggle Viewport ke Desktop View
     await page.click('#btnViewDesktop');
@@ -27,5 +28,14 @@ test.describe('E2E: Interactive Demo Showcase (demo/index.html)', () => {
     // 5. Toggle kembali ke Mobile
     await page.click('#btnViewMobile');
     await expect(page.locator('#deviceContainer')).toHaveClass(/device-mobile/);
+  });
+
+  test('Root WebApp.html dapat dibuka langsung secara mandiri tanpa simulator', async ({ page }) => {
+    const webAppPath = 'file://' + path.resolve(__dirname, '../../WebApp.html').replace(/\\/g, '/');
+    await page.goto(webAppPath);
+
+    // Pastikan shell aplikasi Finance Tracker terbuka langsung
+    await expect(page.locator('.brand-name').first()).toContainText('Finance Tracker');
+    await expect(page.locator('#app-root')).toBeVisible();
   });
 });
