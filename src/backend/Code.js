@@ -86,6 +86,8 @@ function apiDispatcher(action, payload) {
         return { success: true, data: saveBudget(payload) };
       case "deleteBudget":
         return { success: true, data: deleteBudget(payload.id) };
+      case "saveCategory":
+        return { success: true, data: saveCategory(payload) };
       case "saveWallet":
         return { success: true, data: saveWallet(payload) };
       case "deleteWallet":

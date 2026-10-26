@@ -5,7 +5,6 @@
     currentMonthPeriod: new Date().toISOString().substring(0, 7),
     bookView: 'daily', // 'daily' | 'monthly' | 'stats'
     statsType: 'Expense', // 'Expense' | 'Income'
-    selectedCalendarDate: null,
     data: null,
     isLoading: true,
     filterCategory: 'ALL',
@@ -100,15 +99,6 @@
     renderApp();
   }
 
-  function selectCalendarDay(dateStr) {
-    if (appState.selectedCalendarDate === dateStr) {
-      appState.selectedCalendarDate = null;
-    } else {
-      appState.selectedCalendarDate = dateStr;
-    }
-    renderApp();
-  }
-
   function parseCurrencyValue(val) {
     if (typeof val === 'number') return val;
     if (!val) return 0;
@@ -118,12 +108,34 @@
 
   function handleCurrencyInput(el) {
     if (!el) return;
-    const rawVal = parseCurrencyValue(el.value);
-    if (rawVal === 0 && el.value.trim() === '') {
+    const originalValue = el.value;
+    const origCursorPos = el.selectionStart || 0;
+
+    // Hitung jumlah digit sebelum posisi kursor awal untuk menjaga letak kursor
+    const digitsBeforeCursor = originalValue.slice(0, origCursorPos).replace(/\D/g, '').length;
+
+    const rawVal = parseCurrencyValue(originalValue);
+    if (rawVal === 0 && originalValue.trim() === '') {
       el.value = '';
-    } else {
-      el.value = new Intl.NumberFormat('id-ID').format(rawVal);
+      return;
     }
+
+    const formatted = new Intl.NumberFormat('id-ID').format(rawVal);
+    el.value = formatted;
+
+    // Hitung ulang posisi kursor berdasarkan digit yang ada
+    let newCursorPos = 0;
+    let digitsCount = 0;
+    while (newCursorPos < formatted.length && digitsCount < digitsBeforeCursor) {
+      if (/\d/.test(formatted[newCursorPos])) {
+        digitsCount++;
+      }
+      newCursorPos++;
+    }
+
+    try {
+      el.setSelectionRange(newCursorPos, newCursorPos);
+    } catch (e) {}
   }
 
   function applyQuickTemplate(name, amount, type, categoryName) {
@@ -194,7 +206,6 @@
     if (m > 12) { m = 1; y += 1; }
     else if (m < 1) { m = 12; y -= 1; }
     appState.currentMonthPeriod = `${y}-${String(m).padStart(2, '0')}`;
-    appState.selectedCalendarDate = null;
     renderApp();
   }
 
@@ -357,9 +368,11 @@
     const monthGroups = getMonthlySummaryGroups(transactions);
     const activePeriod = appState.currentMonthPeriod;
     const activeGroup = monthGroups.find(g => g.period === activePeriod) || monthGroups[0];
+    const activeYear = activePeriod ? activePeriod.substring(0, 4) : String(new Date().getFullYear());
 
-    const totalYearIncome = monthGroups.reduce((sum, g) => sum + g.income, 0);
-    const totalYearExpense = monthGroups.reduce((sum, g) => sum + g.expense, 0);
+    const yearGroups = monthGroups.filter(g => g.period && g.period.startsWith(activeYear));
+    const totalYearIncome = yearGroups.reduce((sum, g) => sum + g.income, 0);
+    const totalYearExpense = yearGroups.reduce((sum, g) => sum + g.expense, 0);
     const totalYearNet = totalYearIncome - totalYearExpense;
 
     return `
@@ -368,9 +381,9 @@
         <div class="section-header" style="margin-bottom: 8px;">
           <div>
             <div class="section-title">Rekapitulasi Arus Kas Bulanan</div>
-            <div style="font-size: 11.5px; color: var(--text-muted);">${monthGroups.length} Periode Bulan Tercatat</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">${yearGroups.length} Periode Bulan Tercatat (${activeYear})</div>
           </div>
-          <span class="user-badge">${activePeriod ? activePeriod.substring(0, 4) : new Date().getFullYear()}</span>
+          <span class="user-badge">${activeYear}</span>
         </div>
         <div class="ticker-card" style="margin-bottom: 0; box-shadow: none; border: 1px solid var(--border-subtle); background: var(--sage-50);">
           <div class="ticker-item">
@@ -480,11 +493,6 @@
 
   function switchCycle(cycle) {
     appState.selectedCycle = cycle;
-    renderApp();
-  }
-
-  function filterPeriodChange(val) {
-    appState.filterPeriod = val;
     renderApp();
   }
 
@@ -636,7 +644,7 @@
       const destW = (wallets || []).find(item => item.id === tx.destWalletId);
       const destName = destW ? destW.name : (tx.destWalletName || '-');
       if (wName === destName) return wName;
-      return `${wName} &rarr; ${destName}`;
+      return `${wName} \u2192 ${destName}`;
     }
     return wName;
   }
@@ -657,10 +665,20 @@
       alert("Masukkan nominal transaksi yang valid (> 0).");
       return;
     }
-
-    if (appState.form.type === 'Transfer' && walletVal === destWalletVal) {
-      alert("Kantong asal dan kantong tujuan transfer tidak boleh sama.");
+    if (!walletVal) {
+      alert("Pilih kantong dompet transaksi.");
       return;
+    }
+
+    if (appState.form.type === 'Transfer') {
+      if (!destWalletVal) {
+        alert("Pilih rekening tujuan transfer.");
+        return;
+      }
+      if (walletVal === destWalletVal) {
+        alert("Kantong asal dan kantong tujuan transfer tidak boleh sama.");
+        return;
+      }
     }
 
     const payload = {
@@ -668,8 +686,8 @@
       amount: rawAmount,
       date: dateVal,
       walletId: walletVal,
-      destWalletId: destWalletVal,
-      categoryId: catVal,
+      destWalletId: appState.form.type === 'Transfer' ? destWalletVal : '',
+      categoryId: appState.form.type === 'Transfer' ? '' : catVal,
       notes: notesVal
     };
 
@@ -677,16 +695,23 @@
       payload.id = editId;
     }
 
-    closeModal('transaction-modal');
-    appState.isLoading = true;
-    renderApp();
+    const submitBtn = document.getElementById('btn-submit-tx');
+    const origBtnText = submitBtn ? submitBtn.innerText : 'Simpan Transaksi';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Menyimpan...';
+    }
 
     const action = editId ? 'updateTransaction' : 'createTransaction';
 
     google.script.run
       .withSuccessHandler(res => {
-        if (res.success) {
-          // Otomatis arahkan Buku Kas ke bulan transaksi jika dicatat di periode berbeda
+        if (res && res.success) {
+          closeModal('transaction-modal');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = origBtnText;
+          }
           if (payload.date && payload.date.length >= 7) {
             const txPeriod = payload.date.substring(0, 7);
             if (txPeriod !== appState.currentMonthPeriod) {
@@ -694,10 +719,21 @@
             }
           }
           loadDashboardData();
+        } else {
+          alert("Gagal menyimpan transaksi: " + ((res && res.error) || "Terjadi kesalahan"));
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = origBtnText;
+          }
         }
-        else { alert("Gagal: " + res.error); appState.isLoading = false; renderApp(); }
       })
-      .withFailureHandler(err => { alert("Error: " + err.message); appState.isLoading = false; renderApp(); })
+      .withFailureHandler(err => {
+        alert("Gagal terhubung: " + err.message);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = origBtnText;
+        }
+      })
       .apiDispatcher(action, payload);
   }
 
@@ -707,13 +743,37 @@
     if (!catId) return alert("Pilih kategori pengeluaran.");
     if (!rawLimit || rawLimit <= 0) return alert("Masukkan nominal batas anggaran yang valid (> 0).");
 
-    closeModal('budget-modal');
-    appState.isLoading = true;
-    renderApp();
+    const submitBtn = document.getElementById('btn-submit-budget');
+    const origBtnText = submitBtn ? submitBtn.innerText : 'Simpan Anggaran';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Menyimpan...';
+    }
 
     google.script.run
-      .withSuccessHandler(res => { if (res.success) loadDashboardData(); else alert("Gagal: " + res.error); })
-      .withFailureHandler(err => { alert(err.message); appState.isLoading = false; renderApp(); })
+      .withSuccessHandler(res => {
+        if (res && res.success) {
+          closeModal('budget-modal');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = origBtnText;
+          }
+          loadDashboardData();
+        } else {
+          alert("Gagal menyimpan anggaran: " + ((res && res.error) || "Terjadi kesalahan"));
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = origBtnText;
+          }
+        }
+      })
+      .withFailureHandler(err => {
+        alert("Gagal terhubung: " + err.message);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = origBtnText;
+        }
+      })
       .apiDispatcher('saveBudget', { categoryId: catId, limitAmount: rawLimit });
   }
 
@@ -733,7 +793,7 @@
     renderApp();
 
     google.script.run
-      .withSuccessHandler(res => { if (res.success) loadDashboardData(); else alert("Gagal: " + res.error); })
+      .withSuccessHandler(res => { if (res && res.success) loadDashboardData(); else alert("Gagal: " + (res.error || "Terjadi kesalahan")); })
       .withFailureHandler(err => { alert(err.message); appState.isLoading = false; renderApp(); })
       .apiDispatcher('deleteTransaction', { id: id });
   }
@@ -748,25 +808,126 @@
     renderApp();
   }
 
-  function submitWalletForm() {
-    const name = document.getElementById('wallet-name').value;
-    const type = document.getElementById('wallet-type').value;
-    const initBal = parseCurrencyValue(document.getElementById('wallet-initial-balance').value);
-    if (!name) return alert("Nama dompet wajib diisi.");
+  function openCategoryModal() {
+    const nameEl = document.getElementById('category-name');
+    const typeEl = document.getElementById('category-type');
+    const submitBtn = document.getElementById('btn-submit-cat');
+    if (nameEl) nameEl.value = '';
+    if (typeEl) typeEl.value = appState.form.type === 'Income' ? 'Income' : 'Expense';
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerText = 'Simpan Kategori';
+    }
+    const modal = document.getElementById('category-modal');
+    if (modal) modal.style.display = 'flex';
+  }
 
-    closeModal('wallet-modal');
-    appState.isLoading = true;
-    renderApp();
+  function submitCategoryForm() {
+    const nameEl = document.getElementById('category-name');
+    const typeEl = document.getElementById('category-type');
+    const name = nameEl ? nameEl.value.trim() : '';
+    const type = typeEl ? typeEl.value : 'Expense';
+    if (!name) return alert("Nama kategori wajib diisi.");
+
+    const submitBtn = document.getElementById('btn-submit-cat');
+    const origBtnText = submitBtn ? submitBtn.innerText : 'Simpan Kategori';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Menyimpan...';
+    }
 
     google.script.run
-      .withSuccessHandler(res => { if (res.success) loadDashboardData(); else alert(res.error); })
-      .withFailureHandler(err => { alert(err.message); appState.isLoading = false; renderApp(); })
+      .withSuccessHandler(res => {
+        if (res && res.success) {
+          closeModal('category-modal');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = origBtnText;
+          }
+          if (res.data) {
+            if (!appState.data.categories) appState.data.categories = [];
+            const exists = appState.data.categories.some(c => c.id === res.data.id);
+            if (!exists) {
+              appState.data.categories.push(res.data);
+            }
+            updateCategoryDropdown(appState.form.type);
+            const formCat = document.getElementById('form-category');
+            if (formCat) formCat.value = res.data.id;
+            appState.form.categoryId = res.data.id;
+          }
+          loadDashboardData();
+        } else {
+          alert("Gagal menyimpan kategori: " + ((res && res.error) || "Terjadi kesalahan"));
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = origBtnText;
+          }
+        }
+      })
+      .withFailureHandler(err => {
+        alert("Gagal terhubung: " + err.message);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = origBtnText;
+        }
+      })
+      .apiDispatcher('saveCategory', { name, type });
+  }
+
+  function submitWalletForm() {
+    const nameEl = document.getElementById('wallet-name');
+    const typeEl = document.getElementById('wallet-type');
+    const balEl = document.getElementById('wallet-initial-balance');
+    const name = nameEl ? nameEl.value.trim() : '';
+    const type = typeEl ? typeEl.value : 'Cash';
+    const initBal = parseCurrencyValue(balEl ? balEl.value : 0);
+    if (!name) return alert("Nama dompet wajib diisi.");
+
+    const submitBtn = document.getElementById('btn-submit-wallet');
+    const origBtnText = submitBtn ? submitBtn.innerText : 'Simpan Dompet';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Menyimpan...';
+    }
+
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res && res.success) {
+          closeModal('wallet-modal');
+          if (nameEl) nameEl.value = '';
+          if (balEl) balEl.value = '';
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = origBtnText;
+          }
+          loadDashboardData();
+        } else {
+          alert("Gagal menyimpan dompet: " + ((res && res.error) || "Terjadi kesalahan"));
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = origBtnText;
+          }
+        }
+      })
+      .withFailureHandler(err => {
+        alert("Gagal terhubung: " + err.message);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = origBtnText;
+        }
+      })
       .apiDispatcher('saveWallet', { name, type, initialBalance: initBal });
   }
 
   function deleteWallet(id) {
+    if (!appState.data || !appState.data.wallets) return;
     if (appState.data.wallets.length <= 1) {
       alert("Aplikasi memerlukan minimal 1 kantong dompet aktif untuk mencatat keuangan.");
+      return;
+    }
+    const targetW = appState.data.wallets.find(w => w.id === id);
+    if (targetW && (Number(targetW.balance) || 0) > 0) {
+      alert("Kantong dompet masih memiliki saldo (" + formatRupiah(targetW.balance) + "). Pindahkan atau kosongkan saldo dompet terlebih dahulu sebelum menghapus.");
       return;
     }
     if (!confirm("Hapus / nonaktifkan kantong dompet ini?")) return;
@@ -774,8 +935,20 @@
     renderApp();
 
     google.script.run
-      .withSuccessHandler(() => loadDashboardData())
-      .withFailureHandler(err => { alert(err.message); appState.isLoading = false; renderApp(); })
+      .withSuccessHandler(res => {
+        if (res && res.success) {
+          loadDashboardData();
+        } else {
+          alert("Gagal menghapus dompet: " + ((res && res.error) || "Terjadi kesalahan"));
+          appState.isLoading = false;
+          renderApp();
+        }
+      })
+      .withFailureHandler(err => {
+        alert("Gagal terhubung: " + err.message);
+        appState.isLoading = false;
+        renderApp();
+      })
       .apiDispatcher('deleteWallet', { id: id });
   }
 
@@ -794,8 +967,37 @@
       d.categories = d.categories || [];
       d.budgets = d.budgets || [];
       d.recentTransactions = d.recentTransactions || [];
-      d.monthSummary = d.monthSummary || { period: '', income: 0, expense: 0, netSavings: 0 };
-      d.todaySummary = d.todaySummary || { date: '', income: 0, expense: 0, net: 0 };
+
+      // Single Source of Truth: Rekalkulasi dinamis dari data dompet & transaksi aktif
+      const activeWallets = d.wallets;
+      const allTxs = d.recentTransactions;
+
+      // 1. Total Saldo (netWorth) dari total seluruh dompet aktif
+      d.netWorth = activeWallets.reduce((sum, w) => sum + (Number(w.balance) || 0), 0);
+
+      // 2. Siklus Bulanan Aktif
+      const currentMonthTxs = allTxs.filter(t => t.date && t.date.startsWith(appState.currentMonthPeriod));
+      const mIncome = currentMonthTxs.filter(t => t.type === 'Income').reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      const mExpense = currentMonthTxs.filter(t => t.type === 'Expense').reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      const mNetSavings = mIncome - mExpense;
+      d.monthSummary = {
+        period: appState.currentMonthPeriod,
+        income: mIncome,
+        expense: mExpense,
+        netSavings: mNetSavings
+      };
+
+      // 3. Siklus Harian (Hari Ini)
+      const todayStr = new Date().toISOString().substring(0, 10);
+      const todayTxs = allTxs.filter(t => t.date === todayStr);
+      const tIncome = todayTxs.filter(t => t.type === 'Income').reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      const tExpense = todayTxs.filter(t => t.type === 'Expense').reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      d.todaySummary = {
+        date: todayStr,
+        income: tIncome,
+        expense: tExpense,
+        net: tIncome - tExpense
+      };
 
       let contentHtml = '';
 
@@ -885,23 +1087,29 @@
           </div>
           ${d.budgets.length === 0 ? `
             <div style="font-size: 12.5px; color: var(--text-muted); padding: 12px 0;">Belum ada anggaran disetel. Klik tombol <b>+ Atur Anggaran</b> untuk mulai membatasi belanja.</div>
-          ` : d.budgets.map(b => `
+          ` : d.budgets.map(b => {
+            const spent = currentMonthTxs.filter(t => t.type === 'Expense' && t.categoryId === b.categoryId).reduce((s, t) => s + (Number(t.amount) || 0), 0);
+            const limit = Number(b.limit) || 0;
+            const percent = limit > 0 ? Math.round((spent / limit) * 100) : 0;
+            const remaining = limit - spent;
+            return `
             <div class="mini-bar-item" style="margin-bottom: 10px;">
               <div class="mini-bar-header">
                 <span style="font-weight: 600;">${b.categoryName}</span>
                 <div style="display:flex; align-items:center; gap:8px;">
-                  <span class="tabular font-medium">${formatRupiah(b.spent)} / <span style="color:var(--text-muted);">${formatRupiah(b.limit)}</span> (${b.percent}%)</span>
-                  <button class="btn-delete-row" title="Hapus batas" onclick="deleteBudget('${b.id}')">&times;</button>
+                  <span class="tabular font-medium">${formatRupiah(spent)} / <span style="color:var(--text-muted);">${formatRupiah(limit)}</span> (${percent}%)</span>
+                  <button class="btn-delete-row touch-btn" title="Hapus batas" onclick="deleteBudget('${b.id}')">&times;</button>
                 </div>
               </div>
               <div class="progress-track">
-                <div class="progress-fill ${b.percent >= 100 ? 'over' : ''}" style="width: ${b.percent}%;"></div>
+                <div class="progress-fill ${percent >= 100 ? 'over' : ''}" style="width: ${Math.min(100, percent)}%;"></div>
               </div>
               <div style="font-size: 11px; color: var(--text-subtle); margin-top: 3px;">
-                ${b.remaining >= 0 ? `Tersisa: ${formatRupiah(b.remaining)}` : `<span class="text-expense font-bold">Melebihi budget ${formatRupiah(Math.abs(b.remaining))}</span>`}
+                ${remaining >= 0 ? `Tersisa: ${formatRupiah(remaining)}` : `<span class="text-expense font-bold">Melebihi budget ${formatRupiah(Math.abs(remaining))}</span>`}
               </div>
             </div>
-          `).join('')}
+            `;
+          }).join('')}
         </div>
 
         <!-- Porsi Pengeluaran Kategori (Statistik Kategori) -->

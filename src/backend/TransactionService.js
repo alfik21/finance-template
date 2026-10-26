@@ -183,13 +183,17 @@ function createTransaction(payload) {
   }
   if (!payload.walletId) throw new Error("Kantong dompet wajib dipilih.");
 
+  let destWalletId = payload.destWalletId || "";
+  let categoryId = payload.categoryId || "";
+
   if (payload.type === "Transfer") {
-    if (!payload.destWalletId) {
+    if (!destWalletId) {
       throw new Error("Rekening tujuan wajib dipilih untuk transfer kas.");
     }
-    if (payload.walletId === payload.destWalletId) {
+    if (payload.walletId === destWalletId) {
       throw new Error("Rekening asal dan tujuan tidak boleh sama.");
     }
+    categoryId = ""; // Sanitasi: kosongkan kategori belanja pada mutasi transfer
   }
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -202,10 +206,10 @@ function createTransaction(payload) {
     dateStr,
     payload.type,
     payload.walletId,
-    payload.destWalletId || "",
-    payload.categoryId || "",
+    destWalletId,
+    categoryId,
     Number(payload.amount),
-    payload.notes || "",
+    payload.notes || (payload.type === "Transfer" ? "Pindah Saldo Dompet" : ""),
     new Date().toISOString()
   ]);
 
@@ -219,13 +223,17 @@ function updateTransaction(payload) {
   }
   if (!payload.walletId) throw new Error("Kantong dompet wajib dipilih.");
 
+  let destWalletId = payload.destWalletId || "";
+  let categoryId = payload.categoryId || "";
+
   if (payload.type === "Transfer") {
-    if (!payload.destWalletId) {
+    if (!destWalletId) {
       throw new Error("Rekening tujuan wajib dipilih untuk transfer kas.");
     }
-    if (payload.walletId === payload.destWalletId) {
+    if (payload.walletId === destWalletId) {
       throw new Error("Rekening asal dan tujuan tidak boleh sama.");
     }
+    categoryId = ""; // Sanitasi: kosongkan kategori belanja pada mutasi transfer
   }
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -239,10 +247,10 @@ function updateTransaction(payload) {
       sheet.getRange(rowIdx, 2).setValue(dateStr);
       sheet.getRange(rowIdx, 3).setValue(payload.type);
       sheet.getRange(rowIdx, 4).setValue(payload.walletId);
-      sheet.getRange(rowIdx, 5).setValue(payload.destWalletId || "");
-      sheet.getRange(rowIdx, 6).setValue(payload.categoryId || "");
+      sheet.getRange(rowIdx, 5).setValue(destWalletId);
+      sheet.getRange(rowIdx, 6).setValue(categoryId);
       sheet.getRange(rowIdx, 7).setValue(Number(payload.amount));
-      sheet.getRange(rowIdx, 8).setValue(payload.notes || "");
+      sheet.getRange(rowIdx, 8).setValue(payload.notes || (payload.type === "Transfer" ? "Pindah Saldo Dompet" : ""));
       return { success: true, id: payload.id };
     }
   }
@@ -263,6 +271,30 @@ function deleteTransaction(txId) {
   throw new Error("Transaksi tidak ditemukan.");
 }
 
+function saveCategory(payload) {
+  if (!payload.name || !payload.name.trim()) {
+    throw new Error("Nama kategori wajib diisi.");
+  }
+  const name = payload.name.trim();
+  const type = payload.type || "Expense";
+  const icon = payload.icon || "Tag";
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const catSheet = ss.getSheetByName("KATEGORI");
+  const data = catSheet ? catSheet.getDataRange().getValues() : [];
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][1]).toLowerCase() === name.toLowerCase()) {
+      return { id: data[i][0], name: data[i][1], type: data[i][2], icon: data[i][3] };
+    }
+  }
+
+  const id = "C-" + Date.now().toString(36).toUpperCase();
+  if (catSheet) {
+    catSheet.appendRow([id, name, type, icon]);
+  }
+  return { id, name, type, icon };
+}
+
 function saveWallet(payload) {
   if (!payload.name) throw new Error("Nama dompet wajib diisi.");
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -278,6 +310,13 @@ function deleteWallet(id) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const txSheet = ss.getSheetByName("TRANSAKSI");
   const walletSheet = ss.getSheetByName("DOMPET");
+
+  // Validasi saldo: cegah penghapusan jika dompet masih memiliki saldo > 0
+  const dashData = getDashboardData();
+  const targetWallet = dashData.wallets.find(w => w.id === id);
+  if (targetWallet && Number(targetWallet.balance) > 0) {
+    throw new Error("Dompet masih memiliki saldo (" + targetWallet.balance + "). Pindahkan atau kosongkan saldo dompet terlebih dahulu sebelum menghapus.");
+  }
 
   // Periksa apakah dompet sudah pernah digunakan di catatan transaksi
   const txData = txSheet ? txSheet.getDataRange().getValues() : [];
