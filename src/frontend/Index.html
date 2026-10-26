@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Finance Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <?!= include('frontend/Styles'); ?>
+</head>
+<body class="<?= typeof mode !== 'undefined' ? mode : 'FULL' ?>">
+
+<div class="app-container">
+  <!-- Desktop Sidebar -->
+  <aside class="sidebar">
+    <div class="brand-title">
+      <div class="brand-header-left">
+        <span class="brand-dot"></span>
+        <span class="brand-name">Finance Tracker</span>
+      </div>
+      <span class="user-badge">Template Master</span>
+    </div>
+
+    <nav style="flex: 1;">
+      <div class="nav-item active touch-btn" data-tab="dashboard" onclick="switchTab('dashboard')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
+          <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
+          <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
+          <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
+        </svg>
+        <span>Ringkasan</span>
+      </div>
+      <div class="nav-item touch-btn" data-tab="transactions" onclick="switchTab('transactions')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+          <path d="M7 6h9"></path>
+          <path d="M7 10h9"></path>
+          <path d="M7 14h5"></path>
+        </svg>
+        <span>Buku Kas</span>
+      </div>
+    </nav>
+
+    <div style="border-top: 1px solid var(--border-subtle); padding-top: 16px;">
+      <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 3px;">Akun Aktif</div>
+      <div style="font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main);">
+        <?= typeof userEmail !== 'undefined' ? userEmail : 'Pengguna' ?>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main View Workspace -->
+  <main class="main-content">
+    <!-- Top Mobile Identity Header (Visible on Mobile / Sidebar, Hidden on Desktop) -->
+    <header class="mobile-header">
+      <div class="mobile-header-left">
+        <span class="brand-dot"></span>
+        <span class="brand-name">Finance Tracker</span>
+        <span class="user-badge">Master</span>
+      </div>
+      <div class="mobile-header-right">
+        <span class="mobile-user-email"><?= typeof userEmail !== 'undefined' ? userEmail : 'Pengguna' ?></span>
+      </div>
+    </header>
+
+    <div id="app-root"></div>
+  </main>
+</div>
+
+<!-- Mobile Bottom Navigation (Ergonomic 3-Column Touch Bar) -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <button type="button" class="mobile-nav-item active touch-btn" data-tab="dashboard" onclick="switchTab('dashboard')" aria-label="Ringkasan" title="Ringkasan">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
+        <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
+        <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
+        <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
+      </svg>
+      <span>Ringkasan</span>
+    </button>
+    <button type="button" class="mobile-nav-item action touch-btn" onclick="openModal('transaction-modal', 'Expense')" aria-label="Catat Transaksi" title="Catat Transaksi">
+      <div class="action-fab">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </div>
+      <span>Catat</span>
+    </button>
+    <button type="button" class="mobile-nav-item touch-btn" data-tab="transactions" onclick="switchTab('transactions')" aria-label="Buku Kas" title="Buku Kas">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+        <path d="M7 6h9"></path>
+        <path d="M7 10h9"></path>
+        <path d="M7 14h5"></path>
+      </svg>
+      <span>Buku Kas</span>
+    </button>
+  </div>
+</nav>
+
+<!-- Modal Input Transaksi -->
+<div id="transaction-modal" class="modal-overlay" style="display: none;" onclick="if(event.target === this) closeModal('transaction-modal');">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-title" id="transaction-modal-title">Catat Transaksi Baru</div>
+      <button class="btn-delete-row touch-btn" onclick="closeModal('transaction-modal')" style="font-size: 18px;">&times;</button>
+    </div>
+
+    <input type="hidden" id="form-edit-id" value="">
+
+    <!-- Segmented Type Selector -->
+    <div class="modal-type-group">
+      <button type="button" class="modal-type-btn touch-btn active" id="btn-type-expense" onclick="handleFormTypeChange('Expense')">Pengeluaran</button>
+      <button type="button" class="modal-type-btn touch-btn" id="btn-type-income" onclick="handleFormTypeChange('Income')">Pemasukan</button>
+      <button type="button" class="modal-type-btn touch-btn" id="btn-type-transfer" onclick="handleFormTypeChange('Transfer')">Pindah Saldo</button>
+    </div>
+
+    <!-- Quick Bookmark Templates -->
+    <div class="quick-chips-wrapper" id="modal-quick-chips">
+      <div class="quick-chips-title">Tombol Cepat (1 Ketuk)</div>
+      <div class="quick-chips-list">
+        <button type="button" class="quick-chip touch-btn" onclick="applyQuickTemplate('Makan Siang', 25000, 'Expense', 'Makan & Minum')">Makan Siang 25rb</button>
+        <button type="button" class="quick-chip touch-btn" onclick="applyQuickTemplate('Kopi / Minuman', 18000, 'Expense', 'Makan & Minum')">Kopi 18rb</button>
+        <button type="button" class="quick-chip touch-btn" onclick="applyQuickTemplate('Bensin Motor', 30000, 'Expense', 'Transportasi & Bensin')">Bensin 30rb</button>
+        <button type="button" class="quick-chip touch-btn" onclick="applyQuickTemplate('Parkir', 2000, 'Expense', 'Transportasi & Bensin')">Parkir 2rb</button>
+        <button type="button" class="quick-chip touch-btn" onclick="applyQuickTemplate('Belanja Rumah', 50000, 'Expense', 'Kebutuhan Rumah')">Belanja 50rb</button>
+      </div>
+    </div>
+
+    <form onsubmit="event.preventDefault(); submitTransactionForm();">
+      <div class="form-group">
+        <label class="form-label" for="form-amount">Nominal</label>
+        <div style="position: relative; display: flex; align-items: center;">
+          <span style="position: absolute; left: 14px; font-weight: 700; color: var(--text-muted); font-size: 15px;">Rp</span>
+          <input type="text" inputmode="numeric" id="form-amount" class="form-input tabular" style="padding-left: 42px; font-size: 17px; font-weight: 700;" placeholder="0" required autofocus oninput="handleCurrencyInput(this)">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label" for="form-date">Tanggal</label>
+          <input type="date" id="form-date" class="form-input" required value="<?= new Date().toISOString().substring(0, 10) ?>">
+        </div>
+
+        <div class="form-group" id="form-wallet-group">
+          <label class="form-label" for="form-wallet" id="form-wallet-label">Sumber Dompet</label>
+          <select id="form-wallet" class="form-select"></select>
+        </div>
+      </div>
+
+      <div class="form-group" id="form-dest-wallet-group" style="display: none;">
+        <label class="form-label" for="form-dest-wallet">Ke Rekening (Tujuan)</label>
+        <select id="form-dest-wallet" class="form-select"></select>
+      </div>
+
+      <div class="form-group" id="form-category-group">
+        <label class="form-label" for="form-category" id="form-category-label">Kategori</label>
+        <select id="form-category" class="form-select"></select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="form-notes">Catatan (Opsional)</label>
+        <input type="text" id="form-notes" class="form-input" placeholder="Makan siang / bensin / belanja">
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn touch-btn" onclick="closeModal('transaction-modal')">Batal</button>
+        <button type="submit" class="btn btn-primary touch-btn" id="btn-submit-tx">Simpan Transaksi</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Atur Anggaran (Dibuka dari Dashboard) -->
+<div id="budget-modal" class="modal-overlay" style="display: none;" onclick="if(event.target === this) closeModal('budget-modal');">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-title">Atur Batas Anggaran Bulanan</div>
+      <button class="btn-delete-row touch-btn" onclick="closeModal('budget-modal')" style="font-size: 18px;">&times;</button>
+    </div>
+    <form onsubmit="event.preventDefault(); submitBudgetForm();">
+      <div class="form-group">
+        <label class="form-label" for="budget-cat">Kategori Pengeluaran</label>
+        <select id="budget-cat" class="form-select"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="budget-limit">Batas Maksimal Anggaran (Rp)</label>
+        <div style="position: relative; display: flex; align-items: center;">
+          <span style="position: absolute; left: 14px; font-weight: 700; color: var(--text-muted); font-size: 14px;">Rp</span>
+          <input type="text" inputmode="numeric" id="budget-limit" class="form-input tabular" style="padding-left: 42px;" placeholder="0" required oninput="handleCurrencyInput(this)">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn touch-btn" onclick="closeModal('budget-modal')">Batal</button>
+        <button type="submit" class="btn btn-primary touch-btn">Simpan Anggaran</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Tambah Dompet Baru -->
+<div id="wallet-modal" class="modal-overlay" style="display: none;" onclick="if(event.target === this) closeModal('wallet-modal');">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-title">Tambah Rekening / Dompet Baru</div>
+      <button class="btn-delete-row touch-btn" onclick="closeModal('wallet-modal')" style="font-size: 18px;">&times;</button>
+    </div>
+    <form onsubmit="event.preventDefault(); submitWalletForm();">
+      <div class="form-group">
+        <label class="form-label" for="wallet-name">Nama Dompet / Rekening</label>
+        <input type="text" id="wallet-name" class="form-input" placeholder="Contoh: Bank Jago / SeaBank / Tunai" required autofocus>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="wallet-type">Jenis Akun</label>
+        <select id="wallet-type" class="form-select">
+          <option value="Bank">Bank</option>
+          <option value="E-Wallet">E-Wallet</option>
+          <option value="Cash">Kas Tunai</option>
+          <option value="Credit">Kartu Kredit / Paylater</option>
+        </select>
+      <div class="form-group">
+        <label class="form-label" for="wallet-initial-balance">Saldo Awal Tabungan (Rp)</label>
+        <div style="position: relative; display: flex; align-items: center;">
+          <span style="position: absolute; left: 14px; font-weight: 700; color: var(--text-muted); font-size: 14px;">Rp</span>
+          <input type="text" inputmode="numeric" id="wallet-initial-balance" class="form-input tabular" style="padding-left: 42px; font-weight: 600;" placeholder="0" oninput="handleCurrencyInput(this)">
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 5px;">
+          *Saldo tabungan/kas yang sudah ada saat ini. Menambah total saldo tanpa dihitung sebagai pemasukan bulan berjalan.
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn touch-btn" onclick="closeModal('wallet-modal')">Batal</button>
+        <button type="submit" class="btn btn-primary touch-btn">Simpan Dompet</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<?!= include('frontend/App'); ?>
+</body>
+</html>

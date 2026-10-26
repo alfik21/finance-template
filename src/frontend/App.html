@@ -1,0 +1,1187 @@
+<script>
+  const appState = {
+    activeTab: 'dashboard',
+    selectedCycle: 'month',
+    currentMonthPeriod: new Date().toISOString().substring(0, 7),
+    bookView: 'daily', // 'daily' | 'monthly' | 'stats'
+    statsType: 'Expense', // 'Expense' | 'Income'
+    selectedCalendarDate: null,
+    data: null,
+    isLoading: true,
+    filterCategory: 'ALL',
+    searchQuery: '',
+    form: {
+      type: 'Expense',
+      amount: '',
+      walletId: '',
+      destWalletId: '',
+      categoryId: '',
+      notes: '',
+      date: new Date().toISOString().substring(0, 10)
+    }
+  };
+
+  function initApp() {
+    loadDashboardData();
+    setupKeyboardShortcuts();
+  }
+
+  function loadDashboardData() {
+    appState.isLoading = true;
+    renderApp();
+
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run
+        .withSuccessHandler(res => {
+          appState.isLoading = false;
+          if (res && res.success) {
+            appState.data = res.data;
+            if (appState.data && appState.data.monthSummary && appState.data.monthSummary.period) {
+              appState.currentMonthPeriod = appState.data.monthSummary.period;
+            }
+            if (appState.data && Array.isArray(appState.data.wallets) && appState.data.wallets.length > 0 && !appState.form.walletId) {
+              appState.form.walletId = appState.data.wallets[0].id;
+            }
+            if (appState.data && Array.isArray(appState.data.categories) && appState.data.categories.length > 0 && !appState.form.categoryId) {
+              const expCat = appState.data.categories.find(c => c.type === 'Expense');
+              if (expCat) appState.form.categoryId = expCat.id;
+            }
+          } else {
+            alert("Kendala: " + ((res && res.error) || "Gagal memuat data"));
+          }
+          renderApp();
+        })
+        .withFailureHandler(err => {
+          appState.isLoading = false;
+          alert("Gagal terhubung: " + err.message);
+          renderApp();
+        })
+        .apiDispatcher('getDashboard', {});
+    }
+  }
+
+  function setupKeyboardShortcuts() {
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAllModals();
+      } else if ((e.key === 'n' || e.key === 'N') && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        openModal('transaction-modal', 'Expense');
+      }
+    });
+  }
+
+  function switchTab(tab) {
+    appState.activeTab = tab;
+    document.querySelectorAll('.nav-item').forEach(el => {
+      if (el.getAttribute('data-tab') === tab) {
+        el.classList.add('active');
+      } else {
+        el.classList.remove('active');
+      }
+    });
+    document.querySelectorAll('.mobile-nav-item').forEach(el => {
+      if (el.getAttribute('data-tab') === tab) {
+        el.classList.add('active');
+      } else {
+        el.classList.remove('active');
+      }
+    });
+    renderApp();
+  }
+
+  function switchBookView(view) {
+    appState.bookView = view;
+    renderApp();
+  }
+
+  function switchStatsType(type) {
+    appState.statsType = type;
+    renderApp();
+  }
+
+  function selectCalendarDay(dateStr) {
+    if (appState.selectedCalendarDate === dateStr) {
+      appState.selectedCalendarDate = null;
+    } else {
+      appState.selectedCalendarDate = dateStr;
+    }
+    renderApp();
+  }
+
+  function parseCurrencyValue(val) {
+    if (typeof val === 'number') return val;
+    if (!val) return 0;
+    const cleanStr = String(val).replace(/[^0-9]/g, '');
+    return cleanStr ? parseInt(cleanStr, 10) : 0;
+  }
+
+  function handleCurrencyInput(el) {
+    if (!el) return;
+    const rawVal = parseCurrencyValue(el.value);
+    if (rawVal === 0 && el.value.trim() === '') {
+      el.value = '';
+    } else {
+      el.value = new Intl.NumberFormat('id-ID').format(rawVal);
+    }
+  }
+
+  function applyQuickTemplate(name, amount, type, categoryName) {
+    handleFormTypeChange(type);
+    const amountEl = document.getElementById('form-amount');
+    const notesEl = document.getElementById('form-notes');
+    if (amountEl) {
+      amountEl.value = new Intl.NumberFormat('id-ID').format(amount);
+    }
+    if (notesEl) notesEl.value = name;
+    appState.form.amount = amount;
+    appState.form.notes = name;
+
+    if (appState.data && appState.data.categories) {
+      const catLower = (categoryName || '').toLowerCase();
+      const cat = appState.data.categories.find(c => 
+        c.type === type && (c.name.toLowerCase() === catLower || c.name.toLowerCase().includes(catLower) || catLower.includes(c.name.toLowerCase()))
+      );
+      if (cat) {
+        const catSelect = document.getElementById('form-category');
+        if (catSelect) catSelect.value = cat.id;
+        appState.form.categoryId = cat.id;
+      }
+    }
+  }
+
+  function formatRupiah(num) {
+    return "Rp " + new Intl.NumberFormat('id-ID').format(Number(num) || 0);
+  }
+
+  function formatPeriodMonth(periodStr) {
+    if (!periodStr) return '';
+    const parts = periodStr.split('-');
+    const m = parts[1];
+    const y = parts[0];
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const idx = parseInt(m, 10) - 1;
+    return (months[idx] || m) + ' ' + y;
+  }
+
+  function formatPeriodDate(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length < 3) return dateStr;
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const idx = parseInt(parts[1], 10) - 1;
+    return `${parseInt(parts[2], 10)} ${months[idx] || parts[1]} ${parts[0]}`;
+  }
+
+  function formatFullDateWithDay(dateStr) {
+    if (!dateStr || dateStr.length < 10) return dateStr || '-';
+    const parts = dateStr.split('-');
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const d = parseInt(parts[2], 10);
+    const dateObj = new Date(y, m - 1, d);
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const dayName = days[dateObj.getDay()] || '';
+    const monthName = months[m - 1] || m;
+    return `${dayName}, ${d} ${monthName} ${y}`;
+  }
+
+  function changeMonthStep(delta) {
+    const parts = appState.currentMonthPeriod.split('-');
+    let y = parseInt(parts[0], 10);
+    let m = parseInt(parts[1], 10) + delta;
+    if (m > 12) { m = 1; y += 1; }
+    else if (m < 1) { m = 12; y -= 1; }
+    appState.currentMonthPeriod = `${y}-${String(m).padStart(2, '0')}`;
+    appState.selectedCalendarDate = null;
+    renderApp();
+  }
+
+  function groupTransactionsByDate(transactions) {
+    const groups = {};
+    transactions.forEach(tx => {
+      const dateKey = tx.date || 'Lainnya';
+      if (!groups[dateKey]) {
+        groups[dateKey] = { date: dateKey, items: [], totalNet: 0, totalIncome: 0, totalExpense: 0 };
+      }
+      groups[dateKey].items.push(tx);
+      const amt = Number(tx.amount) || 0;
+      if (tx.type === 'Income') {
+        groups[dateKey].totalIncome += amt;
+        groups[dateKey].totalNet += amt;
+      } else if (tx.type === 'Expense') {
+        groups[dateKey].totalExpense += amt;
+        groups[dateKey].totalNet -= amt;
+      }
+    });
+    return Object.keys(groups).sort((a, b) => b.localeCompare(a)).map(k => groups[k]);
+  }
+
+  function getCategoryBreakdown(transactions, targetType = 'Expense') {
+    const matchedTxs = (transactions || []).filter(t => t.type === targetType);
+    const totalAmt = matchedTxs.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+    if (totalAmt === 0) return { items: [], total: 0 };
+    const map = {};
+    matchedTxs.forEach(t => {
+      const cat = t.categoryName || 'Lainnya';
+      map[cat] = (map[cat] || 0) + (Number(t.amount) || 0);
+    });
+    const items = Object.keys(map).map(cat => {
+      const amt = map[cat];
+      const percent = Math.round((amt / totalAmt) * 100);
+      return { name: cat, categoryName: cat, amount: amt, percent };
+    }).sort((a, b) => b.amount - a.amount);
+    return { items, total: totalAmt };
+  }
+
+  function getWalletBreakdown(transactions, wallets) {
+    const expenseTxs = transactions.filter(t => t.type === 'Expense');
+    const totalExp = expenseTxs.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+    if (totalExp === 0) return [];
+    const map = {};
+    expenseTxs.forEach(t => {
+      const wId = t.walletId;
+      const w = wallets.find(x => x.id === wId);
+      const wName = w ? w.name : 'Lainnya';
+      map[wName] = (map[wName] || 0) + (Number(t.amount) || 0);
+    });
+    return Object.keys(map).map(name => {
+      const amt = map[name];
+      const percent = Math.round((amt / totalExp) * 100);
+      return { walletName: name, amount: amt, percent };
+    }).sort((a, b) => b.amount - a.amount);
+  }
+
+  const CHART_PALETTE = ['#1b4332', '#2d6a4f', '#40916c', '#d97706', '#dc2626', '#2563eb', '#656b73', '#0891b2', '#059669', '#7c3aed'];
+
+  function renderDonutChart(items, total) {
+    if (!items || items.length === 0 || total === 0) {
+      return `
+        <div class="donut-wrapper">
+          <svg class="donut-chart-svg" viewBox="0 0 42 42">
+            <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--bg-subtle)" stroke-width="5"></circle>
+            <text x="21" y="22" font-size="3" font-weight="700" text-anchor="middle" fill="var(--text-muted)" transform="rotate(90 21 21)">Rp 0</text>
+          </svg>
+          <div style="font-size: 13px; color: var(--text-muted);">Belum ada data untuk ditampilkan.</div>
+        </div>
+      `;
+    }
+
+    let cumulativePercent = 0;
+    const slices = items.map((item, idx) => {
+      const color = CHART_PALETTE[idx % CHART_PALETTE.length];
+      const strokeDash = `${item.percent} ${100 - item.percent}`;
+      const strokeOffset = 100 - cumulativePercent;
+      cumulativePercent += item.percent;
+      return `<circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="${color}" stroke-width="5" stroke-dasharray="${strokeDash}" stroke-dashoffset="${strokeOffset}"></circle>`;
+    }).join('');
+
+    const legend = items.map((item, idx) => {
+      const color = CHART_PALETTE[idx % CHART_PALETTE.length];
+      return `
+        <div class="donut-legend-item">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="donut-color-dot" style="background:${color};"></span>
+            <span style="font-weight:600;">${item.name}</span>
+          </div>
+          <div class="tabular font-medium">
+            <span>${formatRupiah(item.amount)}</span>
+            <span style="color:var(--text-muted); margin-left:4px;">(${item.percent}%)</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="donut-wrapper">
+        <svg class="donut-chart-svg" viewBox="0 0 42 42">
+          <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="var(--bg-subtle)" stroke-width="5"></circle>
+          ${slices}
+          <text x="21" y="21" font-size="3.2" font-weight="700" text-anchor="middle" fill="var(--text-main)" transform="rotate(90 21 21)">${formatRupiah(total)}</text>
+          <text x="21" y="24.5" font-size="1.8" font-weight="600" text-anchor="middle" fill="var(--text-muted)" transform="rotate(90 21 21)">Total</text>
+        </svg>
+        <div class="donut-legend">${legend}</div>
+      </div>
+    `;
+  }
+
+  function selectMonthlyPeriod(period) {
+    appState.currentMonthPeriod = period;
+    renderApp();
+  }
+
+  function getMonthlySummaryGroups(transactions) {
+    const groups = {};
+    (transactions || []).forEach(tx => {
+      if (!tx.date) return;
+      const period = tx.date.substring(0, 7);
+      if (!groups[period]) {
+        groups[period] = {
+          period: period,
+          income: 0,
+          expense: 0,
+          net: 0,
+          count: 0,
+          items: []
+        };
+      }
+      const amt = Number(tx.amount) || 0;
+      if (tx.type === 'Income') {
+        groups[period].income += amt;
+        groups[period].net += amt;
+      } else if (tx.type === 'Expense') {
+        groups[period].expense += amt;
+        groups[period].net -= amt;
+      }
+      groups[period].count += 1;
+      groups[period].items.push(tx);
+    });
+
+    const sortedPeriods = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+    if (sortedPeriods.length === 0 && appState.currentMonthPeriod) {
+      groups[appState.currentMonthPeriod] = {
+        period: appState.currentMonthPeriod,
+        income: 0,
+        expense: 0,
+        net: 0,
+        count: 0,
+        items: []
+      };
+      sortedPeriods.push(appState.currentMonthPeriod);
+    }
+    return sortedPeriods.map(p => groups[p]);
+  }
+
+  function renderMonthlyView(transactions, wallets) {
+    const monthGroups = getMonthlySummaryGroups(transactions);
+    const activePeriod = appState.currentMonthPeriod;
+    const activeGroup = monthGroups.find(g => g.period === activePeriod) || monthGroups[0];
+
+    const totalYearIncome = monthGroups.reduce((sum, g) => sum + g.income, 0);
+    const totalYearExpense = monthGroups.reduce((sum, g) => sum + g.expense, 0);
+    const totalYearNet = totalYearIncome - totalYearExpense;
+
+    return `
+      <!-- Kartu Akumulasi Tahunan -->
+      <div class="overview-panel" style="margin-bottom: 16px;">
+        <div class="section-header" style="margin-bottom: 8px;">
+          <div>
+            <div class="section-title">Rekapitulasi Arus Kas Bulanan</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">${monthGroups.length} Periode Bulan Tercatat</div>
+          </div>
+          <span class="user-badge">${activePeriod ? activePeriod.substring(0, 4) : new Date().getFullYear()}</span>
+        </div>
+        <div class="ticker-card" style="margin-bottom: 0; box-shadow: none; border: 1px solid var(--border-subtle); background: var(--sage-50);">
+          <div class="ticker-item">
+            <div class="ticker-label">Total Pemasukan</div>
+            <div class="ticker-val text-income tabular">+${formatRupiah(totalYearIncome)}</div>
+          </div>
+          <div class="ticker-item">
+            <div class="ticker-label">Total Pengeluaran</div>
+            <div class="ticker-val text-expense tabular">-${formatRupiah(totalYearExpense)}</div>
+          </div>
+          <div class="ticker-item">
+            <div class="ticker-label">${totalYearNet < 0 ? 'Defisit Total' : 'Sisa Kas Total'}</div>
+            <div class="ticker-val tabular ${totalYearNet < 0 ? 'text-expense font-bold' : ''}">${formatRupiah(totalYearNet)}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kartu Pilihan Bulan -->
+      <div class="section-header" style="margin-bottom: 10px;">
+        <div class="section-title">Pilih Bulan Rekap</div>
+        <div style="font-size: 11.5px; color: var(--text-muted);">Ketuk kartu untuk melihat catatan transaksi</div>
+      </div>
+
+      <div class="monthly-cards-grid">
+        ${monthGroups.map(g => {
+          const isSelected = g.period === activePeriod;
+          return `
+            <div class="monthly-card touch-btn ${isSelected ? 'selected' : ''}" onclick="selectMonthlyPeriod('${g.period}')">
+              <div class="monthly-card-header">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span class="monthly-card-title">${formatPeriodMonth(g.period)}</span>
+                  ${isSelected ? `<span class="user-badge" style="background: var(--sage-800); color: #fff; border-color: var(--sage-800);">Aktif</span>` : ''}
+                </div>
+                <span class="monthly-card-count">${g.count} Transaksi</span>
+              </div>
+              <div class="monthly-card-body">
+                <div class="monthly-stat-item">
+                  <span class="monthly-stat-label">Masuk</span>
+                  <span class="monthly-stat-val text-income tabular">+${formatRupiah(g.income)}</span>
+                </div>
+                <div class="monthly-stat-item">
+                  <span class="monthly-stat-label">Keluar</span>
+                  <span class="monthly-stat-val text-expense tabular">-${formatRupiah(g.expense)}</span>
+                </div>
+                <div class="monthly-stat-item" style="text-align: right;">
+                  <span class="monthly-stat-label">Sisa Kas</span>
+                  <span class="monthly-stat-val tabular ${g.net < 0 ? 'text-expense font-bold' : 'text-sage-700'}">${formatRupiah(g.net)}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <!-- Rincian Catatan Transaksi di Bulan Terpilih -->
+      <div style="margin-top: 20px;">
+        <div class="section-header" style="margin-bottom: 12px;">
+          <div>
+            <div class="section-title">Catatan Transaksi ${formatPeriodMonth(activePeriod)}</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">${(activeGroup ? activeGroup.items.length : 0)} Mutasi kas pada bulan ini</div>
+          </div>
+          <button class="btn btn-sm touch-btn" onclick="switchBookView('daily')">Buka Tampilan Harian &rarr;</button>
+        </div>
+
+        ${(!activeGroup || activeGroup.items.length === 0) ? `
+          <div class="ledger-box" style="padding: 28px; text-align: center; color: var(--text-muted); font-size: 13px;">
+            Belum ada catatan transaksi pada bulan ${formatPeriodMonth(activePeriod)}.
+          </div>
+        ` : `
+          <div class="ledger-box">
+            <div class="ledger-row ledger-header">
+              <div>Tanggal</div>
+              <div>Catatan</div>
+              <div>Kantong</div>
+              <div class="ledger-cat">Kategori</div>
+              <div style="text-align: right;">Nominal</div>
+              <div></div>
+            </div>
+            ${activeGroup.items.map(tx => {
+              const wDisplay = getWalletDisplay(tx, wallets);
+              return `
+                <div class="ledger-row">
+                  <div class="ledger-date tabular">${tx.date}</div>
+                  <div class="ledger-notes">
+                    <div class="ledger-notes-text">${tx.notes || (tx.type === 'Transfer' ? 'Pindah Saldo Dompet' : '-')}</div>
+                    <div class="mobile-subtext" style="font-size: 11px; color: var(--text-subtle); display: none;">${tx.date} • ${wDisplay} • ${tx.categoryName}</div>
+                  </div>
+                  <div class="ledger-wallet">${wDisplay}</div>
+                  <div class="ledger-cat">${tx.categoryName}</div>
+                  <div class="ledger-amount tabular ${tx.type === 'Income' ? 'text-income' : (tx.type === 'Expense' ? 'text-expense' : '')}">
+                    ${tx.type === 'Income' ? '+' : (tx.type === 'Expense' ? '-' : '')}${formatRupiah(tx.amount)}
+                  </div>
+                  <div class="ledger-action" style="text-align: right; display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                    <button class="btn-delete-row touch-btn" title="Edit transaksi" onclick="editTx('${tx.id}')" aria-label="Edit">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
+                    </button>
+                    <button class="btn-delete-row touch-btn" title="Hapus transaksi" onclick="deleteTx('${tx.id}')" aria-label="Hapus">&times;</button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `}
+      </div>
+    `;
+  }
+
+  function switchCycle(cycle) {
+    appState.selectedCycle = cycle;
+    renderApp();
+  }
+
+  function filterPeriodChange(val) {
+    appState.filterPeriod = val;
+    renderApp();
+  }
+
+  function openModal(modalId, defaultType) {
+    if (modalId === 'transaction-modal') {
+      const editInput = document.getElementById('form-edit-id');
+      if (editInput) editInput.value = '';
+      const titleEl = document.getElementById('transaction-modal-title');
+      if (titleEl) titleEl.innerText = 'Catat Transaksi Kas';
+      const submitBtn = document.getElementById('btn-submit-tx');
+      if (submitBtn) submitBtn.innerText = 'Simpan Transaksi';
+      
+      const amtEl = document.getElementById('form-amount');
+      const notesEl = document.getElementById('form-notes');
+      if (amtEl) amtEl.value = '';
+      if (notesEl) notesEl.value = '';
+      const dateEl = document.getElementById('form-date');
+      if (dateEl) dateEl.value = new Date().toISOString().substring(0, 10);
+
+      if (defaultType) {
+        handleFormTypeChange(defaultType);
+      }
+    } else if (modalId === 'wallet-modal') {
+      const nameEl = document.getElementById('wallet-name');
+      const balEl = document.getElementById('wallet-initial-balance');
+      if (nameEl) nameEl.value = '';
+      if (balEl) balEl.value = '';
+    } else if (modalId === 'budget-modal') {
+      const catSelect = document.getElementById('budget-cat');
+      if (catSelect && appState.data && appState.data.categories) {
+        const expenseCats = appState.data.categories.filter(c => c.type === 'Expense');
+        catSelect.innerHTML = expenseCats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      }
+      const limitInput = document.getElementById('budget-limit');
+      if (limitInput) limitInput.value = '';
+    }
+    const modal = document.getElementById(modalId);
+    if (modal) modal.style.display = 'flex';
+  }
+
+  function editTx(txId) {
+    if (!appState.data || !appState.data.recentTransactions) return;
+    const tx = appState.data.recentTransactions.find(t => t.id === txId);
+    if (!tx) return;
+
+    openModal('transaction-modal', tx.type);
+
+    const editInput = document.getElementById('form-edit-id');
+    if (editInput) editInput.value = tx.id;
+    const titleEl = document.getElementById('transaction-modal-title');
+    if (titleEl) titleEl.innerText = 'Edit Transaksi Kas';
+    const submitBtn = document.getElementById('btn-submit-tx');
+    if (submitBtn) submitBtn.innerText = 'Simpan Perubahan';
+
+    const amtEl = document.getElementById('form-amount');
+    if (amtEl) amtEl.value = new Intl.NumberFormat('id-ID').format(tx.amount || 0);
+
+    const dateEl = document.getElementById('form-date');
+    if (dateEl) dateEl.value = tx.date || new Date().toISOString().substring(0, 10);
+
+    const notesEl = document.getElementById('form-notes');
+    if (notesEl) notesEl.value = tx.notes || '';
+
+    const walletEl = document.getElementById('form-wallet');
+    if (walletEl && tx.walletId) walletEl.value = tx.walletId;
+
+    if (tx.type === 'Transfer') {
+      const destWalletEl = document.getElementById('form-dest-wallet');
+      if (destWalletEl && tx.destWalletId) destWalletEl.value = tx.destWalletId;
+    } else {
+      const catEl = document.getElementById('form-category');
+      if (catEl && tx.categoryId) catEl.value = tx.categoryId;
+    }
+  }
+
+  function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.style.display = 'none';
+  }
+
+  function closeAllModals() {
+    document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
+  }
+
+  function handleFormTypeChange(newType) {
+    appState.form.type = newType;
+    const btnExp = document.getElementById('btn-type-expense');
+    const btnInc = document.getElementById('btn-type-income');
+    const btnTrf = document.getElementById('btn-type-transfer');
+
+    if (btnExp) {
+      btnExp.style.fontWeight = newType === 'Expense' ? '700' : '500';
+      btnExp.classList.toggle('active', newType === 'Expense');
+    }
+    if (btnInc) {
+      btnInc.style.fontWeight = newType === 'Income' ? '700' : '500';
+      btnInc.classList.toggle('active', newType === 'Income');
+    }
+    if (btnTrf) {
+      btnTrf.style.fontWeight = newType === 'Transfer' ? '700' : '500';
+      btnTrf.classList.toggle('active', newType === 'Transfer');
+    }
+
+    const walletLabel = document.getElementById('form-wallet-label');
+    const catLabel = document.getElementById('form-category-label');
+    const quickChips = document.getElementById('modal-quick-chips');
+
+    if (newType === 'Expense') {
+      if (walletLabel) walletLabel.innerText = "Diambil dari Kantong";
+      if (catLabel) catLabel.innerText = "Kategori Pengeluaran";
+      document.getElementById('form-category-group').style.display = 'block';
+      document.getElementById('form-dest-wallet-group').style.display = 'none';
+      if (quickChips) quickChips.style.display = 'block';
+      updateCategoryDropdown('Expense');
+    } else if (newType === 'Income') {
+      if (walletLabel) walletLabel.innerText = "Masuk ke Kantong";
+      if (catLabel) catLabel.innerText = "Kategori Pemasukan";
+      document.getElementById('form-category-group').style.display = 'block';
+      document.getElementById('form-dest-wallet-group').style.display = 'none';
+      if (quickChips) quickChips.style.display = 'none';
+      updateCategoryDropdown('Income');
+    } else if (newType === 'Transfer') {
+      if (walletLabel) walletLabel.innerText = "Dari Kantong Asal";
+      document.getElementById('form-category-group').style.display = 'none';
+      document.getElementById('form-dest-wallet-group').style.display = 'block';
+      if (quickChips) quickChips.style.display = 'none';
+
+      // Cegah default dompet asal dan tujuan sama jika ada dompet lain
+      const srcEl = document.getElementById('form-wallet');
+      const destEl = document.getElementById('form-dest-wallet');
+      if (srcEl && destEl && srcEl.value === destEl.value && appState.data && appState.data.wallets && appState.data.wallets.length > 1) {
+        const otherW = appState.data.wallets.find(w => w.id !== srcEl.value);
+        if (otherW) destEl.value = otherW.id;
+      }
+    }
+  }
+
+  function updateCategoryDropdown(type) {
+    const el = document.getElementById('form-category');
+    if (!el || !appState.data || !appState.data.categories) return;
+    const cats = appState.data.categories.filter(c => c.type === type);
+    el.innerHTML = cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  }
+
+  function getWalletDisplay(tx, wallets) {
+    const w = (wallets || []).find(item => item.id === tx.walletId);
+    const wName = w ? w.name : (tx.walletName || '-');
+    if (tx.type === 'Transfer') {
+      const destW = (wallets || []).find(item => item.id === tx.destWalletId);
+      const destName = destW ? destW.name : (tx.destWalletName || '-');
+      if (wName === destName) return wName;
+      return `${wName} &rarr; ${destName}`;
+    }
+    return wName;
+  }
+
+  function submitTransactionForm() {
+    const editIdEl = document.getElementById('form-edit-id');
+    const editId = editIdEl ? editIdEl.value : '';
+    const rawAmount = parseCurrencyValue(document.getElementById('form-amount').value);
+    const dateVal = document.getElementById('form-date').value;
+    const notesVal = document.getElementById('form-notes').value;
+    const walletVal = document.getElementById('form-wallet').value;
+    const destWalletEl = document.getElementById('form-dest-wallet');
+    const destWalletVal = destWalletEl ? destWalletEl.value : '';
+    const catEl = document.getElementById('form-category');
+    const catVal = catEl ? catEl.value : '';
+
+    if (!rawAmount || rawAmount <= 0) {
+      alert("Masukkan nominal transaksi yang valid (> 0).");
+      return;
+    }
+
+    if (appState.form.type === 'Transfer' && walletVal === destWalletVal) {
+      alert("Kantong asal dan kantong tujuan transfer tidak boleh sama.");
+      return;
+    }
+
+    const payload = {
+      type: appState.form.type,
+      amount: rawAmount,
+      date: dateVal,
+      walletId: walletVal,
+      destWalletId: destWalletVal,
+      categoryId: catVal,
+      notes: notesVal
+    };
+
+    if (editId) {
+      payload.id = editId;
+    }
+
+    closeModal('transaction-modal');
+    appState.isLoading = true;
+    renderApp();
+
+    const action = editId ? 'updateTransaction' : 'createTransaction';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res.success) {
+          // Otomatis arahkan Buku Kas ke bulan transaksi jika dicatat di periode berbeda
+          if (payload.date && payload.date.length >= 7) {
+            const txPeriod = payload.date.substring(0, 7);
+            if (txPeriod !== appState.currentMonthPeriod) {
+              appState.currentMonthPeriod = txPeriod;
+            }
+          }
+          loadDashboardData();
+        }
+        else { alert("Gagal: " + res.error); appState.isLoading = false; renderApp(); }
+      })
+      .withFailureHandler(err => { alert("Error: " + err.message); appState.isLoading = false; renderApp(); })
+      .apiDispatcher(action, payload);
+  }
+
+  function submitBudgetForm() {
+    const catId = document.getElementById('budget-cat').value;
+    const rawLimit = parseCurrencyValue(document.getElementById('budget-limit').value);
+    if (!catId) return alert("Pilih kategori pengeluaran.");
+    if (!rawLimit || rawLimit <= 0) return alert("Masukkan nominal batas anggaran yang valid (> 0).");
+
+    closeModal('budget-modal');
+    appState.isLoading = true;
+    renderApp();
+
+    google.script.run
+      .withSuccessHandler(res => { if (res.success) loadDashboardData(); else alert("Gagal: " + res.error); })
+      .withFailureHandler(err => { alert(err.message); appState.isLoading = false; renderApp(); })
+      .apiDispatcher('saveBudget', { categoryId: catId, limitAmount: rawLimit });
+  }
+
+  function deleteBudget(budgetId) {
+    if (!confirm("Hapus batas anggaran ini?")) return;
+    appState.isLoading = true;
+    renderApp();
+    google.script.run
+      .withSuccessHandler(() => loadDashboardData())
+      .withFailureHandler(err => { alert(err.message); appState.isLoading = false; renderApp(); })
+      .apiDispatcher('deleteBudget', { id: budgetId });
+  }
+
+  function deleteTx(id) {
+    if (!confirm("Hapus catatan transaksi ini?")) return;
+    appState.isLoading = true;
+    renderApp();
+
+    google.script.run
+      .withSuccessHandler(res => { if (res.success) loadDashboardData(); else alert("Gagal: " + res.error); })
+      .withFailureHandler(err => { alert(err.message); appState.isLoading = false; renderApp(); })
+      .apiDispatcher('deleteTransaction', { id: id });
+  }
+
+  function filterCategoryChange(val) {
+    appState.filterCategory = val;
+    renderApp();
+  }
+
+  function searchTransactions(val) {
+    appState.searchQuery = val.toLowerCase().trim();
+    renderApp();
+  }
+
+  function submitWalletForm() {
+    const name = document.getElementById('wallet-name').value;
+    const type = document.getElementById('wallet-type').value;
+    const initBal = parseCurrencyValue(document.getElementById('wallet-initial-balance').value);
+    if (!name) return alert("Nama dompet wajib diisi.");
+
+    closeModal('wallet-modal');
+    appState.isLoading = true;
+    renderApp();
+
+    google.script.run
+      .withSuccessHandler(res => { if (res.success) loadDashboardData(); else alert(res.error); })
+      .withFailureHandler(err => { alert(err.message); appState.isLoading = false; renderApp(); })
+      .apiDispatcher('saveWallet', { name, type, initialBalance: initBal });
+  }
+
+  function deleteWallet(id) {
+    if (appState.data.wallets.length <= 1) {
+      alert("Aplikasi memerlukan minimal 1 kantong dompet aktif untuk mencatat keuangan.");
+      return;
+    }
+    if (!confirm("Hapus / nonaktifkan kantong dompet ini?")) return;
+    appState.isLoading = true;
+    renderApp();
+
+    google.script.run
+      .withSuccessHandler(() => loadDashboardData())
+      .withFailureHandler(err => { alert(err.message); appState.isLoading = false; renderApp(); })
+      .apiDispatcher('deleteWallet', { id: id });
+  }
+
+  function renderApp() {
+    const root = document.getElementById('app-root');
+    if (!root) return;
+
+    if (!appState.data) {
+      root.innerHTML = `<div style="padding: 60px 0; text-align: center; color: var(--text-muted); font-size: 13px;">${appState.isLoading ? 'Memuat buku kas...' : 'Gagal memuat data. Silakan muat ulang halaman.'}</div>`;
+      return;
+    }
+
+    const d = appState.data;
+    try {
+      d.wallets = d.wallets || [];
+      d.categories = d.categories || [];
+      d.budgets = d.budgets || [];
+      d.recentTransactions = d.recentTransactions || [];
+      d.monthSummary = d.monthSummary || { period: '', income: 0, expense: 0, netSavings: 0 };
+      d.todaySummary = d.todaySummary || { date: '', income: 0, expense: 0, net: 0 };
+
+      let contentHtml = '';
+
+    if (appState.activeTab === 'dashboard') {
+      contentHtml = `
+        <!-- Hero Card Ringkasan Finansial -->
+        <div class="hero-card">
+          <div class="hero-top">
+            <div>
+              <div class="hero-label">Total Saldo</div>
+              <div class="hero-balance tabular">${formatRupiah(d.netWorth)}</div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <div class="cycle-pill-group">
+                <button class="cycle-pill ${appState.selectedCycle === 'month' ? 'active' : ''}" onclick="switchCycle('month')">Siklus Bulanan</button>
+                <button class="cycle-pill ${appState.selectedCycle === 'today' ? 'active' : ''}" onclick="switchCycle('today')">Siklus Harian</button>
+              </div>
+              <button class="btn btn-primary hero-action-btn" onclick="openModal('transaction-modal', 'Expense')">+ Catat Transaksi</button>
+            </div>
+          </div>
+          <div class="hero-cashflow">
+            ${appState.selectedCycle === 'month' ? `
+              <div>
+                <div class="flow-item-label">Pemasukan Bulan Ini (${formatPeriodMonth(d.monthSummary.period)})</div>
+                <div class="flow-item-val tabular text-income">+${formatRupiah(d.monthSummary.income)}</div>
+              </div>
+              <div>
+                <div class="flow-item-label">Pengeluaran Bulan Ini (${formatPeriodMonth(d.monthSummary.period)})</div>
+                <div class="flow-item-val tabular text-expense">-${formatRupiah(d.monthSummary.expense)}</div>
+              </div>
+              <div>
+                <div class="flow-item-label">${d.monthSummary.netSavings < 0 ? 'Defisit Bulan Ini' : 'Sisa Kas Bulan Ini'}</div>
+                <div class="flow-item-val tabular ${d.monthSummary.netSavings < 0 ? 'text-expense font-bold' : ''}">${formatRupiah(d.monthSummary.netSavings)}</div>
+              </div>
+            ` : `
+              <div>
+                <div class="flow-item-label">Pemasukan Hari Ini (${formatPeriodDate(d.todaySummary ? d.todaySummary.date : '')})</div>
+                <div class="flow-item-val tabular text-income">+${formatRupiah(d.todaySummary ? d.todaySummary.income : 0)}</div>
+              </div>
+              <div>
+                <div class="flow-item-label">Pengeluaran Hari Ini (${formatPeriodDate(d.todaySummary ? d.todaySummary.date : '')})</div>
+                <div class="flow-item-val tabular text-expense">-${formatRupiah(d.todaySummary ? d.todaySummary.expense : 0)}</div>
+              </div>
+              <div>
+                <div class="flow-item-label">${(d.todaySummary && d.todaySummary.net < 0) ? 'Defisit Hari Ini' : 'Sisa Kas Hari Ini'}</div>
+                <div class="flow-item-val tabular ${(d.todaySummary && d.todaySummary.net < 0) ? 'text-expense font-bold' : ''}">${formatRupiah(d.todaySummary ? d.todaySummary.net : 0)}</div>
+              </div>
+            `}
+          </div>
+        </div>
+
+        <!-- Kantong Saldo (Dompet & Bank) -->
+        <div class="section-header">
+          <div>
+            <div class="section-title">Kantong Saldo</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">${d.wallets.length} Akun Terhubung</div>
+          </div>
+          <button class="btn btn-sm" onclick="openModal('wallet-modal')">+ Tambah Dompet</button>
+        </div>
+        <div class="wallets-grid">
+          ${d.wallets.length === 0 ? `
+            <div style="grid-column: 1 / -1; padding: 18px; background: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: var(--radius-sm); text-align: center; color: var(--text-muted); font-size: 12.5px;">
+              Belum ada kantong dompet aktif. Klik tombol <b>+ Tambah Dompet</b> di atas untuk mendaftarkan rekening atau kas Anda.
+            </div>
+          ` : d.wallets.map(w => `
+            <div class="wallet-pill">
+              <div class="wallet-pill-top">
+                <span style="font-weight: 600;">${w.name}</span>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span class="user-badge">${w.type}</span>
+                  <button class="btn-delete-row" title="Hapus dompet" onclick="deleteWallet('${w.id}')">&times;</button>
+                </div>
+              </div>
+              <div class="wallet-pill-val tabular">${formatRupiah(w.balance)}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- Alokasi Anggaran Belanja -->
+        <div class="overview-panel" style="margin-bottom: 24px;">
+          <div class="section-header" style="margin-bottom: 8px;">
+            <div>
+              <div class="section-title">Batas Anggaran Belanja Bulan Ini</div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 1px;">Kontrol pemakaian dana per kategori</div>
+            </div>
+            <button class="btn btn-sm" onclick="openModal('budget-modal')">+ Atur Anggaran</button>
+          </div>
+          ${d.budgets.length === 0 ? `
+            <div style="font-size: 12.5px; color: var(--text-muted); padding: 12px 0;">Belum ada anggaran disetel. Klik tombol <b>+ Atur Anggaran</b> untuk mulai membatasi belanja.</div>
+          ` : d.budgets.map(b => `
+            <div class="mini-bar-item" style="margin-bottom: 10px;">
+              <div class="mini-bar-header">
+                <span style="font-weight: 600;">${b.categoryName}</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="tabular font-medium">${formatRupiah(b.spent)} / <span style="color:var(--text-muted);">${formatRupiah(b.limit)}</span> (${b.percent}%)</span>
+                  <button class="btn-delete-row" title="Hapus batas" onclick="deleteBudget('${b.id}')">&times;</button>
+                </div>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill ${b.percent >= 100 ? 'over' : ''}" style="width: ${b.percent}%;"></div>
+              </div>
+              <div style="font-size: 11px; color: var(--text-subtle); margin-top: 3px;">
+                ${b.remaining >= 0 ? `Tersisa: ${formatRupiah(b.remaining)}` : `<span class="text-expense font-bold">Melebihi budget ${formatRupiah(Math.abs(b.remaining))}</span>`}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- Porsi Pengeluaran Kategori (Statistik Kategori) -->
+        <div class="overview-panel" style="margin-bottom: 24px;">
+          <div class="section-header" style="margin-bottom: 8px;">
+            <div>
+              <div class="section-title">Porsi Pengeluaran Kategori</div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 1px;">Distribusi alokasi belanja (${formatPeriodMonth(appState.currentMonthPeriod)})</div>
+            </div>
+          </div>
+          ${(() => {
+            const currentMonthTxs = (d.recentTransactions || []).filter(t => t.date && t.date.startsWith(appState.currentMonthPeriod));
+            const catData = getCategoryBreakdown(currentMonthTxs, 'Expense');
+            const catRank = catData.items || [];
+            if (catRank.length === 0) {
+              return `<div style="font-size: 12.5px; color: var(--text-muted); padding: 12px 0;">Belum ada pengeluaran pada bulan ini.</div>`;
+            }
+            return catRank.map(cat => `
+              <div class="mini-bar-item" style="margin-bottom: 10px;">
+                <div class="mini-bar-header">
+                  <span style="font-weight: 600;">${cat.categoryName || cat.name}</span>
+                  <span class="tabular font-medium">${formatRupiah(cat.amount)} (${cat.percent}%)</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" style="width: ${cat.percent}%;"></div>
+                </div>
+              </div>
+            `).join('');
+          })()}
+        </div>
+
+        <!-- 5 Transaksi Terakhir -->
+        <div class="section-header">
+          <div class="section-title">5 Transaksi Terakhir</div>
+          <span class="section-link" onclick="switchTab('transactions')">Buka Buku Kas Lengkap &rarr;</span>
+        </div>
+        <div class="ledger-box">
+          <div class="ledger-row ledger-header">
+            <div>Tanggal</div>
+            <div>Catatan</div>
+            <div>Kantong</div>
+            <div class="ledger-cat">Kategori</div>
+            <div style="text-align: right;">Nominal</div>
+            <div></div>
+          </div>
+          ${d.recentTransactions.length === 0 ? `
+            <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px;">Belum ada catatan transaksi.</div>
+          ` : d.recentTransactions.slice(0, 5).map(tx => {
+            const wDisplay = getWalletDisplay(tx, d.wallets);
+            return `
+            <div class="ledger-row">
+              <div class="ledger-date tabular">${tx.date}</div>
+              <div class="ledger-notes">
+                <div class="ledger-notes-text">${tx.notes || (tx.type === 'Transfer' ? 'Pindah Saldo Dompet' : '-')}</div>
+                <div class="mobile-subtext" style="font-size: 11px; color: var(--text-subtle); display: none;">${tx.date} • ${wDisplay} • ${tx.categoryName}</div>
+              </div>
+              <div class="ledger-wallet">${wDisplay}</div>
+              <div class="ledger-cat">${tx.categoryName}</div>
+              <div class="ledger-amount tabular ${tx.type === 'Income' ? 'text-income' : (tx.type === 'Expense' ? 'text-expense' : '')}">
+                ${tx.type === 'Income' ? '+' : (tx.type === 'Expense' ? '-' : '')}${formatRupiah(tx.amount)}
+              </div>
+              <div class="ledger-action" style="text-align: right; display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                <button class="btn-delete-row touch-btn" title="Edit transaksi" onclick="editTx('${tx.id}')" aria-label="Edit">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
+                </button>
+                <button class="btn-delete-row touch-btn" title="Hapus transaksi" onclick="deleteTx('${tx.id}')" aria-label="Hapus">&times;</button>
+              </div>
+            </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    } else if (appState.activeTab === 'transactions') {
+      const monthTxs = d.recentTransactions.filter(tx => tx.date && tx.date.startsWith(appState.currentMonthPeriod));
+      const mIncome = monthTxs.filter(t => t.type === 'Income').reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      const mExpense = monthTxs.filter(t => t.type === 'Expense').reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      const mNet = mIncome - mExpense;
+
+      let filtered = monthTxs;
+      if (appState.filterCategory !== 'ALL') {
+        filtered = filtered.filter(tx => tx.categoryName === appState.filterCategory);
+      }
+      if (appState.searchQuery) {
+        const q = appState.searchQuery.toLowerCase();
+        filtered = filtered.filter(tx => (tx.notes && tx.notes.toLowerCase().includes(q)) || (tx.categoryName && tx.categoryName.toLowerCase().includes(q)));
+      }
+
+      const dateGroups = groupTransactionsByDate(filtered);
+
+      contentHtml = `
+        <!-- Month Stepper, View Switcher & Action Controls -->
+        <div class="tx-toolbar-wrapper">
+          <div class="tx-toolbar">
+            <div class="month-stepper">
+              <button type="button" class="month-stepper-btn touch-btn" onclick="changeMonthStep(-1)" title="Bulan Sebelumnya">&larr;</button>
+              <div class="month-stepper-label">${formatPeriodMonth(appState.currentMonthPeriod)}</div>
+              <button type="button" class="month-stepper-btn touch-btn" onclick="changeMonthStep(1)" title="Bulan Berikutnya">&rarr;</button>
+            </div>
+            <div class="view-switcher">
+              <button type="button" class="view-btn touch-btn ${appState.bookView === 'daily' ? 'active' : ''}" onclick="switchBookView('daily')">Harian</button>
+              <button type="button" class="view-btn touch-btn ${appState.bookView === 'monthly' ? 'active' : ''}" onclick="switchBookView('monthly')">Bulanan</button>
+              <button type="button" class="view-btn touch-btn ${appState.bookView === 'stats' ? 'active' : ''}" onclick="switchBookView('stats')">Statistik</button>
+            </div>
+          </div>
+          <div class="section-actions">
+            <button class="btn btn-primary touch-btn" onclick="openModal('transaction-modal', 'Expense')">+ Pengeluaran</button>
+            <button class="btn touch-btn" onclick="openModal('transaction-modal', 'Income')">+ Pemasukan</button>
+            <button class="btn touch-btn" onclick="openModal('transaction-modal', 'Transfer')">Pindah Saldo</button>
+          </div>
+        </div>
+
+        <!-- Ticker Summary Bar (Realbyte-inspired) -->
+        <div class="ticker-card">
+          <div class="ticker-item">
+            <div class="ticker-label">Pemasukan</div>
+            <div class="ticker-val text-income tabular">+${formatRupiah(mIncome)}</div>
+          </div>
+          <div class="ticker-item">
+            <div class="ticker-label">Pengeluaran</div>
+            <div class="ticker-val text-expense tabular">-${formatRupiah(mExpense)}</div>
+          </div>
+          <div class="ticker-item">
+            <div class="ticker-label">${mNet < 0 ? 'Defisit Kas' : 'Sisa Kas'}</div>
+            <div class="ticker-val tabular ${mNet < 0 ? 'text-expense font-bold' : ''}">${formatRupiah(mNet)}</div>
+          </div>
+        </div>
+
+        ${appState.bookView === 'daily' ? `
+          <!-- Filter & Search Controls -->
+          <div class="filter-controls">
+            <input type="text" class="form-input filter-search" placeholder="Cari catatan transaksi..." oninput="searchTransactions(this.value)" value="${appState.searchQuery}">
+            <select class="form-select filter-category" onchange="filterCategoryChange(this.value)">
+              <option value="ALL">Semua Kategori</option>
+              <optgroup label="Pengeluaran">
+                ${d.categories.filter(c => c.type === 'Expense').map(c => `
+                  <option value="${c.name}" ${appState.filterCategory === c.name ? 'selected' : ''}>${c.name}</option>
+                `).join('')}
+              </optgroup>
+              <optgroup label="Pemasukan">
+                ${d.categories.filter(c => c.type === 'Income').map(c => `
+                  <option value="${c.name}" ${appState.filterCategory === c.name ? 'selected' : ''}>${c.name}</option>
+                `).join('')}
+              </optgroup>
+            </select>
+          </div>
+
+          <!-- Date-Grouped Transaction List -->
+          ${dateGroups.length === 0 ? `
+            <div class="ledger-box" style="padding: 36px; text-align: center; color: var(--text-muted); font-size: 13px;">
+              Belum ada catatan transaksi di bulan ${formatPeriodMonth(appState.currentMonthPeriod)}. Ketuk tombol + untuk mencatat.
+            </div>
+          ` : dateGroups.map(group => `
+            <div class="date-group">
+              <div class="date-group-header">
+                <span class="date-group-title">${formatFullDateWithDay(group.date)}</span>
+                <span class="date-group-subtotal tabular ${group.totalNet >= 0 ? 'text-income' : 'text-expense'}">
+                  ${group.totalNet > 0 ? '+' : ''}${formatRupiah(group.totalNet)}
+                </span>
+              </div>
+              <div class="date-group-items">
+                ${group.items.map(tx => {
+                  const wDisplay = getWalletDisplay(tx, d.wallets);
+                  return `
+                  <div class="ledger-row">
+                    <div class="ledger-notes">
+                      <div class="ledger-notes-text">${tx.notes || (tx.type === 'Transfer' ? 'Pindah Saldo Dompet' : '-')}</div>
+                      <div class="ledger-sub" style="display:flex; align-items:center; gap:6px; margin-top:3px;">
+                        <span class="wallet-tag">${wDisplay}</span>
+                        <span style="font-size: 11px; color: var(--text-muted);">${tx.categoryName}</span>
+                      </div>
+                    </div>
+                    <div class="ledger-amount tabular ${tx.type === 'Income' ? 'text-income' : (tx.type === 'Expense' ? 'text-expense' : '')}">
+                      ${tx.type === 'Income' ? '+' : (tx.type === 'Expense' ? '-' : '')}${formatRupiah(tx.amount)}
+                    </div>
+                    <div class="ledger-action" style="text-align: right; display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+                      <button class="btn-delete-row touch-btn" title="Edit transaksi" onclick="editTx('${tx.id}')" aria-label="Edit">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
+                      </button>
+                      <button class="btn-delete-row touch-btn" title="Hapus transaksi" onclick="deleteTx('${tx.id}')" aria-label="Hapus">&times;</button>
+                    </div>
+                  </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `).join('')}
+        ` : appState.bookView === 'monthly' ? `
+          <!-- Catatan Transaksi Bulanan -->
+          ${renderMonthlyView(d.recentTransactions, d.wallets)}
+        ` : `
+          <!-- Visual Donut Chart & Stats Tab -->
+          <div class="stats-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.015em;">Diagram Alokasi Dana</div>
+                <div style="font-size: 11.5px; color: var(--text-muted);">Periode ${formatPeriodMonth(appState.currentMonthPeriod)}</div>
+              </div>
+              <div class="cycle-pill-group">
+                <button class="cycle-pill ${appState.statsType === 'Expense' ? 'active' : ''}" onclick="switchStatsType('Expense')">Pengeluaran</button>
+                <button class="cycle-pill ${appState.statsType === 'Income' ? 'active' : ''}" onclick="switchStatsType('Income')">Pemasukan</button>
+              </div>
+            </div>
+
+            ${(() => {
+              const breakdown = getCategoryBreakdown(monthTxs, appState.statsType);
+              return renderDonutChart(breakdown.items, breakdown.total);
+            })()}
+          </div>
+
+          <!-- Pengeluaran per Kantong Dompet -->
+          <div class="overview-panel" style="margin-top: 14px;">
+            <div class="section-header" style="margin-bottom: 8px;">
+              <div>
+                <div class="section-title">Alokasi per Kantong Dompet</div>
+                <div style="font-size: 11.5px; color: var(--text-muted);">Akun yang paling sering digunakan untuk pengeluaran</div>
+              </div>
+            </div>
+            ${(() => {
+              const wRank = getWalletBreakdown(monthTxs, d.wallets);
+              if (wRank.length === 0) {
+                return `<div style="font-size: 12.5px; color: var(--text-muted); padding: 8px 0;">Belum ada pengeluaran pada bulan ini.</div>`;
+              }
+              return wRank.map(w => `
+                <div class="mini-bar-item" style="margin-bottom: 10px;">
+                  <div class="mini-bar-header">
+                    <span style="font-weight: 600;">${w.walletName}</span>
+                    <span class="tabular font-medium">${formatRupiah(w.amount)} (${w.percent}%)</span>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-fill" style="width: ${w.percent}%;"></div>
+                  </div>
+                </div>
+              `).join('');
+            })()}
+          </div>
+        `}
+      `;
+    }
+
+    root.innerHTML = contentHtml;
+
+    document.querySelectorAll('.nav-item').forEach(el => {
+      if (el.getAttribute('data-tab') === appState.activeTab) el.classList.add('active');
+      else el.classList.remove('active');
+    });
+    document.querySelectorAll('.mobile-nav-item').forEach(el => {
+      if (el.getAttribute('data-tab') === appState.activeTab) el.classList.add('active');
+      else el.classList.remove('active');
+    });
+
+    updateWalletDropdowns();
+    } catch (err) {
+      console.error("Render error in renderApp:", err);
+      root.innerHTML = `
+        <div style="padding: 24px; background: var(--bg-surface); border: 1px solid var(--color-expense); border-radius: var(--radius-md); color: var(--color-expense);">
+          <div style="font-weight: 700; margin-bottom: 8px;">Terjadi Kendala Memuat Tampilan</div>
+          <div style="font-size: 12.5px; color: var(--text-muted); font-family: monospace;">${err.message}</div>
+        </div>
+      `;
+    }
+  }
+
+  function updateWalletDropdowns() {
+    const d = appState.data;
+    if (!d || !d.wallets) return;
+    const srcEl = document.getElementById('form-wallet');
+    const destEl = document.getElementById('form-dest-wallet');
+    if (srcEl && d.wallets.length > 0) {
+      const currentVal = srcEl.value;
+      srcEl.innerHTML = d.wallets.map(w => `<option value="${w.id}" ${w.id === currentVal ? 'selected' : ''}>${w.name}</option>`).join('');
+    }
+    if (destEl && d.wallets.length > 0) {
+      const currentVal = destEl.value;
+      destEl.innerHTML = d.wallets.map(w => `<option value="${w.id}" ${w.id === currentVal ? 'selected' : ''}>${w.name}</option>`).join('');
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+  } else {
+    initApp();
+  }
+</script>

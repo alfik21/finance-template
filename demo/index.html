@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Tracker - Interactive Product Preview & Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
+    .num-tabular { font-variant-numeric: tabular-nums; }
+    .device-mobile {
+      width: 400px;
+      height: 820px;
+      border-radius: 44px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 12px #1b4332, 0 0 0 14px #2d6a4f;
+      overflow: hidden;
+      position: relative;
+    }
+    .device-desktop {
+      width: 100%;
+      max-width: 1150px;
+      height: 820px;
+      border-radius: 18px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 0 0 1px #cbd5e1;
+      overflow: hidden;
+    }
+    .touch-btn {
+      transition: transform 120ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+    }
+    .touch-btn:active {
+      transform: scale(0.97);
+    }
+    /* Custom Scrollbar for simulated table */
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #f8fafc;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 p-4 lg:p-6">
+
+  <!-- Top Showcase & Control Bar -->
+  <header class="mx-auto max-w-6xl mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      
+      <!-- Brand & Description -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-[#1b4332] flex items-center justify-center text-white font-bold text-sm shadow-xs shrink-0">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
+            <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
+            <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
+            <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-bold text-slate-900">Finance Tracker</h1>
+            <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-200">Live Interactive Showcase</span>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">Template Kas Keuangan Pribadi & Usaha Terpadu (Google Sheets + Web App Container-Bound)</p>
+        </div>
+      </div>
+
+      <!-- Simulator Controls -->
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Viewport Switcher -->
+        <div class="flex items-center rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-semibold">
+          <button id="btnViewMobile" onclick="setViewMode('mobile')" class="touch-btn px-3 py-1.5 rounded-lg bg-slate-800 text-white transition-all">
+            Mobile View
+          </button>
+          <button id="btnViewDesktop" onclick="setViewMode('desktop')" class="touch-btn px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition-all">
+            Desktop View
+          </button>
+        </div>
+
+        <!-- Quick Reset -->
+        <button onclick="resetDemoData()" class="touch-btn text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+          <span>Reset Data</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Interactive Workspace Grid -->
+  <main class="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+    <!-- Left / Center: Interactive Application Frame -->
+    <div id="frameContainerCol" class="lg:col-span-7 flex justify-center">
+      <div id="deviceContainer" class="device-mobile bg-white transition-all duration-300">
+        <iframe id="appFrame" src="WebApp.html" class="w-full h-full border-0"></iframe>
+      </div>
+    </div>
+
+    <!-- Right: Simulated Live Spreadsheet Ledger & Selling Points -->
+    <div id="sheetContainerCol" class="lg:col-span-5 space-y-4">
+
+      <!-- Product Commercial Value Card -->
+      <div class="bg-gradient-to-br from-[#1b4332] to-[#081c15] text-white rounded-2xl p-4 shadow-sm border border-emerald-900">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[10px] font-bold tracking-wider uppercase bg-emerald-800/80 px-2 py-0.5 rounded-md border border-emerald-700/60">Produk Siap Pakai</span>
+          <span class="text-xs font-semibold text-emerald-200">100% Milik Anda</span>
+        </div>
+        <h2 class="text-sm font-bold text-white mb-1.5">Solusi Finansial Pribadi & Usaha Modern</h2>
+        <p class="text-xs text-emerald-100/90 leading-relaxed mb-3">
+          Satu-satunya template kas keuangan terpadu berbasis Google Sheets & Web App mandiri. Tanpa biaya langganan bulanan, bebas maintenance server, dan data 100% aman di akun Google Drive pribadi Anda.
+        </p>
+        <div class="grid grid-cols-2 gap-2 text-[11px] border-t border-emerald-800/80 pt-3">
+          <div class="flex items-center gap-1.5 text-emerald-100">
+            <svg class="w-3.5 h-3.5 text-emerald-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Tanpa Biaya Langganan</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-emerald-100">
+            <svg class="w-3.5 h-3.5 text-emerald-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Data 100% Privat di Drive</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-emerald-100">
+            <svg class="w-3.5 h-3.5 text-emerald-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Bisa Dipasang di HP (PWA)</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-emerald-100">
+            <svg class="w-3.5 h-3.5 text-emerald-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Buka di Sidebar Spreadsheet</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Checklist -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5">Fitur Unggulan Produk (Katalog Siap Jual)</h2>
+        <ul class="text-xs space-y-2 text-slate-700">
+          <li class="flex items-start gap-2">
+            <span class="inline-block w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold text-center leading-4 shrink-0">1</span>
+            <span><strong>Buku Kas 3 Tampilan Fleksibel</strong>: Catat dan telusuri transaksi via mode <em>Harian</em> (urutan waktu), mode <em>Bulanan</em> (rekap per bulan), atau mode <em>Statistik</em> dengan grafik lingkaran interaktif.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="inline-block w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold text-center leading-4 shrink-0">2</span>
+            <span><strong>Multi-Dompet & Saldo Awal Tabungan</strong>: Dukungan rekening bank, e-wallet, dan kas tunai lengkap dengan saldo awal tabungan tanpa merusak perhitungan arus kas bulanan berjalan.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="inline-block w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold text-center leading-4 shrink-0">3</span>
+            <span><strong>Pencegahan Transfer Rekening Sama</strong>: Validasi cerdas yang menolak transaksi mutasi kas jika rekening asal dan tujuan identik.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="inline-block w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold text-center leading-4 shrink-0">4</span>
+            <span><strong>Batas Anggaran Berulang (Recurring Budgets)</strong>: Target batas belanja per kategori otomatis berlaku setiap bulan baru tanpa perlu diinput ulang secara manual.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="inline-block w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold text-center leading-4 shrink-0">5</span>
+            <span><strong>Tombol Cepat Cerdas 1-Ketuk</strong>: Isi nominal dan kategori belanja rutin (bensin, makan siang, kopi) secara instan dalam satu sentuhan.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="inline-block w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold text-center leading-4 shrink-0">6</span>
+            <span><strong>Fitur Edit (✏️) & Hapus Transaksi</strong>: Koreksi transaksi yang salah input langsung dari HP tanpa repot membuka sheet spreadsheet.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="inline-block w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold text-center leading-4 shrink-0">7</span>
+            <span><strong>Format Rupiah Real-time Otomatis</strong>: Pemisah ribuan titik otomatis tampil saat mengetik angka nominal di formulir transaksi.</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Live Simulated Spreadsheet Data -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+        <div class="flex items-center justify-between mb-3 border-b pb-2">
+          <div class="flex items-center gap-1.5">
+            <div class="w-2.5 h-2.5 rounded bg-emerald-700"></div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Simulasi Spreadsheet Realtime</h3>
+          </div>
+          <!-- Sheet Tab Switcher -->
+          <div class="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-[10.5px] font-semibold">
+            <button id="btnTabSheetTx" onclick="switchSimSheet('TRANSAKSI')" class="px-2 py-0.5 rounded bg-white text-slate-800 shadow-2xs">
+              TRANSAKSI
+            </button>
+            <button id="btnTabSheetWallets" onclick="switchSimSheet('DOMPET')" class="px-2 py-0.5 rounded text-slate-500 hover:text-slate-800">
+              DOMPET
+            </button>
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate-500 mb-2 leading-tight">
+          Coba catat, edit, atau hapus transaksi pada simulator di sebelah kiri. Data sheet di bawah otomatis tersinkronisasi:
+        </p>
+
+        <!-- TRANSAKSI Table View -->
+        <div id="simulatedTxTableWrapper" class="overflow-x-auto max-h-[300px] custom-scroll">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-500 border-b sticky top-0">
+              <tr>
+                <th class="py-2 px-2.5 font-semibold">Tgl</th>
+                <th class="py-2 px-2.5 font-semibold">Catatan</th>
+                <th class="py-2 px-2.5 font-semibold">Kantong</th>
+                <th class="py-2 px-2.5 font-semibold">Kategori</th>
+                <th class="py-2 px-2.5 font-semibold text-right">Nominal</th>
+              </tr>
+            </thead>
+            <tbody id="simulatedTxTableBody" class="divide-y divide-slate-100">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- DOMPET Table View -->
+        <div id="simulatedWalletsTableWrapper" class="overflow-x-auto max-h-[300px] custom-scroll hidden">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-500 border-b sticky top-0">
+              <tr>
+                <th class="py-2 px-2.5 font-semibold">Nama Dompet</th>
+                <th class="py-2 px-2.5 font-semibold">Tipe Akun</th>
+                <th class="py-2 px-2.5 font-semibold text-right">Saldo Kas</th>
+              </tr>
+            </thead>
+            <tbody id="simulatedWalletsTableBody" class="divide-y divide-slate-100">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    var currentSimSheet = 'TRANSAKSI';
+
+    var defaultDb = {
+      netWorth: 12500000,
+      todaySummary: {
+        date: new Date().toISOString().substring(0, 10),
+        income: 0,
+        expense: 50000,
+        net: -50000
+      },
+      monthSummary: {
+        period: new Date().toISOString().substring(0, 7),
+        income: 15000000,
+        expense: 2500000,
+        netSavings: 12500000
+      },
+      wallets: [
+        { id: "W-1", name: "Dompet Tunai", type: "Cash", balance: 500000, icon: "Wallet" },
+        { id: "W-2", name: "BCA Tabungan", type: "Bank", balance: 10000000, icon: "CreditCard" },
+        { id: "W-3", name: "GoPay", type: "E-Wallet", balance: 2000000, icon: "Smartphone" }
+      ],
+      categories: [
+        { id: "C-IN-1", name: "Gaji Pokok", type: "Income", icon: "Briefcase" },
+        { id: "C-IN-2", name: "Pemasukan Tambahan", type: "Income", icon: "TrendingUp" },
+        { id: "C-EX-1", name: "Makan & Minum", type: "Expense", icon: "Coffee" },
+        { id: "C-EX-2", name: "Transportasi", type: "Expense", icon: "Car" },
+        { id: "C-EX-3", name: "Tagihan & WiFi", type: "Expense", icon: "Zap" },
+        { id: "C-EX-4", name: "Kebutuhan Rumah", type: "Expense", icon: "Home" }
+      ],
+      budgets: [
+        { id: "B-1", categoryId: "C-EX-1", categoryName: "Makan & Minum", limit: 2000000, spent: 750000 }
+      ],
+      recentTransactions: [
+        {
+          id: "TX-1",
+          date: new Date().toISOString().substring(0, 10),
+          type: "Expense",
+          amount: 50000,
+          walletId: "W-1",
+          walletName: "Dompet Tunai",
+          categoryId: "C-EX-1",
+          categoryName: "Makan & Minum",
+          notes: "Makan Siang Nasi Padang"
+        },
+        {
+          id: "TX-2",
+          date: new Date().toISOString().substring(0, 10),
+          type: "Income",
+          amount: 15000000,
+          walletId: "W-2",
+          walletName: "BCA Tabungan",
+          categoryId: "C-IN-1",
+          categoryName: "Gaji Pokok",
+          notes: "Gaji Bulanan"
+        }
+      ]
+    };
+
+    var currentDb = JSON.parse(JSON.stringify(defaultDb));
+
+    function formatRupiah(num) {
+      return "Rp " + new Intl.NumberFormat('id-ID').format(Number(num) || 0);
+    }
+
+    function renderSimulatedTables() {
+      // 1. Render Sheet TRANSAKSI
+      var tbodyTx = document.getElementById('simulatedTxTableBody');
+      if (tbodyTx) {
+        tbodyTx.innerHTML = '';
+        var txs = currentDb.recentTransactions || [];
+        if (txs.length === 0) {
+          tbodyTx.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-slate-400">Belum ada transaksi di sheet TRANSAKSI</td></tr>';
+        } else {
+          txs.forEach(function(tx) {
+            var tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-50 transition-colors';
+            var isIncome = tx.type === 'Income';
+            var isExpense = tx.type === 'Expense';
+            var amtColor = isIncome ? 'text-emerald-700 font-bold' : (isExpense ? 'text-rose-600 font-bold' : 'text-blue-600 font-medium');
+            var sign = isIncome ? '+' : (isExpense ? '-' : '');
+
+            tr.innerHTML = 
+              '<td class="py-2 px-2.5 text-slate-500 whitespace-nowrap num-tabular">' + (tx.date || '-') + '</td>' +
+              '<td class="py-2 px-2.5 font-medium text-slate-900 max-w-[130px] truncate" title="' + (tx.notes || '-') + '">' + (tx.notes || (tx.type === 'Transfer' ? 'Pindah Saldo' : '-')) + '</td>' +
+              '<td class="py-2 px-2.5 text-[11px] text-slate-600">' + (tx.walletName || '-') + '</td>' +
+              '<td class="py-2 px-2.5"><span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 text-slate-700">' + (tx.categoryName || '-') + '</span></td>' +
+              '<td class="py-2 px-2.5 ' + amtColor + ' text-right whitespace-nowrap num-tabular">' + sign + formatRupiah(tx.amount) + '</td>';
+            tbodyTx.appendChild(tr);
+          });
+        }
+      }
+
+      // 2. Render Sheet DOMPET
+      var tbodyW = document.getElementById('simulatedWalletsTableBody');
+      if (tbodyW) {
+        tbodyW.innerHTML = '';
+        var wallets = currentDb.wallets || [];
+        wallets.forEach(function(w) {
+          var tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50 transition-colors';
+          tr.innerHTML = 
+            '<td class="py-2 px-2.5 font-semibold text-slate-900">' + w.name + '</td>' +
+            '<td class="py-2 px-2.5 text-slate-600"><span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 text-slate-700 font-medium">' + w.type + '</span></td>' +
+            '<td class="py-2 px-2.5 font-bold text-slate-800 text-right whitespace-nowrap num-tabular">' + formatRupiah(w.balance) + '</td>';
+          tbodyW.appendChild(tr);
+        });
+      }
+    }
+
+    function switchSimSheet(sheetName) {
+      currentSimSheet = sheetName;
+      var btnTx = document.getElementById('btnTabSheetTx');
+      var btnW = document.getElementById('btnTabSheetWallets');
+      var wrapTx = document.getElementById('simulatedTxTableWrapper');
+      var wrapW = document.getElementById('simulatedWalletsTableWrapper');
+
+      if (sheetName === 'TRANSAKSI') {
+        btnTx.className = 'px-2 py-0.5 rounded bg-white text-slate-800 shadow-2xs';
+        btnW.className = 'px-2 py-0.5 rounded text-slate-500 hover:text-slate-800';
+        wrapTx.classList.remove('hidden');
+        wrapW.classList.add('hidden');
+      } else {
+        btnW.className = 'px-2 py-0.5 rounded bg-white text-slate-800 shadow-2xs';
+        btnTx.className = 'px-2 py-0.5 rounded text-slate-500 hover:text-slate-800';
+        wrapW.classList.remove('hidden');
+        wrapTx.classList.add('hidden');
+      }
+    }
+
+    function setViewMode(mode) {
+      var container = document.getElementById('deviceContainer');
+      var btnM = document.getElementById('btnViewMobile');
+      var btnD = document.getElementById('btnViewDesktop');
+      var colFrame = document.getElementById('frameContainerCol');
+      var colSheet = document.getElementById('sheetContainerCol');
+
+      if (mode === 'mobile') {
+        container.className = 'device-mobile bg-white transition-all duration-300';
+        btnM.className = 'touch-btn px-3 py-1.5 rounded-lg bg-slate-800 text-white transition-all';
+        btnD.className = 'touch-btn px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition-all';
+        colFrame.className = 'lg:col-span-7 flex justify-center';
+        colSheet.className = 'lg:col-span-5 space-y-4';
+      } else {
+        container.className = 'device-desktop bg-white transition-all duration-300';
+        btnD.className = 'touch-btn px-3 py-1.5 rounded-lg bg-slate-800 text-white transition-all';
+        btnM.className = 'touch-btn px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition-all';
+        colFrame.className = 'col-span-full flex justify-center';
+        colSheet.className = 'col-span-full grid grid-cols-1 md:grid-cols-2 gap-4';
+      }
+    }
+
+    function resetDemoData() {
+      if (confirm('Kembalikan data simulasi transaksi ke data awal?')) {
+        currentDb = JSON.parse(JSON.stringify(defaultDb));
+        renderSimulatedTables();
+
+        var iframe = document.getElementById('appFrame');
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage({
+            type: 'RESET_FINANCE_MOCK',
+            defaultDb: defaultDb
+          }, '*');
+        }
+      }
+    }
+
+    // Listener sync dari iframe WebApp
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'FINANCE_MOCK_SYNC') {
+        if (event.data.db) {
+          currentDb = event.data.db;
+          renderSimulatedTables();
+        }
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      renderSimulatedTables();
+
+      var iframe = document.getElementById('appFrame');
+      if (iframe) {
+        iframe.onload = function() {
+          try {
+            if (iframe.contentWindow && iframe.contentWindow.__MOCK_DB__) {
+              currentDb = iframe.contentWindow.__MOCK_DB__;
+              renderSimulatedTables();
+            }
+          } catch (e) {}
+        };
+      }
+    });
+  </script>
+</body>
+</html>

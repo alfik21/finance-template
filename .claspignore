@@ -1,0 +1,5 @@
+# Hanya kirim file script & html
+**/*
+!backend/*.js
+!frontend/*.html
+!appsscript.json
