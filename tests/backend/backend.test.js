@@ -605,3 +605,151 @@ test("R-13: CSS tidak lagi menyembunyikan tombol aksi", () => {
   );
   assert.match(styles, /body\.SIDEBAR \.section-actions\s*\{[^}]*display:\s*grid/s);
 });
+
+test("API: apiDispatcher mendukung seluruh rute aksi API dengan payload yang sesuai", () => {
+  const sheets = baseSheets({
+    DOMPET: [["W-1", "Tunai", "Cash", 100000, "Wallet", true]],
+    KATEGORI: [
+      ["C-EX-1", "Makan", "Expense", "Coffee"],
+      ["C-IN-1", "Gaji", "Income", "Briefcase"],
+    ],
+  });
+  const h = createHarness({ sheets, properties: ALLOW });
+
+  // 1. getDashboard
+  const resGet = h.sandbox.apiDispatcher("getDashboard", {});
+  assert.equal(resGet.success, true);
+  assert.ok(resGet.data.monthSummary);
+
+  // 2. createTransaction
+  const resCreate = h.sandbox.apiDispatcher("createTransaction", {
+    type: "Expense",
+    amount: 25000,
+    date: "2026-11-05",
+    walletId: "W-1",
+    categoryId: "C-EX-1",
+    notes: "Uji Rute API",
+  });
+  assert.equal(resCreate.success, true);
+  assert.ok(resCreate.data.id);
+  const txId = resCreate.data.id;
+
+  // 3. updateTransaction
+  const resUpdate = h.sandbox.apiDispatcher("updateTransaction", {
+    id: txId,
+    type: "Expense",
+    amount: 35000,
+    date: "2026-11-05",
+    walletId: "W-1",
+    categoryId: "C-EX-1",
+    notes: "Uji Rute API Diperbarui",
+  });
+  assert.equal(resUpdate.success, true);
+  assert.equal(resUpdate.data.id, txId);
+
+  // 4. deleteTransaction (payload.id)
+  const resDelTx = h.sandbox.apiDispatcher("deleteTransaction", { id: txId });
+  assert.equal(resDelTx.success, true);
+
+  // 5. saveCategory
+  const resCat = h.sandbox.apiDispatcher("saveCategory", {
+    name: "Investasi Reksadana",
+    type: "Expense",
+  });
+  assert.equal(resCat.success, true);
+  assert.equal(resCat.data.name, "Investasi Reksadana");
+  const catId = resCat.data.id;
+
+  // 6. saveBudget
+  const resBudget = h.sandbox.apiDispatcher("saveBudget", {
+    categoryId: catId,
+    limitAmount: 750000,
+  });
+  assert.equal(resBudget.success, true);
+  assert.ok(resBudget.data.id);
+  const budgetId = resBudget.data.id;
+
+  // 7. deleteBudget (payload.id)
+  const resDelBudget = h.sandbox.apiDispatcher("deleteBudget", { id: budgetId });
+  assert.equal(resDelBudget.success, true);
+
+  // 8. saveWallet
+  const resWallet = h.sandbox.apiDispatcher("saveWallet", {
+    name: "OVO Transaksi",
+    type: "E-Wallet",
+    initialBalance: 0,
+  });
+  assert.equal(resWallet.success, true);
+  const wId = resWallet.data.id;
+
+  // 9. deleteWallet (payload.id) & restoreWallet (payload.id)
+  // Beri transaksi lalu kembalikan saldo 0 agar menjadi soft delete
+  h.sandbox.createTransaction({
+    type: "Income",
+    amount: 50000,
+    date: "2026-11-05",
+    walletId: wId,
+    categoryId: "C-IN-1",
+    notes: "Isi saldo OVO",
+  });
+  h.sandbox.createTransaction({
+    type: "Expense",
+    amount: 50000,
+    date: "2026-11-05",
+    walletId: wId,
+    categoryId: "C-EX-1",
+    notes: "Pakai habis OVO",
+  });
+  const resDelWallet = h.sandbox.apiDispatcher("deleteWallet", { id: wId });
+  assert.equal(resDelWallet.success, true);
+
+  const resRestore = h.sandbox.apiDispatcher("restoreWallet", { id: wId });
+  assert.equal(resRestore.success, true);
+  assert.equal(resRestore.data.id, wId);
+
+  // 10. unknownAction
+  const resUnknown = h.sandbox.apiDispatcher("perintahAsing", {});
+  assert.equal(resUnknown.success, false);
+  assert.match(resUnknown.error, /tidak dikenali/);
+});
+
+test("UI: onOpen mendaftarkan menu spreadsheet Finance Tracker dengan item lengkap", () => {
+  const h = createHarness({ sheets: baseSheets(), properties: ALLOW });
+  h.sandbox.onOpen();
+
+  assert.equal(h.uiLog.menus.length, 1);
+  const menu = h.uiLog.menus[0];
+  assert.equal(menu.caption, "Finance Tracker");
+  assert.equal(menu.items.length, 3);
+  assert.equal(menu.items[0].caption, "Buka Finance Tracker (Jendela Pop-up)");
+  assert.equal(menu.items[0].functionName, "openAppDialog");
+  assert.equal(menu.items[1].caption, "Buka Finance Tracker (Sidebar Kanan)");
+  assert.equal(menu.items[1].functionName, "openAppSidebar");
+  assert.equal(menu.items[2].caption, "Periksa / Inisialisasi Database");
+  assert.equal(menu.items[2].functionName, "runManualSetup");
+});
+
+test("UI: openAppDialog membuka dialog berukuran 1080x720 dengan judul Finance Tracker", () => {
+  const h = createHarness({ sheets: baseSheets(), properties: ALLOW });
+  h.sandbox.openAppDialog();
+
+  assert.equal(h.uiLog.modals.length, 1);
+  const modal = h.uiLog.modals[0];
+  assert.equal(modal.title, "Finance Tracker");
+  assert.equal(modal.html._width, 1080);
+  assert.equal(modal.html._height, 720);
+});
+
+test("Setup: ensureDatabaseStructure bersifat idempoten dan tidak menduplikasi data", () => {
+  const h = createHarness({ sheets: {}, properties: ALLOW });
+  h.sandbox.ensureDatabaseStructure();
+
+  const walletsCount1 = h.sheetsObj.DOMPET.rows.length;
+  const catsCount1 = h.sheetsObj.KATEGORI.rows.length;
+  assert.equal(walletsCount1, 4); // header + 3 seeds
+
+  h.sandbox.ensureDatabaseStructure();
+
+  assert.equal(h.sheetsObj.DOMPET.rows.length, walletsCount1);
+  assert.equal(h.sheetsObj.KATEGORI.rows.length, catsCount1);
+});

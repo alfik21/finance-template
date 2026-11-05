@@ -317,7 +317,7 @@ async function buildDoc2() {
     createH1('1. Latar Belakang dan Tujuan Pengujian'),
     createP('Produk Finance Tracker ini baru saja selesai dibangun dan selesai dikembangkan pada tingkat kode (code freeze). Seluruh fitur utama (Web App, perhitungan multi-dompet, mutasi transfer, anggaran berulang, dan tombol cepat habit chip) telah selesai dikoding, namun belum pernah diuji coba oleh pengguna nyata (real end-users).'),
     createP('Oleh karena itu, dokumen ini menetapkan kerangka kerja pengujian bertahap:'),
-    createBullet('Dilakukan oleh tim internal Finance dan Operations untuk memverifikasi 26 kasus uji teknis pada lembar kerja kosong.', 'Fase 1: Verifikasi Fungsional Internal (Internal QA)'),
+    createBullet('Dilakukan oleh tim internal Finance dan Operations untuk memverifikasi 32 kasus uji teknis pada lembar kerja kosong.', 'Fase 1: Verifikasi Fungsional Internal (Internal QA)'),
     createBullet('Dilakukan bersama 3–5 orang perwakilan pengguna nyata (pekerja lepas / pemilik UMKM) untuk mengamati kendala navigasi dan pemahaman awal.', 'Fase 2: Pengujian Penerimaan Pengguna Asli (User Acceptance Testing / UAT)'),
     createH1('2. Persiapan Lingkungan Uji Bersih (Clean Test Environment)'),
     createBullet('Jangan gunakan akun Google yang memiliki hak developer. Gunakan akun Gmail biasa yang belum pernah memberi izin pada skrip ini.', '1. Gunakan Akun Google Uji Baru'),
@@ -333,7 +333,7 @@ async function buildDoc2() {
         ['Low (Trivial)', 'Saran perubahan warna, redaksi panduan kurang jelas, permintaan fitur baru.', 'Dicatat dalam dokumen Product Backlog.']
       ]
     ),
-    createH1('4. Prosedur Uji Fase 1: Matriks Fungsional Internal (26 Skenario)'),
+    createH1('4. Prosedur Uji Fase 1: Matriks Fungsional Internal (32 Skenario)'),
     createH2('A. Modul Input Transaksi Kas (PIC: Operations)'),
     createBullet('Input pengeluaran normal. Pastikan saldo terpotong dan form ter-reset.', 'TC-INP-01'),
     createBullet('Input pemasukan normal. Pastikan saldo bertambah dan laporan masuk ter-update.', 'TC-INP-02'),
@@ -373,7 +373,7 @@ async function buildDoc2() {
     createBullet('Pengguna dapat melakukan deployment Web App mandiri untuk smartphone (wajib menyetel Script Properties ALLOWED_EMAILS - lihat README Langkah 4).', 'TC-CPY-06'),
     createBullet('Fitur Add to Home Screen menghasilkan pintasan aplikasi di ponsel (bookmark browser, bukan PWA penuh/offline).', 'TC-CPY-07'),
     createH1('5. Prosedur Uji Fase 2: Pengujian Penerimaan Pengguna Asli (UAT)'),
-    createP('Setelah seluruh 26 butir Fase 1 bertanda PASS, lakukan pengujian bersama 3–5 orang perwakilan pengguna nyata:'),
+    createP('Setelah seluruh 32 butir Fase 1 bertanda PASS, lakukan pengujian bersama 3–5 orang perwakilan pengguna nyata:'),
     createBullet('Berikan tautan /copy, amati apakah mereka berhasil menyalin dokumen ke Google Drive sendiri.', 'Tugas 1: Akses Mandiri'),
     createBullet('Amati apakah partisipan dapat melewati layar peringatan Google Apps Script dengan panduan User Guide.', 'Tugas 2: Otorisasi Mandiri'),
     createBullet('Minta partisipan mendaftarkan 1 rekening riil dan mengisi saldo awal mereka.', 'Tugas 3: Pengaturan Dompet'),
@@ -390,7 +390,7 @@ async function buildDoc2() {
     ),
     createH1('6. Syarat Ambang Batas Kelulusan (Release Gate Criteria)'),
     createP('Produk Finance Tracker baru dinyatakan SELESAI DIUJI & LAYAK JUAL (READY TO SELL) apabila:'),
-    createBullet('26 dari 26 skenario fungsional berstatus PASS (100%).', '1. Fase 1 (Internal QA)'),
+    createBullet('32 dari 32 skenario fungsional berstatus PASS (100%).', '1. Fase 1 (Internal QA)'),
     createBullet('Minimal 80% partisipan pengguna asli menyatakan dapat mengoperasikan aplikasi secara mandiri.', '2. Fase 2 (User Testing)'),
     createBullet('Tidak ada bug berkategori Critical atau High yang belum terselesaikan.', '3. Nol Temuan Blocker'),
     createBullet('Lembar sign-off ditandatangani oleh PIC Operations, PIC Finance, dan Product Lead.', '4. Persetujuan Lengkap')

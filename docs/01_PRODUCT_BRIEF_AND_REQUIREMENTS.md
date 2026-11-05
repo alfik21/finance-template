@@ -14,7 +14,7 @@
 | ID Dokumen | DOC-OPS-PBR-2026-001 |
 | Judul Dokumen | Product Brief & Functional Requirements — Finance Tracker |
 | Edisi Produk | Container-Bound Web App & Spreadsheet Edition |
-| Versi Rilis | 1.8.1 (Build Perdana Pasca-Pengembangan) |
+| Versi Rilis | 1.8.2 (Build Perdana Pasca-Pengembangan) |
 | Tanggal Efektif | 5 November 2026 |
 | Klasifikasi Akses | Internal — Terbatas (Internal Confidential) |
 | Penanggung Jawab (PIC) | Operations Team |

@@ -155,33 +155,45 @@ function createHarness(options = {}) {
     alert: (msg) => uiLog.alerts.push(String(msg)),
     showModalDialog: (html, title) => uiLog.modals.push({ html, title }),
     showSidebar: (html) => uiLog.sidebars.push(html),
-    createMenu: (...args) => {
+    createMenu: (caption) => {
+      const items = [];
       const menu = {
-        addItem: () => menu,
+        addItem: (itemCaption, funcName) => {
+          items.push({ caption: itemCaption, functionName: funcName });
+          return menu;
+        },
         addSeparator: () => menu,
-        addToUi: () => menu,
+        addToUi: () => {
+          uiLog.menus.push({ caption, items: items.slice() });
+          return menu;
+        },
       };
-      uiLog.menus.push(args);
       return menu;
     },
   };
 
-  const makeOutput = (file, kind) => ({
-    __file: file,
-    __kind: kind,
-    evaluate() {
-      const output = {
-        __file: file,
-        setTitle() { return output; },
-        setWidth() { return output; },
-        setHeight() { return output; },
-        setXFrameOptionsMode() { return output; },
-        addMetaTag() { return output; },
-        getContent: () => `<html data-file="${file}"></html>`,
-      };
-      return output;
-    },
-  });
+  const makeOutput = (file, kind) => {
+    const output = {
+      __file: file,
+      __kind: kind,
+      _width: null,
+      _height: null,
+      _title: null,
+      setTitle(t) { output._title = t; return output; },
+      setWidth(w) { output._width = w; return output; },
+      setHeight(h) { output._height = h; return output; },
+      setXFrameOptionsMode() { return output; },
+      addMetaTag() { return output; },
+      getContent: () => `<html data-file="${file}"></html>`,
+    };
+    return {
+      __file: file,
+      __kind: kind,
+      evaluate() {
+        return output;
+      },
+    };
+  };
 
   const sandbox = {
     console: {

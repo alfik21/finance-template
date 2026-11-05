@@ -1,10 +1,10 @@
-# Dokumentasi Perbaikan — Finance Tracker v1.8.1
+# Dokumentasi Perbaikan — Finance Tracker v1.8.2
 
 **Dokumen**: Dokumentasi Perbaikan Bug (Bug Fix Documentation)
 **Sumber temuan**: [`docs/05_LAPORAN_QC_PRODUCT_TESTING.md`](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) (67 temuan: 25 produk asli, 22 demo, 20 frontend bersama)
-**Versi produk**: 1.8.1 (`package.json`)
+**Versi produk**: 1.8.2 (`package.json`)
 **Tanggal perbaikan**: 5 November 2026
-**Status**: Seluruh 67 temuan tertutup, ditambah 1 temuan baru yang ditemukan selama verifikasi (T-01) dan sudah diperbaiki. Pekerjaan lanjutan v1.8.1 (keamanan dependensi, CI, sinkronisasi dokumen/generator) tercatat di bagian 9.
+**Status**: Seluruh 67 temuan tertutup, ditambah 1 temuan baru yang ditemukan selama verifikasi (T-01) dan sudah diperbaiki. Pekerjaan lanjutan v1.8.1 (keamanan dependensi, CI, sinkronisasi dokumen/generator) dan v1.8.2 (penyelarasan 32 TC dan penambahan 4 tes backend) tercatat di bagian 9 & 10.
 
 ---
 
@@ -187,7 +187,7 @@ npm run test:syntax        # node scripts/check-syntax.js
 ### 6.5 Keterbatasan pengujian
 
 - **Playwright e2e tidak dapat dijalankan** di mesin uji ini (`browserType.launch` hang). Skrip `tests/e2e/*.spec.js` sudah diperbaiki (termasuk D-20) tetapi hasilnya belum dianggap sebagai bukti; bukti utama adalah 38 tes backend dan verifikasi browser di atas.
-- **Belum diuji end-to-end di Google Apps Script sungguhan** (deployment, LockService, Script Properties allowlist, dan migrasi sheet pada workbook pembeli). Semua tes backend memakai tiruan `SpreadsheetApp`. Eksekusi 26 TC di `docs/02_PANDUAN_PENGUJIAN_PRODUK.md` pada akun Google baru tetap wajib sebelum rilis.
+- **Belum diuji end-to-end di Google Apps Script sungguhan** (deployment, LockService, Script Properties allowlist, dan migrasi sheet pada workbook pembeli). Semua tes backend memakai tiruan `SpreadsheetApp`. Eksekusi 32 TC di `docs/02_PANDUAN_PENGUJIAN_PRODUK.md` pada akun Google baru tetap wajib sebelum rilis.
 
 ---
 
@@ -210,7 +210,7 @@ npm run test:syntax        # node scripts/check-syntax.js
 
 1. Job `e2e` di `.github/workflows/ci.yml` sudah tersedia (informatif, `continue-on-error`); aktifkan sebagai gerbang wajib setelah terbukti hijau di lingkungan yang dapat menjalankan browser (`npx playwright install chromium`).
 2. `npm run login` lalu `npm run deploy` untuk memverifikasi allowlist, manifest, dan penomoran versi pada project Apps Script nyata.
-3. Eksekusi 26 TC Fase 1 pada workbook salinan baru, termasuk pemasangan manual sesuai panduan (ujian langsung R-01) dan pembatasan akses (ujian langsung R-02).
+3. Eksekusi 32 TC Fase 1 pada workbook salinan baru, termasuk pemasangan manual sesuai panduan (ujian langsung R-01) dan pembatasan akses (ujian langsung R-02).
 4. UAT mobile nyata (Safari iOS + Chrome Android) untuk alur: buka Sidebar, catat pemasukan, transfer, edit, hapus, atur anggaran, cek laporan bulan lalu.
 
 ---
@@ -241,3 +241,21 @@ Gerbang lokal baru: `npm run test:syntax` (`scripts/check-syntax.js`) dan `npm r
 - Berkas CSV yang ditautkan di `docs/02_PRODUCT_TESTING_CHECKLIST.md` tetapi tidak pernah ada di repo dihapus dari dokumen.
 
 Bukti: `npm run verify` = 38 tes lulus + build deterministik + 0 galat sintaks; `npm audit` = 0 vulnerabilities.
+
+---
+
+## 10. Pekerjaan Lanjutan v1.8.2
+
+Batch ini menutup celah pengujian backend dan memperbaiki inkonsistensi formula matriks uji dokumen:
+
+### 10.1 Penyelarasan Matriks Uji 32 Kasus (Bukan 26)
+- Formula pada tab `DASHBOARD_UJI` di `scripts/generate-testing-xlsx.js` dan `docs/02_PRODUCT_TESTING_CHECKLIST.md` diperbaiki dari `=COUNTA(MATRIKS_UJI!A2:A27)` menjadi `=COUNTA(MATRIKS_UJI!A2:A33)` dan `=COUNTIF(MATRIKS_UJI!F2:F33, "PASS")` dengan target 32. Hal ini memastikan seluruh 32 skenario (`TC-INP-01` s/d `TC-CPY-07`) terhitung dalam evaluasi metrik kelulusan spreadsheet.
+- Dokumen panduan `docs/02_PANDUAN_PENGUJIAN_PRODUK.md` dan generator `scripts/generate-docs-docx.js` diselaraskan dari 26 skenario menjadi 32 skenario.
+
+### 10.2 Penambahan Tes Unit Backend (Total 42 Tes)
+- Penambahan pengujian unit komprehensif pada `tests/backend/backend.test.js`:
+  1. Pengujian routing `apiDispatcher` untuk seluruh 10 aksi (`getDashboard`, `createTransaction`, `updateTransaction`, `deleteTransaction`, `saveBudget`, `deleteBudget`, `saveCategory`, `saveWallet`, `deleteWallet`, `restoreWallet`) dan penolakan aksi asing.
+  2. Pengujian `onOpen()` untuk memastikan menu toolbar spreadsheet `Finance Tracker` terdaftar dengan 3 item yang tepat.
+  3. Pengujian `openAppDialog()` untuk memastikan modal dibuka dengan dimensi 1080x720 px.
+  4. Pengujian idempotensi `ensureDatabaseStructure()` untuk memastikan struktur sheet dan seed awal tidak terduplikasi saat inisialisasi ulang.
+- Hasil: 42 tes unit backend seluruhnya **LULUS (42 pass, 0 fail)**.

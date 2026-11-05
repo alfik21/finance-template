@@ -5,7 +5,7 @@
 **Format Target**: Google Docs / PDF  
 **Divisi Penanggung Jawab (PIC)**: Finance + Operations  
 **Konteks Produk**: Produk Baru Selesai Dikembangkan (Fresh Development) — Belum Diuji oleh Pengguna Asli  
-**Versi Berkas**: 1.8.1  
+**Versi Berkas**: 1.8.2  
 **Tanggal Berlaku**: 5 November 2026  
 **Berkas Lembar Uji Terkait**:
 - Workbook Template Kosong (.xlsx): [`docs/02_PRODUCT_TESTING_CHECKLIST.xlsx`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx)
@@ -18,7 +18,7 @@
 Produk Finance Tracker ini **baru saja selesai dibangun dan selesai dikembangkan pada tingkat kode (*code freeze*)**. Seluruh fitur utama (Web App, perhitungan multi-dompet, mutasi transfer, anggaran berulang, dan tombol cepat habit chip) telah selesai dikoding, **namun belum pernah diuji coba oleh pengguna nyata (*real end-users*)**.
 
 Oleh karena itu, dokumen ini menetapkan kerangka kerja pengujian bertahap:
-1. **Fase 1: Verifikasi Fungsional Internal (Internal QA)**: Dilakukan oleh tim internal **Finance** dan **Operations** untuk memverifikasi 26 kasus uji teknis.
+1. **Fase 1: Verifikasi Fungsional Internal (Internal QA)**: Dilakukan oleh tim internal **Finance** dan **Operations** untuk memverifikasi 32 kasus uji teknis.
 2. **Fase 2: Pengujian Penerimaan Pengguna Asli (User Acceptance Testing / UAT)**: Dilakukan bersama 3–5 orang perwakilan pengguna nyata (pekerja lepas / pemilik UMKM) untuk mengamati kendala navigasi, kebingungan bahasa, atau hambatan saat pertama kali membuka template.
 
 ---
@@ -28,7 +28,7 @@ Oleh karena itu, dokumen ini menetapkan kerangka kerja pengujian bertahap:
 ```text
 +---------------------------------------------------------------------------------+
 | TAHAP 1: PENGUJIAN INTERNAL QA (FINANCE + OPERATIONS)                           |
-| - Verifikasi 26 Butir Matriks Uji Fungsional                                   |
+| - Verifikasi 32 Butir Matriks Uji Fungsional                                   |
 | - Uji Stabilitas Rumus & Saldo di Google Sheets                                |
 | - Uji Alur Otorisasi Script & Error Handling                                   |
 +---------------------------------------------------------------------------------+
@@ -75,7 +75,7 @@ Jika ditemukan anomali atau kebingungan pengguna selama proses uji:
 
 ---
 
-## 5. Prosedur Uji Fase 1: Matriks Fungsional Internal (26 Skenario)
+## 5. Prosedur Uji Fase 1: Matriks Fungsional Internal (32 Skenario)
 
 Lakukan verifikasi pada lembar kerja kosong [`docs/02_PRODUCT_TESTING_CHECKLIST.xlsx`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx):
 
@@ -142,7 +142,7 @@ Temuan QC lengkap dan pemetaan perbaikannya ada di [`docs/05_LAPORAN_QC_PRODUCT_
 
 ## 6. Prosedur Uji Fase 2: Pengujian Penerimaan Pengguna Asli (UAT)
 
-Setelah seluruh 26 butir Fase 1 bertanda **PASS**, lanjutkan ke pengujian dengan pengguna nyata:
+Setelah seluruh 32 butir Fase 1 bertanda **PASS**, lanjutkan ke pengujian dengan pengguna nyata:
 
 ### A. Kriteria Pemilihan Partisipan Uji Coba:
 - 1–2 orang pekerja lepas / profesional mandiri.
@@ -169,7 +169,7 @@ Setelah seluruh 26 butir Fase 1 bertanda **PASS**, lanjutkan ke pengujian dengan
 ## 7. Syarat Ambang Batas Kelulusan Menuju Penjualan Komersial (Release Gate)
 
 Produk Finance Tracker baru dinyatakan **SELESAI DIUJI & LAYAK JUAL (*READY TO SELL*)** apabila:
-1. **Fase 1 (Internal QA)**: 26 dari 26 skenario fungsional berstatus **PASS** (100%).
+1. **Fase 1 (Internal QA)**: 32 dari 32 skenario fungsional berstatus **PASS** (100%).
 2. **Fase 2 (User Testing)**: Minimal 80% partisipan pengguna asli menyatakan dapat mengoperasikan aplikasi secara mandiri tanpa bantuan teknis langsung.
 3. **Nol Temuan Blocker**: Tidak ada bug berkategori *Critical* atau *High* yang belum terselesaikan.
 4. **Persetujuan Akhir**: Lembar persetujuan (*Sign-Off*) ditandatangani oleh **PIC Operations**, **PIC Finance**, dan **Product Lead**.

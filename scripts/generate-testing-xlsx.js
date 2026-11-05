@@ -58,10 +58,10 @@ async function createBlankTestingWorkbook() {
   });
 
   const metricsData = [
-    ['Total Kasus Uji Fungsional', '=COUNTA(MATRIKS_UJI!A2:A27)', 26, 26],
-    ['Skenario Lulus (PASS)', '=COUNTIF(MATRIKS_UJI!F2:F27, "PASS")', 0, 26],
-    ['Skenario Gagal (FAIL)', '=COUNTIF(MATRIKS_UJI!F2:F27, "FAIL")', 0, 0],
-    ['Skenario Belum Diuji (PENDING)', '=COUNTIF(MATRIKS_UJI!F2:F27, "PENDING")', 26, 0],
+    ['Total Kasus Uji Fungsional', '=COUNTA(MATRIKS_UJI!A2:A33)', 32, 32],
+    ['Skenario Lulus (PASS)', '=COUNTIF(MATRIKS_UJI!F2:F33, "PASS")', 0, 32],
+    ['Skenario Gagal (FAIL)', '=COUNTIF(MATRIKS_UJI!F2:F33, "FAIL")', 0, 0],
+    ['Skenario Belum Diuji (PENDING)', '=COUNTIF(MATRIKS_UJI!F2:F33, "PENDING")', 32, 0],
     ['Tingkat Kelulusan (Pass Rate)', '=C10/C9', 0.0, 1.0],
     ['Status Kesiapan Komersial', '=IF(C13=1, "LAYAK JUAL (READY TO SELL)", "DITAHAN (HOLD)")', 'DITAHAN (HOLD)', 'LAYAK JUAL']
   ];

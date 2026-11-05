@@ -3,7 +3,7 @@
 **Tipe Dokumen**: Lembar Kendali Mutu Pra-Peluncuran (Pre-Launch QA & UAT Checklist)  
 **Format Target**: Google Sheets (Struktur 2 Tab: `DASHBOARD_UJI` dan `MATRIKS_UJI`)  
 **Divisi Penanggung Jawab (PIC)**: Finance + Operations  
-**Versi Berkas**: 1.8.1  
+**Versi Berkas**: 1.8.2  
 **Status Produk**: Baru Selesai Dikembangkan (Fresh Build) — Belum Diuji oleh Pengguna Asli  
 **Dokumen Panduan & SOP Uji**: [`docs/02_PANDUAN_PENGUJIAN_PRODUK.md`](file:///J:/Aplikasi/finance-template/docs/02_PANDUAN_PENGUJIAN_PRODUK.md)  
 **Berkas Spreadsheet Multi-Sheet Kosong (.xlsx)**: [`docs/02_PRODUCT_TESTING_CHECKLIST.xlsx`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx)  
@@ -22,10 +22,10 @@
 
 | Parameter Metrik | Formula Google Sheets | Nilai Saat Ini | Target Kelulusan | Status Evaluasi |
 |---|---|---|---|---|
-| Total Kasus Uji Fungsional | `=COUNTA(MATRIKS_UJI!A2:A27)` | 26 | 26 | Terdefinisi |
-| Skenario Lulus (PASS) | `=COUNTIF(MATRIKS_UJI!F2:F27, "PASS")` | 0 | 26 | Belum Diuji |
-| Skenario Gagal (FAIL) | `=COUNTIF(MATRIKS_UJI!F2:F27, "FAIL")` | 0 | 0 | Menunggu Eksekusi |
-| Skenario Belum Diuji (PENDING) | `=COUNTIF(MATRIKS_UJI!F2:F27, "PENDING")` | 26 | 0 | 26 Butir Antre Uji |
+| Total Kasus Uji Fungsional | `=COUNTA(MATRIKS_UJI!A2:A33)` | 32 | 32 | Terdefinisi |
+| Skenario Lulus (PASS) | `=COUNTIF(MATRIKS_UJI!F2:F33, "PASS")` | 0 | 32 | Belum Diuji |
+| Skenario Gagal (FAIL) | `=COUNTIF(MATRIKS_UJI!F2:F33, "FAIL")` | 0 | 0 | Menunggu Eksekusi |
+| Skenario Belum Diuji (PENDING) | `=COUNTIF(MATRIKS_UJI!F2:F33, "PENDING")` | 32 | 0 | 32 Butir Antre Uji |
 | Tingkat Kelulusan (Pass Rate) | `=C4/C3` | 0.0% | 100.0% | Belum Memenuhi Syarat |
 | Status Kesiapan Komersial | `=IF(C7=1, "LAYAK JUAL (READY TO SELL)", "DITAHAN (HOLD)")` | DITAHAN (HOLD) | LAYAK JUAL | Menunggu Hasil QA & UAT |
 
@@ -40,7 +40,7 @@
 
 ---
 
-## 2. Tab 2: MATRIKS_UJI (Formulir 26 Kasus Uji Kosong)
+## 2. Tab 2: MATRIKS_UJI (Formulir 32 Kasus Uji Kosong)
 
 ### Modul A: Input Transaksi Kas
 
@@ -111,5 +111,5 @@
 1. Unduh berkas [`02_PRODUCT_TESTING_CHECKLIST.xlsx`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx).
 2. Unggah ke Google Sheets (`File > Open > Upload`).
 3. Jalankan pengujian Fase 1 (Internal QA) sesuai SOP di [`02_PANDUAN_PENGUJIAN_PRODUK.md`](file:///J:/Aplikasi/finance-template/docs/02_PANDUAN_PENGUJIAN_PRODUK.md).
-4. Setelah seluruh 26 butir lulus (**PASS**), lakukan pengujian Fase 2 bersama 3–5 orang perwakilan pengguna nyata (*pilot users*).
+4. Setelah seluruh 32 butir lulus (**PASS**), lakukan pengujian Fase 2 bersama 3–5 orang perwakilan pengguna nyata (*pilot users*).
 5. Isi tanggal verifikasi dan tanda tangani lembar persetujuan sign-off sebelum produk dipublikasikan untuk penjualan komersial.
