@@ -5,7 +5,7 @@
 **Format Target**: Google Docs / PDF  
 **Divisi Penanggung Jawab (PIC)**: Finance + Operations  
 **Konteks Produk**: Produk Baru Selesai Dikembangkan (Fresh Development) — Belum Diuji oleh Pengguna Asli  
-**Versi Berkas**: 1.8.0  
+**Versi Berkas**: 1.8.1  
 **Tanggal Berlaku**: 5 November 2026  
 **Berkas Lembar Uji Terkait**:
 - Workbook Template Kosong (.xlsx): [`docs/02_PRODUCT_TESTING_CHECKLIST.xlsx`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx)
@@ -15,7 +15,7 @@
 
 ## 1. Latar Belakang dan Tujuan Pengujian
 
-Produk Finance Tracker ini **baru saja selesai dibangun dan selesai dikembangkan pada tingkat kode (*code freeze*)**. Seluruh fitur utama (Web App PWA, perhitungan multi-dompet, mutasi transfer, anggaran berulang, dan tombol cepat habit chip) telah selesai dikoding, **namun belum pernah diuji coba oleh pengguna nyata (*real end-users*)**.
+Produk Finance Tracker ini **baru saja selesai dibangun dan selesai dikembangkan pada tingkat kode (*code freeze*)**. Seluruh fitur utama (Web App, perhitungan multi-dompet, mutasi transfer, anggaran berulang, dan tombol cepat habit chip) telah selesai dikoding, **namun belum pernah diuji coba oleh pengguna nyata (*real end-users*)**.
 
 Oleh karena itu, dokumen ini menetapkan kerangka kerja pengujian bertahap:
 1. **Fase 1: Verifikasi Fungsional Internal (Internal QA)**: Dilakukan oleh tim internal **Finance** dan **Operations** untuk memverifikasi 26 kasus uji teknis.
@@ -69,7 +69,7 @@ Jika ditemukan anomali atau kebingungan pengguna selama proses uji:
 | Tingkat Keparahan | Kriteria | Tindakan Operasional |
 |---|---|---|
 | **Critical (Blocker)** | Rumus spreadsheet rusak, saldo tidak sesuai, aplikasi tidak mau terbuka, atau otorisasi gagal total. | Rilis DIBLOKIR. Pengembang wajib memperbaiki sebelum lanjut ke UAT. |
-| **High (Major)** | Fitur transfer gagal, validasi data tembus (misal angka 0 tersimpan), atau tombol PWA di ponsel macet. | Wajib diperbaiki dan diuji ulang. |
+| **High (Major)** | Fitur transfer gagal, validasi data tembus (misal angka 0 tersimpan), atau tombol pintasan di ponsel macet. | Wajib diperbaiki dan diuji ulang. |
 | **Medium (Minor)** | Teks label membingungkan pengguna awam, format titik ribuan terlambat muncul, atau tata letak geser di layar kecil. | Diperbaiki dalam siklus perbaikan rilis perdana. |
 | **Low (Trivial)** | Saran perubahan warna, redaksi panduan kurang jelas, atau permintaan fitur tambahan baru. | Dicatat dalam dokumen masukan pengguna (*Product Backlog*). |
 
@@ -129,8 +129,12 @@ Sebelum Fase 1 dinyatakan PASS, jalankan dari root repositori:
 
 | Perintah | Cakupan | Kebutuhan |
 |---|---|---|
-| `npm run test:backend` | 35 tes produk asli (`node:test` + tiruan `SpreadsheetApp`): validasi transaksi, saldo dompet, lock, allowlist email, migrasi sheet, DASHBOARD, AUDIT, resolusi template | Node 20+ saja |
+| `npm run test:backend` | 38 tes produk asli (`node:test` + tiruan `SpreadsheetApp`): validasi transaksi, saldo dompet, lock, allowlist email, migrasi sheet, DASHBOARD, AUDIT, resolusi template | Node 20+ saja |
+| `npm run test:syntax` | Parse seluruh script inline pada artefak hasil generate; gagal bila ada script rusak | Node 20+ saja |
+| `npm run verify` | `test:backend` + regenerasi fixture + `test:syntax` (gerbang cepat sebelum commit) | Node 20+ saja |
 | `npm test` | Regenerate fixture (`scripts/prepare-test-app.js`) lalu seluruh skrip Playwright UI/akuntansi/demo | `npx playwright install chromium` |
+
+Hasil regresi terakhir: **38/38 tes lulus, 0 galat sintaks, `npm audit` 0 kerentanan**. Pemeriksaan yang sama dijalankan otomatis oleh CI (`.github/workflows/ci.yml`) setiap push/PR.
 
 Temuan QC lengkap dan pemetaan perbaikannya ada di [`docs/05_LAPORAN_QC_PRODUCT_TESTING.md`](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) dan [`docs/06_DOKUMENTASI_PERBAIKAN.md`](file:///J:/Aplikasi/finance-template/docs/06_DOKUMENTASI_PERBAIKAN.md).
 

@@ -4,7 +4,7 @@
 **Tipe Dokumen**: Panduan Pengguna & Serah Terima Pembeli (Edisi Rilis Perdana)  
 **Format Target**: PDF (Tata Letak Standar 4 Halaman Siap Cetak / Print-Ready)  
 **Divisi Penanggung Jawab (PIC)**: Operations  
-**Versi Berkas**: 1.7.5  
+**Versi Berkas**: 1.8.1  
 
 ---
 
@@ -16,7 +16,7 @@
 
 ## 1. Selamat Datang di Finance Tracker
 
-Selamat atas kepemilikan template **Finance Tracker**. Sistem ini memadukan kekuatan Google Sheets dengan kemudahan aplikasi web mobile (PWA), memungkinkan Anda mencatat mutasi kas secepat kilat tanpa biaya langganan bulanan (*zero-subscription*).
+Selamat atas kepemilikan template **Finance Tracker**. Sistem ini memadukan kekuatan Google Sheets dengan kemudahan aplikasi web mobile (Web App + pintasan layar utama), memungkinkan Anda mencatat mutasi kas secepat kilat tanpa biaya langganan bulanan (*zero-subscription*).
 
 ### Nilai Utama Produk:
 - **Privasi Terjamin 100%**: Berkas tersimpan di Google Drive pribadi Anda, bukan di server asing.
@@ -161,7 +161,7 @@ Formulir transaksi dirancang sederhana dengan tiga tab utama:
 ### B. Buku Kas (Tiga Tampilan)
 - **Tampilan Harian**: Mengelompokkan mutasi per tanggal lengkap dengan subtotal pengeluaran/pemasukan harian.
 - **Tampilan Bulanan**: Kartu evaluasi ringkasan kas per bulan dengan pemilih bulan dinamis (*Month Selector*).
-- **Tampilan Statistik**: Diagram donat proporsi belanja per pos kategori dan diversifikasi aset kas.
+- **Tampilan Statistik**: Diagram donat alokasi belanja per pos kategori dan bar horizontal sebaran saldo per dompet.
 
 ### C. Koreksi Transaksi (Edit & Hapus)
 Salah memasukkan nominal atau salah memilih rekening? Cari transaksi di Buku Kas, lalu klik tombol **Edit** (ubah data) atau tombol **Hapus** (batalkan transaksi). Saldo dompet akan dihitung ulang secara otomatis.
@@ -172,7 +172,7 @@ Salah memasukkan nominal atau salah memilih rekening? Cari transaksi di Buku Kas
 <!-- HALAMAN 4 DARI 4                                                        -->
 <!-- ======================================================================= -->
 
-### Dokumen: Finance Tracker User Guide | Halaman 4 dari 4 | PWA Smartphone & Bantuan
+### Dokumen: Finance Tracker User Guide | Halaman 4 dari 4 | Pintasan Smartphone & Bantuan
 
 ## 7. Memasang di Layar Utama Smartphone (Add to Home Screen)
 
@@ -192,7 +192,7 @@ Akses Finance Tracker di smartphone layaknya aplikasi native tanpa perlu membuka
 ```text
 +-----------------------------------------------------------------------------------+
 | TANGKAPAN LAYAR 05: PEMASANGAN DI SMARTPHONE                                      |
-| Menampilkan: Tampilan Ikon PWA di Home Screen iPhone dan Android                  |
+| Menampilkan: Tampilan Ikon Pintasan di Home Screen iPhone dan Android             |
 +-----------------------------------------------------------------------------------+
 ```
 

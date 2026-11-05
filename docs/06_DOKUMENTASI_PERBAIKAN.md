@@ -1,10 +1,10 @@
-# Dokumentasi Perbaikan — Finance Tracker v1.8.0
+# Dokumentasi Perbaikan — Finance Tracker v1.8.1
 
 **Dokumen**: Dokumentasi Perbaikan Bug (Bug Fix Documentation)
 **Sumber temuan**: [`docs/05_LAPORAN_QC_PRODUCT_TESTING.md`](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) (67 temuan: 25 produk asli, 22 demo, 20 frontend bersama)
-**Versi produk**: 1.8.0 (`package.json`)
+**Versi produk**: 1.8.1 (`package.json`)
 **Tanggal perbaikan**: 5 November 2026
-**Status**: Seluruh 67 temuan tertutup, ditambah 1 temuan baru yang ditemukan selama verifikasi (T-01) dan sudah diperbaiki.
+**Status**: Seluruh 67 temuan tertutup, ditambah 1 temuan baru yang ditemukan selama verifikasi (T-01) dan sudah diperbaiki. Pekerjaan lanjutan v1.8.1 (keamanan dependensi, CI, sinkronisasi dokumen/generator) tercatat di bagian 9.
 
 ---
 
@@ -48,7 +48,7 @@ Tiga keputusan struktural yang memengaruhi seluruh perbaikan:
 | R-16 | `TransactionService.js`: `saveBudget` mengikat baris pada `(categoryId, periode)`, memvalidasi limit > 0 dan kategori ada, serta mempertahankan anggaran historis (prioritas periode aktif → `RECURRING`) | Menyetel anggaran bulan ini tidak lagi menimpa anggaran bulan lalu; baris duplikat tidak membuat hasil acak | Tes `R-16` |
 | R-17 | `Code.js`: `maskEmailForDisplay_()` menyamarkan email (`ma***@gmail.com`); `openAppSidebar` membungkus `showSidebar` dengan try/catch | Email tidak lagi ditampilkan utuh di UI (risiko bocor ke pemilik deployment mode tertentu); kegagalan membuka sidebar memberi pesan jelas, bukan error mentah | Tes `R-17` (3 kasus) |
 | R-18 | `Code.js`: `doGet` tidak lagi menambahkan meta viewport kedua (template sudah punya satu viewport yang benar) | Satu viewport di seluruh halaman; zoom dan lebar tampilan mobile konsisten | Review kode |
-| R-19 | `package.json`: `@google/clasp` masuk `devDependencies`, `main: src/backend/Code.js`, script `deploy` memanggil `scripts/clasp-version.js` setelah `clasp push` | `npm install` langsung menyediakan clasp; `npm run deploy` membuat versi Apps Script `v<versi package.json>` sehingga nomor versi selaras (aturan GEMINI.md) | `npx clasp --version` = 2.5.0; `npm run deploy` |
+| R-19 | `package.json`: `@google/clasp` masuk `devDependencies`, `main: src/backend/Code.js`, script `deploy` memanggil `scripts/clasp-version.js` setelah `clasp push` | `npm install` langsung menyediakan clasp; `npm run deploy` membuat versi Apps Script `v<versi package.json>` sehingga nomor versi selaras (aturan GEMINI.md) | `npx clasp --version` = 3.4.1; `npm run deploy` |
 | R-20 | Dokumen disinkronkan dengan kode: `README.md`, `setup_guide.md`, `docs/01`, `docs/02`; `Code.js`: `openAppSidebar().setWidth(380)` | Klaim dokumen kini sama dengan implementasi: sidebar 380px, dialog 1080x720px, Web App (bukan PWA penuh), subtotal harian, dan donut kategori + bar dompet | Review kode + verifikasi browser |
 | R-21 | Manifest hanya meminta 3 scope: `spreadsheets.currentonly`, `script.container.ui`, `userinfo.email` | Izin minimal dan konsisten; tidak ada permintaan `spreadsheets` penuh yang redundan | Tes `R-21/R-02: manifest menyatu` |
 | R-22 | `Code.js`: `runManualSetup()` membungkus `ensureDatabaseStructure()` + `refreshDashboardSummary_()`; sukses hanya bila kedua langkah selesai, kegagalan menampilkan toast `GAGAL` lalu melempar ulang galat | Pengguna tahu hasil sebenarnya: "Database siap: struktur tab terverifikasi dan ringkasan DASHBOARD diperbarui" atau pesan kegagalan beserta penyebabnya | Tes `R-22` |
@@ -158,7 +158,16 @@ node scripts/prepare-test-app.js
   - `preview.html` = `FE0BE9C8A4ED141C69BA9C4680DEB707BFEBD0C1EEA73FE44327F83F422502EE`
 - Tidak ada tanggal yang ditulis ke artefak; substitusi identitas hanya `Pengguna Demo`.
 
-### 6.3 Verifikasi browser (Chromium in-app, `http://127.0.0.1:8765`)
+### 6.3 Pemeriksaan sintaks otomatis
+
+```
+npm run test:syntax        # node scripts/check-syntax.js
+```
+
+- Meng-parse seluruh `<script>` inline pada 5 berkas hasil generate (`WebApp.html`, `preview.html`, `demo/index.html`, `demo/WebApp.html`, `tests/fixtures/app-test.html`) memakai `vm.Script`.
+- Hasil: **LULUS, 0 galat** — menjadi gerbang mutu lokal dan di CI.
+
+### 6.4 Verifikasi browser (Chromium in-app, `http://127.0.0.1:8765`)
 
 | Skenario | Hasil |
 |---|---|
@@ -175,7 +184,7 @@ node scripts/prepare-test-app.js
 | Aksesibilitas | `role="dialog" aria-modal="true"`, nav `role="button" tabindex="0"`, `#offline-banner` (S-15/S-16) |
 | Race T-01 | Modal dibuka saat loading → dropdown terisi setelah data tiba |
 
-### 6.4 Keterbatasan pengujian
+### 6.5 Keterbatasan pengujian
 
 - **Playwright e2e tidak dapat dijalankan** di mesin uji ini (`browserType.launch` hang). Skrip `tests/e2e/*.spec.js` sudah diperbaiki (termasuk D-20) tetapi hasilnya belum dianggap sebagai bukti; bukti utama adalah 38 tes backend dan verifikasi browser di atas.
 - **Belum diuji end-to-end di Google Apps Script sungguhan** (deployment, LockService, Script Properties allowlist, dan migrasi sheet pada workbook pembeli). Semua tes backend memakai tiruan `SpreadsheetApp`. Eksekusi 26 TC di `docs/02_PANDUAN_PENGUJIAN_PRODUK.md` pada akun Google baru tetap wajib sebelum rilis.
@@ -188,15 +197,47 @@ node scripts/prepare-test-app.js
 |---|---|
 | `README.md` | Web App (bukan PWA penuh), donut kategori + bar dompet, dialog 1080x720, sidebar 380px, allowlist `ALLOWED_EMAILS`, struktur folder (`tests/backend`, `demo/assets`, `scripts/clasp-version.js`), tabel pengujian otomatis, baris dokumen 05 & 06 |
 | `setup_guide.md` | Catatan penamaan file (R-01), kewajiban allowlist (R-02), catatan hasil generate (D-19/D-22), klaim Add to Home Screen sebagai pintasan browser |
-| `docs/01_PRODUCT_BRIEF_AND_REQUIREMENTS.md` | Mode akses (Web App + pintasan, sidebar 380px, dialog 1080x720), 3 tampilan buku kas |
-| `docs/02_PANDUAN_PENGUJIAN_PRODUK.md` | Versi 1.8.0 / 5 November 2026, TC-DSH-02 (bar dompet), TC-VAL-06 (saldo tidak nol), TC-CPY-06/07, bagian G (perintah pengujian otomatis) |
-| `package.json` | Versi 1.8.0, `main: src/backend/Code.js`, `@google/clasp` di devDependencies, script `test:backend` / `test:all` / `deploy` |
+| `docs/01_PRODUCT_BRIEF_AND_REQUIREMENTS.md` | Mode akses (Web App + pintasan, sidebar 380px, dialog 1080x720), 3 tampilan buku kas, Versi Rilis 1.8.1 / 5 November 2026 |
+| `docs/02_PANDUAN_PENGUJIAN_PRODUK.md` | Versi 1.8.1 / 5 November 2026, TC-DSH-02 (bar dompet), TC-VAL-06 (saldo tidak nol), TC-CPY-06/07, bagian G (perintah pengujian otomatis) |
+| `docs/02_PRODUCT_TESTING_CHECKLIST.md` | 4 baris TC disamakan dengan generator XLSX; blok tautan CSV yang berkasnya tidak ada dihapus |
+| `docs/03_USER_GUIDE.md` | Versi Berkas 1.8.1, klaim PWA diganti Web App + pintasan, statistik = donat kategori + bar dompet |
+| `docs/04_LICENSE_AND_TERMS_OF_USE.md` | Tanggal Berlaku Efektif 5 November 2026 |
+| `package.json` | Versi 1.8.1, `main: src/backend/Code.js`, `@google/clasp` 3.4.1 di devDependencies, `overrides` zod/uuid/glob, script `test:backend` / `test:syntax` / `verify` / `test:all` / `deploy` |
 
 ---
 
 ## 8. Sisa Pekerjaan Sebelum Rilis
 
-1. Jalankan `npx playwright install chromium` dan `npm run test:all` di lingkungan yang dapat menjalankan browser.
+1. Job `e2e` di `.github/workflows/ci.yml` sudah tersedia (informatif, `continue-on-error`); aktifkan sebagai gerbang wajib setelah terbukti hijau di lingkungan yang dapat menjalankan browser (`npx playwright install chromium`).
 2. `npm run login` lalu `npm run deploy` untuk memverifikasi allowlist, manifest, dan penomoran versi pada project Apps Script nyata.
 3. Eksekusi 26 TC Fase 1 pada workbook salinan baru, termasuk pemasangan manual sesuai panduan (ujian langsung R-01) dan pembatasan akses (ujian langsung R-02).
 4. UAT mobile nyata (Safari iOS + Chrome Android) untuk alur: buka Sidebar, catat pemasukan, transfer, edit, hapus, atur anggaran, cek laporan bulan lalu.
+
+---
+
+## 9. Pekerjaan Lanjutan v1.8.1
+
+Batch ini melengkapi perbaikan temuan dengan pekerjaan keamanan, otomasi, dan konsistensi dokumen.
+
+### 9.1 Keamanan dependensi (npm audit)
+
+| Sebelum | Sesudah | Tindakan |
+|---|---|---|
+| 5 kerentanan (1 high: `@google/clasp` path traversal GHSA-hqjg-pww4-pcgq; 4 moderate: `uuid`, `zod`) | **0 vulnerabilities** | `@google/clasp` dinaikkan `^2.5.0` → `^3.4.1`; `overrides` `zod ^4.6.6`, `uuid ^11.1.1`, `glob ^14.0.2` (perbaikan versi aman untuk rantai `clasp → googleapis → rimraf/glob`) |
+
+Verifikasi clasp 3.4.1: `npx clasp --version` = 3.4.1, `npx clasp show-file-status` memetakan 7 file `src/` dengan benar, `clasp create-version`/`clasp version` (dipakai `scripts/clasp-version.js`) tetap tersedia, `generate-testing-xlsx.js` dan `generate-docs-docx.js` berjalan normal dengan exceljs/uuid hasil override.
+
+### 9.2 CI GitHub Actions (`.github/workflows/ci.yml`)
+
+Job `backend-and-artifacts` (Node 20 dan 22): `npm ci` → `npm run test:backend` (38 tes) → regenerasi artefak + `git diff --exit-code` (deteksi drift D-19/D-22) → `npm run test:syntax` → `npm audit --audit-level=high` (gerbang keamanan).
+Job `e2e` (Playwright) berjalan `continue-on-error: true` sehingga informatif sampai terbukti stabil (lihat bagian 8).
+
+Gerbang lokal baru: `npm run test:syntax` (`scripts/check-syntax.js`) dan `npm run verify` (tes backend + build fixture + cek sintaks).
+
+### 9.3 Konsistensi versi dokumen & generator
+
+- `scripts/generate-testing-xlsx.js` dan `scripts/generate-docs-docx.js` kini membaca versi dari `package.json` (`RELEASE_VERSION`), tanggal dari konstanta `EFFECTIVE_DATE = '5 November 2026'`, dan nomor lisensi dari `LICENSE_TAG` — mencegah kekambuhan temuan R-20 (dokumen tertinggal dari kode).
+- Klaim yang disinkronkan di seluruh dokumen dan generator: Web App + pintasan (bukan PWA penuh), dialog 1080x720, sidebar 380px, statistik = donat kategori + bar dompet, TC-VAL-06 (saldo tidak nol), TC-CPY-06/07 (allowlist + pintasan).
+- Berkas CSV yang ditautkan di `docs/02_PRODUCT_TESTING_CHECKLIST.md` tetapi tidak pernah ada di repo dihapus dari dokumen.
+
+Bukti: `npm run verify` = 38 tes lulus + build deterministik + 0 galat sintaks; `npm audit` = 0 vulnerabilities.

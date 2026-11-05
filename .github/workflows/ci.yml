@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  backend-and-artifacts:
+    name: Regresi backend + integritas artefak
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Instal dependensi
+        run: npm ci
+
+      # D-21: tes backend produk asli (bukan mock demo)
+      - name: Regresi backend (node:test)
+        run: npm run test:backend
+
+      # D-19/D-22: artefak hasil generate harus identik dengan isi src/frontend
+      - name: Regenerasi artefak dan pastikan tidak ada drift
+        run: |
+          node scripts/prepare-test-app.js
+          git diff --exit-code -- WebApp.html preview.html demo/WebApp.html tests/fixtures/app-test.html
+
+      - name: Periksa sintaks seluruh script inline
+        run: npm run test:syntax
+
+      # Gerbang keamanan dependensi: temuan severity high/critical menggagalkan CI
+      - name: Audit keamanan dependensi (tanpa high/critical)
+        run: npm audit --audit-level=high
+
+  e2e:
+    # Informatif sampai terbukti hijau secara lokal; tidak memblokir merge.
+    name: E2E Playwright (informatif)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instal dependensi
+        run: npm ci
+
+      - name: Pasang Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Regenerasi fixture lalu jalankan e2e
+        run: npx playwright test

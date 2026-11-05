@@ -3,12 +3,10 @@
 **Tipe Dokumen**: Lembar Kendali Mutu Pra-Peluncuran (Pre-Launch QA & UAT Checklist)  
 **Format Target**: Google Sheets (Struktur 2 Tab: `DASHBOARD_UJI` dan `MATRIKS_UJI`)  
 **Divisi Penanggung Jawab (PIC)**: Finance + Operations  
+**Versi Berkas**: 1.8.1  
 **Status Produk**: Baru Selesai Dikembangkan (Fresh Build) — Belum Diuji oleh Pengguna Asli  
 **Dokumen Panduan & SOP Uji**: [`docs/02_PANDUAN_PENGUJIAN_PRODUK.md`](file:///J:/Aplikasi/finance-template/docs/02_PANDUAN_PENGUJIAN_PRODUK.md)  
 **Berkas Spreadsheet Multi-Sheet Kosong (.xlsx)**: [`docs/02_PRODUCT_TESTING_CHECKLIST.xlsx`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx)  
-**Berkas CSV Kosong Per-Sheet**:  
-- Tab 1: [`docs/02_PRODUCT_TESTING_CHECKLIST_TAB1_DASHBOARD.csv`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST_TAB1_DASHBOARD.csv)  
-- Tab 2: [`docs/02_PRODUCT_TESTING_CHECKLIST_TAB2_MATRIKS.csv`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST_TAB2_MATRIKS.csv)  
 
 ---
 
@@ -78,7 +76,7 @@
 | Test ID | Modul | Fitur & Skenario | Expected Result | Actual Result | Status | PIC | Tanggal Uji | Catatan / Evidence |
 |---|---|---|---|---|---|---|---|---|
 | TC-DSH-01 | Visual | Diagram Donut Belanja | Proporsi alokasi belanja kategori terhitung dalam persentase yang valid total 100%. | [Kosong] | PENDING | Operations | [Kosong] | [Kosong] |
-| TC-DSH-02 | Visual | Diagram Sebaran Dompet | Proporsi likuiditas saldo kas tunai, bank, dan e-wallet digambarkan secara proporsional. | [Kosong] | PENDING | Finance | [Kosong] | [Kosong] |
+| TC-DSH-02 | Visual | Diagram Sebaran Dompet | Sebaran dompet ditampilkan sebagai bar horizontal proporsi pemakaian kas tunai vs bank vs e-wallet (donut dipakai untuk alokasi kategori, bukan dompet). | [Kosong] | PENDING | Finance | [Kosong] | [Kosong] |
 | TC-DSH-03 | Visual | Progress Anggaran Belanja | Indikator rasio anggaran (Spent / Limit) * 100 tampil akurat tanpa tulisan undefined%. | [Kosong] | PENDING | Finance | [Kosong] | [Kosong] |
 | TC-DSH-04 | Visual | Status Batas Overbudget | Kategori belanja yang melampaui limit anggaran otomatis berubah menjadi indikator batas merah. | [Kosong] | PENDING | Operations | [Kosong] | [Kosong] |
 
@@ -91,7 +89,7 @@
 | TC-VAL-03 | Validasi | Transfer Dompet Sama | Menolak transfer ke rekening yang sama: Rekening asal dan tujuan tidak boleh sama. | [Kosong] | PENDING | Operations | [Kosong] | [Kosong] |
 | TC-VAL-04 | Validasi | Transfer Tujuan Kosong | Menolak transfer tanpa tujuan: Rekening tujuan wajib dipilih untuk transfer kas. | [Kosong] | PENDING | Operations | [Kosong] | [Kosong] |
 | TC-VAL-05 | Validasi | Tambah Dompet Tanpa Nama | Menolak pembuatan dompet baru tanpa nama: Nama dompet wajib diisi. | [Kosong] | PENDING | Operations | [Kosong] | [Kosong] |
-| TC-VAL-06 | Validasi | Hapus Dompet Bersaldo | Memblokir hapus dompet bersaldo > 0 dan meminta pemindahan dana terlebih dahulu. | [Kosong] | PENDING | Finance | [Kosong] | [Kosong] |
+| TC-VAL-06 | Validasi | Hapus Dompet Bersaldo | Sistem memblokir penghapusan dompet yang saldonya tidak nol (positif maupun negatif). | [Kosong] | PENDING | Finance | [Kosong] | [Kosong] |
 | TC-VAL-07 | Validasi | Soft Delete Dompet Riwayat | Dompet bersaldo 0 yang memiliki riwayat mutasi lampau ditandai status Aktif = false. | [Kosong] | PENDING | Finance | [Kosong] | [Kosong] |
 
 ### Modul F: Verifikasi Salinan Template (Post-Copy Verification)
@@ -103,8 +101,8 @@
 | TC-CPY-03 | Distribusi | Kemunculan Menu Toolbar | Menu bar [ Finance Tracker ] muncul otomatis di toolbar atas spreadsheet (< 5 detik). | [Kosong] | PENDING | Operations | [Kosong] | [Kosong] |
 | TC-CPY-04 | Distribusi | Otorisasi Script Pengguna | Dialog otorisasi keamanan Google berjalan mulus melalui opsi Advanced > Go to Finance Tracker. | [Kosong] | PENDING | Operations | [Kosong] | [Kosong] |
 | TC-CPY-05 | Distribusi | Inisialisasi Otomatis Sheet | Berkas otomatis membentuk tab DASHBOARD, TRANSAKSI, DOMPET, KATEGORI, ANGGARAN terformat rapi. | [Kosong] | PENDING | Operations | [Kosong] | [Kosong] |
-| TC-CPY-06 | Distribusi | Deploy Web App Mandiri | Pembeli dapat men-deploy Web App pribadi dan mengaksesnya lancar via browser ponsel. | [Kosong] | PENDING | Operations | [Kosong] | [Kosong] |
-| TC-CPY-07 | Distribusi | Pasang ke Layar HP (PWA) | Add to Home Screen menghasilkan shortcut mandiri berlayar penuh tanpa bilah URL peramban. | [Kosong] | PENDING | Operations | [Kosong] | [Kosong] |
+| TC-CPY-06 | Distribusi | Deploy Web App Mandiri | Pengguna dapat melakukan deployment Web App mandiri untuk smartphone (wajib menyetel Script Properties `ALLOWED_EMAILS` agar Web App dapat dibuka - lihat README Langkah 4). | [Kosong] | PENDING | Operations | [Kosong] | [Kosong] |
+| TC-CPY-07 | Distribusi | Pasang ke Layar HP (Pintasan) | Fitur *Add to Home Screen* menghasilkan pintasan aplikasi di ponsel (bookmark browser, bukan PWA penuh/offline). | [Kosong] | PENDING | Operations | [Kosong] | [Kosong] |
 
 ---
 

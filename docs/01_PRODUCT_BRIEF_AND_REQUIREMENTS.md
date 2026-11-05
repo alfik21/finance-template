@@ -14,8 +14,8 @@
 | ID Dokumen | DOC-OPS-PBR-2026-001 |
 | Judul Dokumen | Product Brief & Functional Requirements — Finance Tracker |
 | Edisi Produk | Container-Bound Web App & Spreadsheet Edition |
-| Versi Rilis | 1.7.5 (Build Perdana Pasca-Pengembangan) |
-| Tanggal Efektif | 26 Oktober 2026 |
+| Versi Rilis | 1.8.1 (Build Perdana Pasca-Pengembangan) |
+| Tanggal Efektif | 5 November 2026 |
 | Klasifikasi Akses | Internal — Terbatas (Internal Confidential) |
 | Penanggung Jawab (PIC) | Operations Team |
 | Tim Peninjau (Reviewer) | Finance Team, Product Lead |
@@ -109,7 +109,7 @@ Profil pengguna yang ditargetkan untuk pengujian awal dan penjualan komersial:
 | Status: SELESAI       |      | Status: SEDANG JALAN  |      | Status: MENDATANG     |
 |                       |      |                       |      |                       |
 | - Koding Backend      |      | - Internal QA Testing |      | - Buka Toko Digital   |
-| - Koding Frontend PWA |      | - UAT Pengguna Asli   |      | - Distribusi Link     |
+| - Koding Frontend Web App |      | - UAT Pengguna Asli   |      | - Distribusi Link     |
 | - Test Otomatis E2E   |      | - Evaluasi Feedback   |      | - Kampanye Promosi    |
 +-----------------------+      +-----------------------+      +-----------------------+
 ```

@@ -5,7 +5,7 @@
 **Format Target**: PDF (Dokumen Hukum Formal 2 Halaman Siap Cetak / Legal PDF)  
 **Nomor Registrasi Lisensi**: LIC-OPS-FIN-2026-FT-V175  
 **Divisi Penanggung Jawab (PIC)**: Operations + Finance  
-**Tanggal Berlaku Efektif**: 26 Oktober 2026  
+**Tanggal Berlaku Efektif**: 5 November 2026  
 
 ---
 

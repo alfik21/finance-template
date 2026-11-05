@@ -132,9 +132,13 @@ Kini aplikasi dapat dibuka dalam 1 detik langsung dari pintasan layar HP tanpa p
 
 | Perintah | Cakupan |
 |---|---|
-| `npm run test:backend` | Regresi backend produk asli (35 tes `node:test` dengan tiruan `SpreadsheetApp`): validasi transaksi, saldo, lock, allowlist email, DASHBOARD, AUDIT, dan resolusi template. Tidak memerlukan browser. |
+| `npm run test:backend` | Regresi backend produk asli (38 tes `node:test` dengan tiruan `SpreadsheetApp`): validasi transaksi, saldo, lock, allowlist email, DASHBOARD, AUDIT, dan resolusi template. Tidak memerlukan browser. |
+| `npm run test:syntax` | Parse seluruh `<script>` inline pada artefak hasil generate (`WebApp.html`, `preview.html`, `demo/index.html`, `demo/WebApp.html`, `tests/fixtures/app-test.html`); gagal bila ada script rusak. |
+| `npm run verify` | `test:backend` + regenerasi fixture + `test:syntax`. Gerbang cepat sebelum commit. |
 | `npm test` | Regenerate fixture lalu menjalankan seluruh tes Playwright (UI, akuntansi, demo). Memerlukan `npx playwright install chromium` dan lingkungan yang dapat menjalankan browser. |
 | `npm run test:all` | `test:backend` + `test`. |
+
+CI GitHub Actions (`.github/workflows/ci.yml`) menjalankan `test:backend`, regenerasi artefak + deteksi drift (`git diff --exit-code`), `test:syntax`, dan `npm audit --audit-level=high` pada Node 20 & 22 setiap push/PR; job Playwright berjalan informatif (`continue-on-error`).
 
 Artefak `WebApp.html`, `demo/WebApp.html`, `preview.html`, dan `tests/fixtures/app-test.html` seluruhnya **hasil generate** (`node scripts/prepare-test-app.js`) dan tidak boleh diedit manual; build bersifat deterministik (tidak menulis tanggal).
 
@@ -152,4 +156,4 @@ Seluruh dokumen pelengkap komersial dan acuan operasional tersedia di folder [`d
 | 3 | [**User Guide**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.md) | Panduan penggunaan untuk pembeli | PDF | Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.docx) |
 | 4 | [**License & Terms of Use**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.md) | Mengatur hak penggunaan, distribusi, dan ketentuan pembelian | PDF | Operations + Finance | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.docx) |
 | 5 | [**Laporan QC & Product Testing**](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) | Hasil audit 67 temuan (produk asli, demo, dan frontend bersama) | Markdown | QA | - |
-| 6 | [**Dokumentasi Perbaikan v1.8.0**](file:///J:/Aplikasi/finance-template/docs/06_DOKUMENTASI_PERBAIKAN.md) | Pemetaan setiap temuan ke perbaikan kode + bukti pengujian | Markdown | Engineering | - |
+| 6 | [**Dokumentasi Perbaikan v1.8.1**](file:///J:/Aplikasi/finance-template/docs/06_DOKUMENTASI_PERBAIKAN.md) | Pemetaan setiap temuan ke perbaikan kode + bukti pengujian | Markdown | Engineering | - |

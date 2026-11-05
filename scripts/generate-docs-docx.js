@@ -2,6 +2,12 @@ const docx = require('docx');
 const fs = require('fs');
 const path = require('path');
 
+// Sumber kebenaran versi & tanggal efektif: package.json + konstanta rilis,
+// agar dokumen DOCX tidak pernah tertinggal dari kode (keluarga temuan R-20).
+const RELEASE_VERSION = require('../package.json').version;
+const EFFECTIVE_DATE = '5 November 2026';
+const LICENSE_TAG = 'LIC-OPS-FIN-2026-FT-V' + RELEASE_VERSION.replace(/\./g, '');
+
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   HeadingLevel, AlignmentType, WidthType, BorderStyle, ShadingType
@@ -194,8 +200,8 @@ async function buildDoc1() {
         ['ID Dokumen', 'DOC-OPS-PBR-2026-001'],
         ['Judul Dokumen', 'Product Brief & Functional Requirements — Finance Tracker'],
         ['Edisi Produk', 'Container-Bound Web App & Spreadsheet Edition'],
-        ['Versi Rilis', '1.7.6 (Build Perdana Pasca-Pengembangan)'],
-        ['Tanggal Efektif', '26 Oktober 2026'],
+        ['Versi Rilis', `${RELEASE_VERSION} (Build Perdana Pasca-Pengembangan)`],
+        ['Tanggal Efektif', EFFECTIVE_DATE],
         ['Klasifikasi Akses', 'Internal — Terbatas (Internal Confidential)'],
         ['Penanggung Jawab (PIC)', 'Operations Team'],
         ['Tim Peninjau (Reviewer)', 'Finance Team, Product Lead'],
@@ -213,10 +219,10 @@ async function buildDoc1() {
     createBullet('Finance Tracker (Personal & Business Edition)', 'Nama Komersial'),
     createBullet('finance-template (Container-Bound Edition)', 'Nama Teknis Repositori'),
     createH2('1.2. Deskripsi Konseptual'),
-    createP('Aplikasi web pencatatan keuangan berbasis peramban (PWA) yang tertanam di dalam spreadsheet pengguna. Menghilangkan kebutuhan instalasi aplikasi dari Play Store/App Store dengan 3 mode akses:'),
-    createBullet('Berjalan mandiri di layar utama ponsel (Add to Home Screen) melalui peramban Safari (iOS) atau Chrome (Android).', '1. Mode Smartphone (PWA)'),
+    createP('Aplikasi web pencatatan keuangan berbasis peramban (Web App container-bound) yang tertanam di dalam spreadsheet pengguna. Menghilangkan kebutuhan instalasi aplikasi dari Play Store/App Store dengan 3 mode akses:'),
+    createBullet('Dapat ditambahkan sebagai pintasan di layar utama ponsel (Add to Home Screen) melalui peramban Safari (iOS) atau Chrome (Android); bukan PWA penuh karena tidak memiliki manifest/service worker dan tetap memerlukan internet.', '1. Mode Smartphone (Web App + Pintasan)'),
     createBullet('Panel antarmuka selebar 380px di sisi kanan Google Sheets untuk pencatatan sambil memantau baris data.', '2. Mode Panel Samping (Sidebar)'),
-    createBullet('Antarmuka terpusat berukuran 980x680px di Google Sheets untuk evaluasi bulanan yang leluasa.', '3. Mode Jendela Dialog (Modal Dialog)'),
+    createBullet('Antarmuka terpusat berukuran 1080x720px di Google Sheets untuk evaluasi bulanan yang leluasa.', '3. Mode Jendela Dialog (Modal Dialog)'),
     createH1('2. Profil Target Pengguna Asli (Target Pilot & End Users)'),
     createH2('2.1. Pekerja Lepas & Profesional Mandiri (Freelancers)'),
     createBullet('Arus kas masuk tidak teratur dari berbagai klien, memiliki banyak rekening (Bank BCA, Mandiri, e-wallet GoPay/OVO).', 'Karakteristik'),
@@ -245,7 +251,7 @@ async function buildDoc1() {
     createBullet('Tipografi Plus Jakarta Sans dan angka tabular JetBrains Mono, kontras tinggi, bebas emotikon/emoji (Zero-Emoji Policy).', '1. Antarmuka Sage Green Utilitarian'),
     createBullet('Mendukung Tunai, Bank, dan E-Wallet. Saldo awal tabungan langsung tercatat di Kekayaan Bersih (Net Worth) tanpa mengotori arus kas masuk berjalan.', '2. Kantong Saldo Multi-Akun & Saldo Awal'),
     createBullet('Koreksi transaksi (Edit & Delete) dengan pembatalan dampak mutasi lama dan penerapan mutasi baru secara otomatis (reverse-and-apply).', '3. Mesin Rekonsiliasi Mutasi'),
-    createBullet('Tampilan Harian (subtotal per hari), Tampilan Bulanan (kartu ringkasan kas & selector bulan), dan Tampilan Statistik (visual donat alokasi).', '4. Buku Kas 3 Tampilan'),
+    createBullet('Tampilan Harian (subtotal masuk, keluar, dan net per hari), Tampilan Bulanan (kartu ringkasan kas & selector bulan), dan Tampilan Statistik (donat alokasi per kategori serta bar horizontal per dompet).', '4. Buku Kas 3 Tampilan'),
     createBullet('Input nominal otomatis memformat titik pemisah ribuan saat diketik.', '5. Format Rupiah Otomatis Realtime'),
     createBullet('Pembentukan otomatis 5 tab sheet standar (DASHBOARD, TRANSAKSI, DOMPET, KATEGORI, ANGGARAN).', '6. Otomasi Database (SetupService)'),
     createH1('5. Batasan Produk (Product Scope & Constraints)'),
@@ -254,7 +260,7 @@ async function buildDoc1() {
     createBullet('Dikonfigurasi untuk format mata uang Rupiah Indonesia (IDR).', '3. Mata Uang Tunggal'),
     createBullet('Menggunakan pencatatan kas nyata (single-entry cash basis), bukan sistem akuntansi berpasangan murni (double-entry accrual).', '4. Metode Kas Tunggal'),
     createH1('6. Rencana Tahapan Rilis (Product Release Roadmap)'),
-    createBullet('Koding Backend, Frontend PWA, dan test otomatis E2E.', 'Tahap 1: PENGEMBANGAN [STATUS: SELESAI]'),
+    createBullet('Koding Backend, Frontend Web App, dan test otomatis E2E.', 'Tahap 1: PENGEMBANGAN [STATUS: SELESAI]'),
     createBullet('Pengujian internal QA (Finance/Ops), UAT bersama calon pengguna riil, dan evaluasi masukan.', 'Tahap 2: PENGUJIAN [STATUS: SEDANG BERJALAN]'),
     createBullet('Pembukaan toko digital, distribusi tautan /copy, dan kampanye promosi peluncuran.', 'Tahap 3: PELUNCURAN [STATUS: MENDATANG]'),
     createH1('7. Model Penetapan Harga Target Sementara (Provisional Pricing)'),
@@ -272,9 +278,9 @@ async function buildDoc1() {
     createTable(
       ['Peran', 'Penanggung Jawab', 'Tanggal', 'Status Keputusan'],
       [
-        ['Lead Developer', 'Engineering Team', '26 Oktober 2026', 'Kode Siap Diuji (Code Freeze)'],
-        ['Operasional', 'Operations Team', '26 Oktober 2026', 'Siap Masuk Tahap QA & UAT'],
-        ['Keuangan', 'Finance Team', '26 Oktober 2026', 'Siap Verifikasi Rumus']
+        ['Lead Developer', 'Engineering Team', EFFECTIVE_DATE, 'Kode Siap Diuji (Code Freeze)'],
+        ['Operasional', 'Operations Team', EFFECTIVE_DATE, 'Siap Masuk Tahap QA & UAT'],
+        ['Keuangan', 'Finance Team', EFFECTIVE_DATE, 'Siap Verifikasi Rumus']
       ]
     )
   ];
@@ -302,14 +308,14 @@ async function buildDoc2() {
       ['Parameter', 'Keterangan'],
       [
         ['ID Dokumen', 'SOP-QA-2026-002'],
-        ['Versi Dokumen', '1.7.6'],
+        ['Versi Dokumen', RELEASE_VERSION],
         ['Divisi Penanggung Jawab', 'Finance + Operations Team'],
-        ['Tanggal Berlaku', '26 Oktober 2026'],
+        ['Tanggal Berlaku', EFFECTIVE_DATE],
         ['Berkas Terkait', 'docs/02_PRODUCT_TESTING_CHECKLIST.xlsx (Template Kosong 2 Tab)']
       ]
     ),
     createH1('1. Latar Belakang dan Tujuan Pengujian'),
-    createP('Produk Finance Tracker ini baru saja selesai dibangun dan selesai dikembangkan pada tingkat kode (code freeze). Seluruh fitur utama (Web App PWA, perhitungan multi-dompet, mutasi transfer, anggaran berulang, dan tombol cepat habit chip) telah selesai dikoding, namun belum pernah diuji coba oleh pengguna nyata (real end-users).'),
+    createP('Produk Finance Tracker ini baru saja selesai dibangun dan selesai dikembangkan pada tingkat kode (code freeze). Seluruh fitur utama (Web App, perhitungan multi-dompet, mutasi transfer, anggaran berulang, dan tombol cepat habit chip) telah selesai dikoding, namun belum pernah diuji coba oleh pengguna nyata (real end-users).'),
     createP('Oleh karena itu, dokumen ini menetapkan kerangka kerja pengujian bertahap:'),
     createBullet('Dilakukan oleh tim internal Finance dan Operations untuk memverifikasi 26 kasus uji teknis pada lembar kerja kosong.', 'Fase 1: Verifikasi Fungsional Internal (Internal QA)'),
     createBullet('Dilakukan bersama 3–5 orang perwakilan pengguna nyata (pekerja lepas / pemilik UMKM) untuk mengamati kendala navigasi dan pemahaman awal.', 'Fase 2: Pengujian Penerimaan Pengguna Asli (User Acceptance Testing / UAT)'),
@@ -322,7 +328,7 @@ async function buildDoc2() {
       ['Tingkat Keparahan', 'Kriteria & Dampak', 'Tindakan Operasional'],
       [
         ['Critical (Blocker)', 'Rumus spreadsheet rusak, saldo tidak sesuai, aplikasi tidak terbuka, otorisasi gagal.', 'Rilis DIBLOKIR. Pengembang wajib memperbaiki sebelum lanjut ke UAT.'],
-        ['High (Major)', 'Fitur transfer gagal, validasi data tembus (angka 0 tersimpan), tombol PWA ponsel macet.', 'Wajib diperbaiki dan diuji ulang.'],
+        ['High (Major)', 'Fitur transfer gagal, validasi data tembus (angka 0 tersimpan), tombol pintasan di ponsel macet.', 'Wajib diperbaiki dan diuji ulang.'],
         ['Medium (Minor)', 'Teks label membingungkan pengguna awam, format titik ribuan terlambat muncul.', 'Diperbaiki dalam siklus perbaikan rilis perdana.'],
         ['Low (Trivial)', 'Saran perubahan warna, redaksi panduan kurang jelas, permintaan fitur baru.', 'Dicatat dalam dokumen Product Backlog.']
       ]
@@ -347,7 +353,7 @@ async function buildDoc2() {
     createBullet('Tampilan Buku Kas Harian menyajikan subtotal kas masuk dan keluar per hari secara rapi.', 'TC-SUM-04'),
     createH2('D. Modul Visualisasi & Grafik Dashboard (PIC: Operations + Finance)'),
     createBullet('Donut chart alokasi belanja kategori menghitung persentase proporsi secara valid (total 100%).', 'TC-DSH-01'),
-    createBullet('Donut chart sebaran dompet menggambarkan porsi likuiditas kas tunai vs bank vs e-wallet.', 'TC-DSH-02'),
+    createBullet('Sebaran dompet ditampilkan sebagai bar horizontal proporsi pemakaian kas tunai vs bank vs e-wallet (donut dipakai untuk alokasi kategori, bukan dompet).', 'TC-DSH-02'),
     createBullet('Bar progress anggaran kategori menghitung (Spent / Limit) * 100 tanpa tulisan undefined%.', 'TC-DSH-03'),
     createBullet('Kategori yang belanjanya melewati limit otomatis berubah menjadi penanda merah (Overbudget).', 'TC-DSH-04'),
     createH2('E. Modul Validasi & Keamanan Data (PIC: Operations + Finance)'),
@@ -356,7 +362,7 @@ async function buildDoc2() {
     createBullet('Sistem menolak mutasi transfer jika rekening asal dan tujuan identik.', 'TC-VAL-03'),
     createBullet('Sistem menolak mutasi transfer jika rekening tujuan belum dipilih.', 'TC-VAL-04'),
     createBullet('Sistem menolak pembuatan dompet baru jika nama dompet dikosongkan.', 'TC-VAL-05'),
-    createBullet('Sistem memblokir penghapusan dompet yang masih memiliki sisa saldo kas (> 0).', 'TC-VAL-06'),
+    createBullet('Sistem memblokir penghapusan dompet yang saldonya tidak nol (positif maupun negatif).', 'TC-VAL-06'),
     createBullet('Sistem menerapkan soft-delete (Aktif = false) jika dompet yang dihapus memiliki riwayat.', 'TC-VAL-07'),
     createH2('F. Modul Verifikasi Salinan Template (PIC: Operations)'),
     createBullet('Tautan /copy membuka halaman resmi konfirmasi Google Make a copy.', 'TC-CPY-01'),
@@ -364,8 +370,8 @@ async function buildDoc2() {
     createBullet('Menu toolbar [ Finance Tracker ] muncul dalam waktu < 5 detik setelah sheet dibuka.', 'TC-CPY-03'),
     createBullet('Dialog otorisasi Google dapat diselesaikan dengan memilih Advanced > Go to Finance Tracker.', 'TC-CPY-04'),
     createBullet('Kelima tab utama terformat sempurna saat pertama kali dibuka.', 'TC-CPY-05'),
-    createBullet('Pengguna dapat melakukan deployment Web App mandiri untuk smartphone.', 'TC-CPY-06'),
-    createBullet('Fitur Add to Home Screen menghasilkan ikon aplikasi mandiri di ponsel.', 'TC-CPY-07'),
+    createBullet('Pengguna dapat melakukan deployment Web App mandiri untuk smartphone (wajib menyetel Script Properties ALLOWED_EMAILS - lihat README Langkah 4).', 'TC-CPY-06'),
+    createBullet('Fitur Add to Home Screen menghasilkan pintasan aplikasi di ponsel (bookmark browser, bukan PWA penuh/offline).', 'TC-CPY-07'),
     createH1('5. Prosedur Uji Fase 2: Pengujian Penerimaan Pengguna Asli (UAT)'),
     createP('Setelah seluruh 26 butir Fase 1 bertanda PASS, lakukan pengujian bersama 3–5 orang perwakilan pengguna nyata:'),
     createBullet('Berikan tautan /copy, amati apakah mereka berhasil menyalin dokumen ke Google Drive sendiri.', 'Tugas 1: Akses Mandiri'),
@@ -406,10 +412,10 @@ async function buildDoc3() {
   const children = [
     createTitle('Panduan Pengguna: Finance Tracker'),
     createSubtitle('Personal & Business Edition — Edisi Rilis Perdana Pasca-Pengembangan'),
-    createCallout('Format Dokumen', 'Panduan Pengguna Resmi untuk Pengguna Uji Coba & Pembeli Perdana (Versi 1.7.6).'),
+    createCallout('Format Dokumen', `Panduan Pengguna Resmi untuk Pengguna Uji Coba & Pembeli Perdana (Versi ${RELEASE_VERSION}).`),
     createDivider(),
     createH1('1. Selamat Datang di Finance Tracker'),
-    createP('Selamat atas kepemilikan template Finance Tracker. Sistem ini memadukan kekuatan Google Sheets dengan kemudahan aplikasi web mobile (PWA), memungkinkan Anda mencatat mutasi kas secepat kilat tanpa biaya langganan bulanan (zero-subscription).'),
+    createP('Selamat atas kepemilikan template Finance Tracker. Sistem ini memadukan kekuatan Google Sheets dengan kemudahan aplikasi web (Web App + pintasan layar utama), memungkinkan Anda mencatat mutasi kas secepat kilat tanpa biaya langganan bulanan (zero-subscription).'),
     createBullet('Berkas tersimpan di Google Drive pribadi Anda, bukan di server asing.', 'Privasi Terjamin 100%'),
     createBullet('Buka dari layar smartphone (Add to Home Screen) maupun dari toolbar Google Sheets komputer Anda.', 'Akses Fleksibel'),
     createBullet('Tabungan awal tercatat sebagai aset tanpa merusak laporan pemasukan bulanan berjalan.', 'Multi-Dompet & Saldo Awal'),
@@ -444,7 +450,7 @@ async function buildDoc3() {
     createBullet('Posisi likuiditas uang nyata Anda saat ini dari gabungan seluruh dompet aktif.', 'Total Saldo (Kekayaan Bersih)'),
     createBullet('Membandingkan total uang masuk vs keluar serta sisa kas bersih (Net Savings).', 'Arus Kas Hari Ini & Bulan Ini'),
     createBullet('Bar persentase batas belanja. Berubah menjadi penanda merah jika overbudget.', 'Progress Anggaran Belanja'),
-    createBullet('Tampilan Harian (subtotal harian), Tampilan Bulanan (evaluasi bulanan), dan Tampilan Statistik (diagram donat).', 'Buku Kas (3 Tampilan)'),
+    createBullet('Tampilan Harian (subtotal harian), Tampilan Bulanan (evaluasi bulanan), dan Tampilan Statistik (donat kategori + bar per dompet).', 'Buku Kas (3 Tampilan)'),
     createBullet('Salah input? Buka Buku Kas, klik tombol Edit (ubah data) atau Hapus (rollback saldo otomatis).', 'Koreksi Transaksi (Edit & Hapus)'),
     createH1('7. Memasang di Layar Utama Smartphone (Add to Home Screen)'),
     createH2('Langkah 1: Buat Tautan Web App Pribadi'),
@@ -485,7 +491,7 @@ async function buildDoc4() {
   const children = [
     createTitle('Surat Perjanjian Lisensi & Ketentuan Penggunaan'),
     createSubtitle('Finance Tracker — Personal & Business Edition (Edisi Rilis Perdana)'),
-    createCallout('Nomor Registrasi Lisensi', 'LIC-OPS-FIN-2026-FT-V176 | Tanggal Berlaku Efektif: 26 Oktober 2026.'),
+    createCallout('Nomor Registrasi Lisensi', `${LICENSE_TAG} | Tanggal Berlaku Efektif: ${EFFECTIVE_DATE}.`),
     createDivider(),
     createP('PEMBERITAHUAN HUKUM: DENGAN MEMBELI, MENYALIN, MENGUNDUH, MENGAKSES, ATAU MENGGUNAKAN TEMPLATE FINANCE TRACKER, ANDA SECARA SADAR DAN SUKARELA MENYATAKAN TELAH MEMBACA, MEMAHAMI, DAN SETUJU UNTUK TERIKAT OLEH SELURUH SYARAT DAN KETENTUAN DALAM PERJANJIAN INI.'),
     createH1('Pasal 1: Pemberian Lisensi Penggunaan (Grant of License)'),
