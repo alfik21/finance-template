@@ -1,10 +1,10 @@
-# Dokumentasi Perbaikan — Finance Tracker v1.8.4
+# Dokumentasi Perbaikan — Finance Tracker v1.8.5
 
 **Dokumen**: Dokumentasi Perbaikan Bug (Bug Fix Documentation)
 **Sumber temuan**: [`docs/05_LAPORAN_QC_PRODUCT_TESTING.md`](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) (67 temuan: 25 produk asli, 22 demo, 20 frontend bersama)
-**Versi produk**: 1.8.4 (`package.json`)
+**Versi produk**: 1.8.5 (`package.json`)
 **Tanggal perbaikan**: 5 November 2026
-**Status**: Seluruh 67 temuan tertutup, ditambah 1 temuan baru yang ditemukan selama verifikasi (T-01) dan sudah diperbaiki. Pekerjaan lanjutan v1.8.1 (keamanan dependensi, CI, sinkronisasi dokumen/generator), v1.8.2 (penyelarasan 32 TC dan penambahan 4 tes backend), v1.8.3 (izin bawaan pemilik tanpa setup Script Properties), serta v1.8.4 (kompatibilitas pelari tes lintas Node 20/22 di CI) tercatat di bagian 9 s/d 12.
+**Status**: Seluruh 67 temuan tertutup, ditambah 1 temuan baru yang ditemukan selama verifikasi (T-01) dan sudah diperbaiki. Pekerjaan lanjutan v1.8.1 (keamanan dependensi, CI, sinkronisasi dokumen/generator), v1.8.2 (penyelarasan 32 TC dan penambahan 4 tes backend), v1.8.3 (izin bawaan pemilik tanpa setup Script Properties), v1.8.4 (kompatibilitas pelari tes lintas Node 20/22 di CI), serta v1.8.5 (rekonsiliasi logika akuntansi saldo awal dan pemasukan data contoh) tercatat di bagian 9 s/d 13.
 
 ---
 
@@ -282,3 +282,23 @@ Batch ini menyelesaikan kompatibilitas perintah uji backend lintas versi Node.js
 - Pada Node 20 di Linux/bash, perintah `node --test "tests/backend/*.test.js"` tidak mengekspansi tanda bintang `*` karena tanda petik ganda mencegah shell globbing dan runner bawaan Node 20 belum mendukung internal globbing untuk argumen string literal. Hal ini menyebabkan kegagalan: `Could not find '.../tests/backend/*.test.js'`.
 - Script `test:backend` di `package.json` dispesifikasikan langsung ke berkas `tests/backend/backend.test.js` tanpa tanda petik yang membingungkan parser.
 - Hasil pengujian: Lulus 100% pada Node 20, 22, dan 24 lintas platform (Linux, macOS, dan Windows).
+
+---
+
+## 13. Pekerjaan Lanjutan v1.8.5
+
+Batch ini menyelesaikan cacat logika akuntansi pada database tampilan demo dan simulator spreadsheet (`demo/index.html` dan `tests/mocks/google-script-mock.js`):
+
+### 13.1 Rekonsiliasi Saldo Awal, Pemasukan, dan Total Nilai Bersih (*Net Worth*)
+- **Temuan Cacat**:
+  1. Pada data demo sebelumnya, transaksi `TX-2` mencatat Pemasukan Gaji = Rp 15.000.000 dan `TX-1` mencatat Pengeluaran Makan Siang = Rp 50.000, menghasilkan sisa kas bulanan Rp 14.950.000. Namun, total saldo seluruh dompet (*Net Worth*) di kartu hero hanya tertulis Rp 12.500.000 (terjadi selisih minus Rp 2.450.000 yang tidak masuk akal).
+  2. Rekening BCA memiliki Saldo Awal Rp 0 dan menerima mutasi masuk gaji Rp 15.000.000, namun saldo akhirnya hanya tertulis Rp 10.000.000 tanpa adanya catatan mutasi keluar.
+  3. Dompet Tunai dan GoPay memiliki Saldo Awal Rp 0 di tabel DOMPET simulasi, namun masing-masing memiliki saldo akhir Rp 500.000 dan Rp 2.000.000 tanpa riwayat mutasi masuk.
+- **Tindakan Perbaikan**:
+  1. **Rekonsiliasi Mutasi Gaji**: Transaksi pemasukan gaji `TX-2` diselaraskan menjadi Rp 10.000.000 masuk ke rekening BCA Tabungan (Saldo Awal Rp 0 + Mutasi Masuk Rp 10.000.000 = Saldo Akhir Rp 10.000.000).
+  2. **Rekonsiliasi Saldo Awal Dompet Tunai**: Saldo awal Dompet Tunai disetel ke Rp 550.000. Setelah dipotong pengeluaran `TX-1` Makan Siang Nasi Padang Rp 50.000, saldo akhir menjadi tepat Rp 500.000.
+  3. **Rekonsiliasi Saldo Awal GoPay**: Saldo awal GoPay disetel ke Rp 2.000.000 (saldo akhir tetap Rp 2.000.000).
+  4. **Rekonsiliasi Total Kekayaan Bersih**: Total Saldo Awal (Rp 2.550.000) + Pemasukan (Rp 10.000.000) - Pengeluaran (Rp 50.000) = Rp 12.500.000. 100% klop dan konsisten secara akuntansi.
+  5. **Kronologi Transaksi**: Timestamp `TX-1` (jam 12:30 WIB) dibuat lebih baru daripada `TX-2` (jam 08:00 WIB), sehingga Makan Siang Nasi Padang muncul secara presisi di baris paling atas daftar transaksi terakhir.
+  6. **Fidelitas Mock**: Pada fungsi `saveWallet` di `tests/mocks/google-script-mock.js`, properti `initialBalance` kini dipasangkan ke objek dompet baru sehingga dompet baru yang ditambahkan di simulator spreadsheet menampilkan nilai saldo awal yang tepat. Selain itu, fungsi `updateTransaction` mempertahankan `createdAt` asli transaksi agar urutan kronologis tidak teracak saat hanya mengedit nominal atau catatan.
+- **Hasil Pengujian**: Seluruh 44 pengujian backend lulus, 8 script inline bebas galat sintaks, dan seluruh artefak showcase terdistribusi secara sinkron.

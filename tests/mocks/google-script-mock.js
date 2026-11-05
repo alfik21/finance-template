@@ -154,20 +154,20 @@ if (!window.__MOCK_DB__) {
     inactiveWallets: [],
     todaySummary: {
       date: todayStr,
-      income: 15000000,
+      income: 10000000,
       expense: 50000,
-      net: 14950000
+      net: 9950000
     },
     monthSummary: {
       period: currentPeriod,
-      income: 15000000,
+      income: 10000000,
       expense: 50000,
-      netSavings: 14950000
+      netSavings: 9950000
     },
     wallets: [
-      { id: "W-1", name: "Dompet Tunai", type: "Cash", balance: 500000, icon: "Wallet", active: true },
-      { id: "W-2", name: "BCA Tabungan", type: "Bank", balance: 10000000, icon: "CreditCard", active: true },
-      { id: "W-3", name: "GoPay", type: "E-Wallet", balance: 2000000, icon: "Smartphone", active: true }
+      { id: "W-1", name: "Dompet Tunai", type: "Cash", balance: 500000, initialBalance: 550000, icon: "Wallet", active: true },
+      { id: "W-2", name: "BCA Tabungan", type: "Bank", balance: 10000000, initialBalance: 0, icon: "CreditCard", active: true },
+      { id: "W-3", name: "GoPay", type: "E-Wallet", balance: 2000000, initialBalance: 2000000, icon: "Smartphone", active: true }
     ],
     categories: [
       { id: "C-IN-1", name: "Gaji Pokok", type: "Income", icon: "Briefcase" },
@@ -184,7 +184,7 @@ if (!window.__MOCK_DB__) {
       {
         id: "TX-1",
         date: todayStr,
-        createdAt: "2026-01-01T01:00:00.000Z",
+        createdAt: "2026-01-01T05:30:00.000Z",
         type: "Expense",
         amount: 50000,
         walletId: "W-1",
@@ -196,9 +196,9 @@ if (!window.__MOCK_DB__) {
       {
         id: "TX-2",
         date: todayStr,
-        createdAt: "2026-01-01T02:00:00.000Z",
+        createdAt: "2026-01-01T01:00:00.000Z",
         type: "Income",
-        amount: 15000000,
+        amount: 10000000,
         walletId: "W-2",
         walletName: "BCA Tabungan",
         categoryId: "C-IN-1",
@@ -333,7 +333,7 @@ function createMockRunner() {
             // 3. Update objek transaksi
             const newWallet = db.wallets.find(w => w.id === v.walletId);
             tx.date = v.dateStr;
-            tx.createdAt = new Date().toISOString();
+            tx.createdAt = tx.createdAt || new Date().toISOString();
             tx.type = v.type;
             tx.amount = v.amount;
             tx.walletId = v.walletId;
@@ -396,6 +396,7 @@ function createMockRunner() {
               name: String(payload.name).trim().substring(0, 60),
               type: wType,
               balance: Math.round(initBalNum),
+              initialBalance: Math.round(initBalNum),
               icon: 'Wallet',
               active: true
             };
