@@ -40,10 +40,10 @@ Sistem ini **baru saja selesai dibangun dan dikembangkan (*freshly developed*)**
 - **Nama Teknis Repositori**: `finance-template`
 
 ### 1.2. Deskripsi Konseptual
-Aplikasi web pencatatan keuangan berbasis peramban (PWA) yang tertanam di dalam spreadsheet pengguna. Menghilangkan kebutuhan instalasi aplikasi dari Play Store/App Store dengan 3 mode akses:
-1. **Mode Smartphone (PWA)**: Berjalan mandiri di layar utama ponsel (*Add to Home Screen*) melalui peramban Safari (iOS) atau Chrome (Android).
+Aplikasi web pencatatan keuangan berbasis peramban yang tertanam di dalam spreadsheet pengguna. Menghilangkan kebutuhan instalasi aplikasi dari Play Store/App Store dengan 3 mode akses:
+1. **Mode Smartphone (Web App + pintasan)**: Berjalan di peramban ponsel dan dapat ditambahkan sebagai pintasan layar utama (*Add to Home Screen*) melalui Safari (iOS) atau Chrome (Android). Bukan PWA penuh: tidak memiliki `manifest.json`/service worker dan tetap memerlukan koneksi internet.
 2. **Mode Panel Samping (Sidebar)**: Panel antarmuka selebar 380px di sisi kanan Google Sheets untuk pencatatan sambil memantau baris data.
-3. **Mode Jendela Dialog (Modal Dialog)**: Antarmuka terpusat berukuran 980x680px di Google Sheets untuk evaluasi bulanan yang leluasa.
+3. **Mode Jendela Dialog (Modal Dialog)**: Antarmuka terpusat berukuran 1080x720px di Google Sheets untuk evaluasi bulanan yang leluasa.
 
 ---
 
@@ -86,7 +86,7 @@ Profil pengguna yang ditargetkan untuk pengujian awal dan penjualan komersial:
 1. **Antarmuka Sage Green Utilitarian**: Tipografi *Plus Jakarta Sans* dan angka tabular *JetBrains Mono*, kontras tinggi, bebas emotikon/emoji (*Zero-Emoji Policy*).
 2. **Kantong Saldo Multi-Akun & Saldo Awal**: Mendukung Tunai, Bank, dan E-Wallet. Saldo awal tabungan langsung tercatat di Kekayaan Bersih (*Net Worth*) tanpa mengotori arus kas masuk bulan berjalan.
 3. **Mesin Rekonsiliasi Mutasi**: Koreksi transaksi (*Edit & Delete*) dengan pembatalan dampak mutasi lama dan penerapan mutasi baru secara otomatis (*reverse-and-apply*).
-4. **Buku Kas 3 Tampilan**: Tampilan Harian (subtotal per hari), Tampilan Bulanan (kartu ringkasan kas & selector bulan), dan Tampilan Statistik (visual donat alokasi pengeluaran).
+4. **Buku Kas 3 Tampilan**: Tampilan Harian (subtotal masuk, keluar, dan net per hari), Tampilan Bulanan (kartu ringkasan kas & selector bulan), dan Tampilan Statistik (donat alokasi pengeluaran per kategori serta bar horizontal per dompet).
 5. **Format Rupiah Otomatis Realtime**: Input nominal otomatis memformat titik pemisah ribuan saat diketik.
 6. **Otomasi Database (SetupService)**: Pembentukan otomatis 5 tab sheet standar (`DASHBOARD`, `TRANSAKSI`, `DOMPET`, `KATEGORI`, `ANGGARAN`).
 

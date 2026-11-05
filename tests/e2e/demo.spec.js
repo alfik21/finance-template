@@ -18,8 +18,11 @@ test.describe('E2E: Showcase Preview & Standalone Mode', () => {
     await expect(btnFullscreen).toHaveAttribute('target', '_blank');
 
     // 3. Cek Simulasi Spreadsheet Realtime
+    //    D-20: jangan mengunci jumlah baris (rapuh saat data demo berubah);
+    //    cukup pastikan tabel terisi dan memuat transaksi contoh.
     await expect(page.locator('#simulatedTxTableBody')).toBeVisible();
-    await expect(page.locator('#simulatedTxTableBody tr')).toHaveCount(2);
+    await expect(page.locator('#simulatedTxTableBody tr').first()).toBeVisible();
+    await expect(page.locator('#simulatedTxTableBody')).toContainText('Makan Siang Nasi Padang');
 
     // 4. Toggle Viewport ke Desktop View
     await page.click('#btnViewDesktop');

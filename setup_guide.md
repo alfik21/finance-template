@@ -17,8 +17,8 @@ Mengapa template ini sangat diminati oleh target pasar pencatat keuangan pribadi
    - Produk ini menawarkan kepemilikan seumur hidup tanpa tagihan berulang.
 2. **Privasi 100% Terjamin di Google Drive Pribadi**:
    - Data finansial tidak masuk ke server startup pihak ketiga yang rawan ditutup atau bocor. Seluruh baris transaksi berada di Google Drive pembeli sendiri.
-3. **Cepat & Praktis di Smartphone (PWA Native-Like)**:
-   - Dapat ditambahkan ke Layar Utama (*Add to Home Screen*) di iOS (Safari) dan Android (Chrome). Sangat mudah mencatat saat berada di depan kasir.
+3. **Cepat & Praktis di Smartphone (Add to Home Screen)**:
+   - Dapat ditambahkan sebagai pintasan di Layar Utama (*Add to Home Screen*) iOS (Safari) dan Android (Chrome). Sangat mudah mencatat saat berada di depan kasir. Catatan: ini pintasan browser, bukan PWA penuh (tidak berjalan offline).
 4. **Fleksibilitas Spreadsheet Asli**:
    - Pembeli tetap memiliki fleksibilitas rumus Google Sheets jika ingin membuat laporan pajak, pivot chart, atau ekspor data ke Excel / PDF.
 5. **Akses Toolbar Langsung di Google Sheets**:
@@ -46,6 +46,10 @@ Sebagai penjual, Anda cukup membuat **1 Master Spreadsheet** sekali saja. Pembel
    - Klik tombol **+** di sebelah *Files* > pilih **HTML** > beri nama `App.html`. Tempel kode dari file [`src/frontend/App.html`](file:///J:/Aplikasi/finance-template/src/frontend/App.html).
    - *(Opsional)*: Klik ikon gerigi (*Project Settings*) di panel kiri > centang *"Show 'appsscript.json' manifest file in editor"*. Buka `appsscript.json` dan pastikan isinya sama dengan [`src/appsscript.json`](file:///J:/Aplikasi/finance-template/src/appsscript.json).
 3. Klik tombol **Simpan** (Ctrl + S).
+
+> **Catatan penamaan file (R-01)**: pada instalasi manual, nama file HTML harus persis `Index`, `Styles`, dan `App` (tanpa folder). Backend v1.8.0 juga mendukung struktur `frontend/Index.html` bila Anda memakai `clasp push` dengan `rootDir: "./src"`, jadi kedua metode instalasi aman.
+
+> **Wajib untuk Web App (R-02)**: setelah deploy Web App, buka **Project Settings > Script Properties** dan tambahkan `ALLOWED_EMAILS` berisi email pembeli (dipisah koma) atau `ALLOWED_EMAIL_OWNER=true`. Tanpa allowlist, Web App menolak akses meski link benar.
 
 ### C. Jalankan Setup Otomatis Template
 1. Kembali ke tab Google Sheets, lalu lakukan **Refresh halaman (F5)**.
@@ -130,7 +134,9 @@ Selamat mengelola keuangan dengan rapi, nyaman, dan bebas pusing! Jika ada kenda
 
 ## 6. Cara Menggunakan Halaman Demo untuk Marketing & Konversi
 
-File [`demo/index.html`](file:///J:/Aplikasi/finance-template/demo/index.html) dan [`demo/WebApp.html`](file:///J:/Aplikasi/finance-template/demo/WebApp.html) adalah aset pemasaran yang sangat bernilai:
+File [`demo/index.html`](file:///J:/Aplikasi/finance-template/demo/index.html) dan [`demo/WebApp.html`](file:///J:/Aplikasi/finance-template/demo/WebApp.html) adalah aset pemasaran yang sangat bernilai. Halaman ini menampilkan pita **MODE DEMO** agar calon pembeli tidak salah mengira sedang memakai produk live.
+
+Catatan teknis (D-19/D-22): `demo/WebApp.html`, `preview.html`, root `WebApp.html`, dan `tests/fixtures/app-test.html` adalah **file hasil generate**. Setelah mengubah `src/frontend/*`, jalankan `node scripts/prepare-test-app.js`. `preview.html` bukan salinan byte-identik dari `demo/index.html` karena memakai header penanda generate dan path aset `demo/assets/`. Tailwind untuk demo dipaket lokal di `demo/assets/tailwindcss.js` sehingga tidak bergantung CDN.
 
 1. **Uji Coba Langsung di Browser Pembeli**:
    - Calon pembeli dapat menguji langsung sensasi mencatat transaksi di frame HP iPhone maupun tampilan desktop tanpa harus menginstal apapun.

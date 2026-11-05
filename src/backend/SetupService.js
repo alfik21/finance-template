@@ -1,18 +1,39 @@
 /**
  * SetupService.js
  * Inisialisasi dan verifikasi otomatis struktur sheet di dalam Google Spreadsheet pembeli.
+ *
+ * Perbaikan QC:
+ * - R-08: header divalidasi/dimigrasi, boolean Aktif dikoersi, format tanggal & angka diseragamkan.
+ * - R-14: tab DASHBOARD diisi ringkasan (bukan hanya warna tab).
+ * - R-15: seed anggaran contoh dihapus (hanya dompet/kategori bawaan yang disemai).
+ * - R-18: insertSheet dibungkus try/catch dengan pesan yang bisa ditindaklanjuti.
  */
 
 function ensureDatabaseStructure() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const currentPeriod = getCurrentMonthPeriod();
 
   const configs = [
     {
       name: "DASHBOARD",
-      headers: ["RINGKASAN FINANCE TRACKER", "", "", ""],
+      headers: ["RINGKASAN FINANCE TRACKER", "Nilai", "Keterangan", "Diperbarui"],
       setup: (sheet) => {
         sheet.setTabColor("#0D6858");
+      },
+      // R-14: isi ringkasan statis agar tab tidak kosong.
+      content: (sheet) => {
+        const rows = [
+          ["Total Saldo (Net Worth)", 0, "Jumlah saldo seluruh dompet aktif", ""],
+          ["Pemasukan Bulan Ini", 0, "Rekap mutasi tipe Income pada periode berjalan", ""],
+          ["Pengeluaran Bulan Ini", 0, "Rekap mutasi tipe Expense pada periode berjalan", ""],
+          ["Jumlah Dompet Aktif", 0, "Dompet dengan status Aktif = TRUE", ""],
+          ["Jumlah Kategori", 0, "Kategori Income dan Expense", ""],
+          ["Anggaran Aktif", 0, "Anggaran berperiode RECURRING", ""]
+        ];
+        sheet.getRange(2, 1, rows.length, 4).setValues(rows);
+        sheet.getRange(2, 1, rows.length, 1).setFontWeight("bold");
+        sheet.getRange(2, 2, rows.length, 1).setNumberFormat("#,##0");
+        sheet.getRange(2, 4, rows.length, 1).setNumberFormat("yyyy-mm-dd hh:mm");
+        return rows.length;
       }
     },
     {
@@ -55,10 +76,8 @@ function ensureDatabaseStructure() {
     {
       name: "ANGGARAN",
       headers: ["ID", "Kategori_ID", "Periode", "Limit_Nominal"],
-      seeds: [
-        ["B-1", "C-EX-1", "RECURRING", 1500000],
-        ["B-2", "C-EX-2", "RECURRING", 500000]
-      ],
+      // R-15: tidak ada seed anggaran contoh.
+      seeds: [],
       setup: (sheet) => {
         sheet.setTabColor("#D97706");
       }
@@ -68,7 +87,15 @@ function ensureDatabaseStructure() {
   configs.forEach(cfg => {
     let sheet = ss.getSheetByName(cfg.name);
     if (!sheet) {
-      sheet = ss.insertSheet(cfg.name);
+      // R-18: gagal membuat sheet harus menghasilkan pesan yang jelas, bukan error mentah.
+      try {
+        sheet = ss.insertSheet(cfg.name);
+      } catch (err) {
+        throw new Error(
+          "Gagal membuat tab '" + cfg.name + "'. Periksa izin dan pastikan spreadsheet tidak terkunci. Detail: " +
+          (err && err.message ? err.message : err)
+        );
+      }
       sheet.appendRow(cfg.headers);
       sheet.getRange(1, 1, 1, cfg.headers.length)
         .setFontWeight("bold")
@@ -80,10 +107,91 @@ function ensureDatabaseStructure() {
         sheet.getRange(2, 1, cfg.seeds.length, cfg.seeds[0].length).setValues(cfg.seeds);
       }
       if (cfg.setup) cfg.setup(sheet);
+      if (cfg.content) cfg.content(sheet);
+    } else {
+      // R-08: sheet lama tetap divalidasi & dimigrasi (header, boolean, format).
+      migrateExistingSheet_(sheet, cfg);
+      // R-14: sheet DASHBOARD lama yang kosong tetap diisi ringkasan.
+      if (cfg.content && sheet.getLastRow() < 2) {
+        try { cfg.content(sheet); } catch (eContent) { /* abaikan bila terkunci */ }
+      }
     }
   });
 
   return ss;
+}
+
+/**
+ * R-08: validasi header sheet yang sudah ada, tambahkan kolom yang hilangkan,
+ * koersi nilai boolean Aktif, dan terapkan format tanggal/angka.
+ */
+function migrateExistingSheet_(sheet, cfg) {
+  try {
+    const headerRange = sheet.getRange(1, 1, 1, cfg.headers.length);
+    const current = headerRange.getValues()[0];
+    let headerChanged = false;
+    for (let i = 0; i < cfg.headers.length; i++) {
+      const expected = cfg.headers[i];
+      const actual = current[i];
+      const actualStr = actual === null || actual === undefined ? "" : String(actual).trim();
+      if (actualStr !== expected) {
+        // Hanya menimpa bila sel kosong atau tidak cocok dengan nama kolom yang dikenal.
+        if (actualStr === "" || !isKnownHeader_(actualStr)) {
+          current[i] = expected;
+          headerChanged = true;
+        }
+      }
+    }
+    if (headerChanged) headerRange.setValues([current]);
+
+    // Koersi kolom boolean Aktif (DOMPET): teks "FALSE"/"false" -> false, dst.
+    if (cfg.name === "DOMPET") {
+      const lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        const values = sheet.getRange(2, 6, lastRow - 1, 1).getValues();
+        let changed = false;
+        // getValues()/setValues() selalu 2 dimensi: kembalikan [nilai] per baris.
+        const coerced = values.map(row => {
+          const v = row[0];
+          if (typeof v === "string") {
+            const low = v.trim().toLowerCase();
+            if (low === "true" || low === "1" || low === "ya") { changed = true; return [true]; }
+            if (low === "false" || low === "0" || low === "tidak" || low === "") { changed = true; return [false]; }
+          }
+          return [v];
+        });
+        if (changed) sheet.getRange(2, 6, lastRow - 1, 1).setValues(coerced);
+      }
+    }
+
+    // Format tanggal (TRANSAKSI.Tanggal, ANGGARAN tanpa tanggal) & angka.
+    const lastRow2 = sheet.getLastRow();
+    if (lastRow2 > 1) {
+      if (cfg.name === "TRANSAKSI") {
+        sheet.getRange(2, 2, lastRow2 - 1, 1).setNumberFormat("yyyy-mm-dd");
+        sheet.getRange(2, 7, lastRow2 - 1, 1).setNumberFormat("#,##0");
+      } else if (cfg.name === "DOMPET") {
+        sheet.getRange(2, 4, lastRow2 - 1, 1).setNumberFormat("#,##0");
+      } else if (cfg.name === "ANGGARAN") {
+        sheet.getRange(2, 4, lastRow2 - 1, 1).setNumberFormat("#,##0");
+      }
+    }
+  } catch (e) {
+    // Migrasi tidak boleh menjatuhkan seluruh aplikasi; lanjutkan dengan struktur lama.
+    console.warn("Migrasi sheet " + cfg.name + " gagal: " + (e && e.message ? e.message : e));
+  }
+}
+
+const KNOWN_HEADERS_ = {
+  ID: true, Tanggal: true, Tipe: true, Dompet_ID: true, Dompet_Tujuan_ID: true,
+  Kategori_ID: true, Nominal: true, Catatan: true, Dibuat_Pada: true,
+  Nama_Dompet: true, Saldo_Awal: true, Ikon: true, Aktif: true,
+  Nama_Kategori: true, Periode: true, Limit_Nominal: true,
+  Nilai: true, Keterangan: true, Diperbarui: true
+};
+
+function isKnownHeader_(name) {
+  return KNOWN_HEADERS_[name] === true;
 }
 
 function getCurrentMonthPeriod() {
@@ -101,5 +209,22 @@ function formatDateIso(val) {
     const dd = String(val.getDate()).padStart(2, "0");
     return `${yyyy}-${mm}-${dd}`;
   }
-  return String(val).substring(0, 10);
+  // R-08: serial date GAS terbaca sebagai number -> konversi, bukan String(...).substring(0,10).
+  if (typeof val === "number" && isFinite(val) && val > 20000 && val < 60000) {
+    const ms = Math.round((val - 25569) * 86400 * 1000);
+    const d = new Date(ms);
+    const yyyy = d.getUTCFullYear();
+    const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(d.getUTCDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  const s = String(val).trim();
+  // Format dd/mm/yyyy -> yyyy-mm-dd agar masuk periode yang benar.
+  const idMatch = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (idMatch) {
+    const dd = String(idMatch[1]).padStart(2, "0");
+    const mm = String(idMatch[2]).padStart(2, "0");
+    return `${idMatch[3]}-${mm}-${dd}`;
+  }
+  return s.substring(0, 10);
 }

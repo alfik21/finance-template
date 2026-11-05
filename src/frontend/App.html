@@ -2,31 +2,65 @@
   const appState = {
     activeTab: 'dashboard',
     selectedCycle: 'month',
-    currentMonthPeriod: new Date().toISOString().substring(0, 7),
+    // S-12: periode dashboard (bulan berjalan) dan periode Buku Kas dipisah.
+    currentMonthPeriod: localMonthPeriod(),
+    bookMonthPeriod: localMonthPeriod(),
     bookView: 'daily', // 'daily' | 'monthly' | 'stats'
     statsType: 'Expense', // 'Expense' | 'Income'
     data: null,
     isLoading: true,
     filterCategory: 'ALL',
     searchQuery: '',
+    // S-09: pelacak modal terbuka agar Escape menutup satu modal teratas saja.
+    modalStack: [],
+    lastFocusedElement: null,
     form: {
       type: 'Expense',
-      amount: '',
       walletId: '',
-      destWalletId: '',
-      categoryId: '',
-      notes: '',
-      date: new Date().toISOString().substring(0, 10)
+      categoryId: ''
     }
   };
+
+  /* ==========================================================================
+   * Utilitas dasar (S-01, S-05, S-10, S-14)
+   * ========================================================================*/
+
+  /** S-01: escape data dinamis sebelum masuk innerHTML/atribut. */
+  function esc(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /** S-05: tanggal lokal (bukan UTC) agar cocok dengan backend Asia/Jakarta. */
+  function localDateStr(d) {
+    const dt = d || new Date();
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const day = String(dt.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function localMonthPeriod(d) {
+    const dt = d || new Date();
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  }
 
   function initApp() {
     loadDashboardData();
     setupKeyboardShortcuts();
+    setupOfflineWatcher();
   }
 
   function loadDashboardData() {
-    appState.isLoading = true;
+    // S-06: hanya menampilkan layar "Memuat" saat data pertama kali kosong.
+    if (!appState.data) appState.isLoading = true;
     renderApp();
 
     if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -37,6 +71,7 @@
             appState.data = res.data;
             if (appState.data && appState.data.monthSummary && appState.data.monthSummary.period) {
               appState.currentMonthPeriod = appState.data.monthSummary.period;
+              if (!appState.bookMonthPeriod) appState.bookMonthPeriod = appState.currentMonthPeriod;
             }
             if (appState.data && Array.isArray(appState.data.wallets) && appState.data.wallets.length > 0 && !appState.form.walletId) {
               appState.form.walletId = appState.data.wallets[0].id;
@@ -45,27 +80,80 @@
               const expCat = appState.data.categories.find(c => c.type === 'Expense');
               if (expCat) appState.form.categoryId = expCat.id;
             }
+            // QC v1.8.0 (temuan verifikasi browser): pengguna bisa membuka modal
+            // transaksi selagi data masih dimuat. Saat itu dropdown kategori masih
+            // kosong dan renderApp tidak pernah mengisinya kembali, sehingga user
+            // terkunci pada alert "Pilih kategori". Isi ulang bila modal terbuka.
+            refreshOpenTransactionModal_();
           } else {
-            alert("Kendala: " + ((res && res.error) || "Gagal memuat data"));
+            alert("Kendala memuat data: " + ((res && res.error) || "Gagal memuat data") +
+              ". Periksa koneksi internet lalu muat ulang.");
           }
           renderApp();
         })
         .withFailureHandler(err => {
           appState.isLoading = false;
-          alert("Gagal terhubung: " + err.message);
+          const msg = (err && err.message) ? err.message : 'Tidak terhubung ke server Apps Script.';
+          alert("Gagal terhubung: " + msg +
+            (navigator.onLine === false ? " (Perangkat sedang offline)" : "") +
+            ". Klik tombol Muat Ulang bila berulang.");
           renderApp();
         })
         .apiDispatcher('getDashboard', {});
+    } else {
+      // S-02: bila API tidak tersedia, jangan layar "Memuat" selamanya.
+      appState.isLoading = false;
+      renderApp();
     }
+  }
+
+  /** S-15: deteksi offline/online agar pengguna tahu penyebab gagal simpan. */
+  function setupOfflineWatcher() {
+    const rerender = () => {
+      const banner = document.getElementById('offline-banner');
+      if (banner) banner.style.display = navigator.onLine === false ? 'block' : 'none';
+    };
+    window.addEventListener('online', rerender);
+    window.addEventListener('offline', rerender);
+    document.addEventListener('DOMContentLoaded', rerender);
+    rerender();
+  }
+
+  function retryLoad() {
+    loadDashboardData();
   }
 
   function setupKeyboardShortcuts() {
     window.addEventListener('keydown', (e) => {
+      const modalOpen = appState.modalStack.length > 0;
       if (e.key === 'Escape') {
-        closeAllModals();
-      } else if ((e.key === 'n' || e.key === 'N') && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        // S-09: Escape hanya menutup modal teratas, bukan seluruh modal sekaligus.
+        if (modalOpen) {
+          e.preventDefault();
+          closeModal(appState.modalStack[appState.modalStack.length - 1]);
+        }
+      } else if ((e.key === 'n' || e.key === 'N') && !modalOpen &&
+          !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
         e.preventDefault();
         openModal('transaction-modal', 'Expense');
+      }
+    });
+
+    // S-01: aksi baris (edit/hapus) memakai data-attribute + delegation,
+    // bukan string id yang disisipkan mentah ke onclick.
+    document.addEventListener('click', (e) => {
+      const target = e.target.closest ? e.target.closest('[data-action]') : null;
+      if (!target) return;
+      const action = target.getAttribute('data-action');
+      const id = target.getAttribute('data-id') || '';
+      switch (action) {
+        case 'edit-tx': e.preventDefault(); editTx(id); break;
+        case 'delete-tx': e.preventDefault(); deleteTx(id); break;
+        case 'delete-wallet': e.preventDefault(); deleteWallet(id); break;
+        case 'restore-wallet': e.preventDefault(); restoreWallet(id); break;
+        case 'delete-budget': e.preventDefault(); deleteBudget(id); break;
+        case 'select-month': e.preventDefault(); selectMonthlyPeriod(id); break;
+        default: break;
       }
     });
   }
@@ -99,11 +187,22 @@
     renderApp();
   }
 
+  /** S-14: parsing nominal menghormati pemisah ribuan; "1.5" tidak lagi jadi 15. */
   function parseCurrencyValue(val) {
-    if (typeof val === 'number') return val;
+    if (typeof val === 'number') return isFinite(val) ? val : 0;
     if (!val) return 0;
-    const cleanStr = String(val).replace(/[^0-9]/g, '');
-    return cleanStr ? parseInt(cleanStr, 10) : 0;
+    let s = String(val).trim().replace(/[^\d.,]/g, '');
+    if (!s) return 0;
+    if (/^\d{1,3}([.,]\d{3})+$/.test(s)) {
+      s = s.replace(/[.,]/g, ''); // pola ribuan: 1.500.000 -> 1500000
+    } else {
+      s = s.replace(/\.(?=\d{3}(\D|$))/g, '').replace(/,/g, '.');
+      if (!/^\d+(\.\d+)?$/.test(s)) s = s.replace(/[^\d]/g, '');
+    }
+    const n = Number(s);
+    if (!isFinite(n)) return 0;
+    // Batas atas wajar (15 digit) agar tidak ada nilai ekstrem masuk sheet.
+    return Math.min(n, 999999999999999);
   }
 
   function handleCurrencyInput(el) {
@@ -146,8 +245,6 @@
       amountEl.value = new Intl.NumberFormat('id-ID').format(amount);
     }
     if (notesEl) notesEl.value = name;
-    appState.form.amount = amount;
-    appState.form.notes = name;
 
     if (appState.data && appState.data.categories) {
       const catLower = (categoryName || '').toLowerCase();
@@ -162,8 +259,12 @@
     }
   }
 
+  /** S-10: format rupiah menangani angka negatif secara konsisten (-Rp 50.000). */
   function formatRupiah(num) {
-    return "Rp " + new Intl.NumberFormat('id-ID').format(Number(num) || 0);
+    const n = Number(num) || 0;
+    const abs = Math.abs(n);
+    const text = "Rp " + new Intl.NumberFormat('id-ID').format(abs);
+    return n < 0 ? "-" + text : text;
   }
 
   function formatPeriodMonth(periodStr) {
@@ -200,12 +301,15 @@
   }
 
   function changeMonthStep(delta) {
-    const parts = appState.currentMonthPeriod.split('-');
+    // S-12: stepper Buku Kas hanya mengubah periode Buku Kas,
+    // tidak lagi mengubah angka "Bulan Ini" di Dashboard.
+    const base = appState.bookMonthPeriod || appState.currentMonthPeriod;
+    const parts = base.split('-');
     let y = parseInt(parts[0], 10);
     let m = parseInt(parts[1], 10) + delta;
     if (m > 12) { m = 1; y += 1; }
     else if (m < 1) { m = 12; y -= 1; }
-    appState.currentMonthPeriod = `${y}-${String(m).padStart(2, '0')}`;
+    appState.bookMonthPeriod = `${y}-${String(m).padStart(2, '0')}`;
     renderApp();
   }
 
@@ -246,14 +350,16 @@
     return { items, total: totalAmt };
   }
 
-  function getWalletBreakdown(transactions, wallets) {
-    const expenseTxs = transactions.filter(t => t.type === 'Expense');
-    const totalExp = expenseTxs.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+  function getWalletBreakdown(transactions, wallets, targetType) {
+    // S-13: sebaran dompet mengikuti mode statistik (Pengeluaran/Pemasukan).
+    const type = targetType || 'Expense';
+    const matchedTxs = (transactions || []).filter(t => t.type === type);
+    const totalExp = matchedTxs.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
     if (totalExp === 0) return [];
     const map = {};
-    expenseTxs.forEach(t => {
+    matchedTxs.forEach(t => {
       const wId = t.walletId;
-      const w = wallets.find(x => x.id === wId);
+      const w = (wallets || []).find(x => x.id === wId);
       const wName = w ? w.name : 'Lainnya';
       map[wName] = (map[wName] || 0) + (Number(t.amount) || 0);
     });
@@ -279,13 +385,17 @@
       `;
     }
 
-    let cumulativePercent = 0;
+    // S-11: akumulasi dihitung dari rasio asli (bukan persen yang sudah
+    // dibulatkan) agar total selalu 100% tanpa celah/tumpang tindih.
+    const totalRaw = items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0) || total;
+    let cumulativeFraction = 0;
     const slices = items.map((item, idx) => {
       const color = CHART_PALETTE[idx % CHART_PALETTE.length];
-      const strokeDash = `${item.percent} ${100 - item.percent}`;
-      const strokeOffset = 100 - cumulativePercent;
-      cumulativePercent += item.percent;
-      return `<circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="${color}" stroke-width="5" stroke-dasharray="${strokeDash}" stroke-dashoffset="${strokeOffset}"></circle>`;
+      const fraction = totalRaw > 0 ? ((Number(item.amount) || 0) / totalRaw) * 100 : 0;
+      const strokeDash = `${fraction} ${100 - fraction}`;
+      const strokeOffset = 100 - cumulativeFraction;
+      cumulativeFraction += fraction;
+      return `<circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="${color}" stroke-width="5" stroke-dasharray="${strokeDash}" stroke-dashoffset="${strokeOffset}" transform="rotate(-90 21 21)"></circle>`;
     }).join('');
 
     const legend = items.map((item, idx) => {
@@ -318,7 +428,8 @@
   }
 
   function selectMonthlyPeriod(period) {
-    appState.currentMonthPeriod = period;
+    // S-12: pemilih bulan pada tampilan Bulanan juga menyangkut Buku Kas saja.
+    appState.bookMonthPeriod = period;
     renderApp();
   }
 
@@ -350,24 +461,29 @@
     });
 
     const sortedPeriods = Object.keys(groups).sort((a, b) => b.localeCompare(a));
-    if (sortedPeriods.length === 0 && appState.currentMonthPeriod) {
-      groups[appState.currentMonthPeriod] = {
-        period: appState.currentMonthPeriod,
+    const fallbackPeriod = appState.bookMonthPeriod || appState.currentMonthPeriod;
+    if (sortedPeriods.length === 0 && fallbackPeriod) {
+      groups[fallbackPeriod] = {
+        period: fallbackPeriod,
         income: 0,
         expense: 0,
         net: 0,
         count: 0,
         items: []
       };
-      sortedPeriods.push(appState.currentMonthPeriod);
+      sortedPeriods.push(fallbackPeriod);
     }
     return sortedPeriods.map(p => groups[p]);
   }
 
   function renderMonthlyView(transactions, wallets) {
     const monthGroups = getMonthlySummaryGroups(transactions);
-    const activePeriod = appState.currentMonthPeriod;
-    const activeGroup = monthGroups.find(g => g.period === activePeriod) || monthGroups[0];
+    const activePeriod = appState.bookMonthPeriod || appState.currentMonthPeriod;
+    // S-04: bulan tanpa transaksi tetap menampilkan bulan itu sendiri (empty state),
+    // bukan diam-diam jatuh ke bulan lain.
+    const activeGroup = monthGroups.find(g => g.period === activePeriod) || {
+      period: activePeriod, income: 0, expense: 0, net: 0, count: 0, items: []
+    };
     const activeYear = activePeriod ? activePeriod.substring(0, 4) : String(new Date().getFullYear());
 
     const yearGroups = monthGroups.filter(g => g.period && g.period.startsWith(activeYear));
@@ -411,10 +527,10 @@
         ${monthGroups.map(g => {
           const isSelected = g.period === activePeriod;
           return `
-            <div class="monthly-card touch-btn ${isSelected ? 'selected' : ''}" onclick="selectMonthlyPeriod('${g.period}')">
+            <div class="monthly-card touch-btn ${isSelected ? 'selected' : ''}" data-action="select-month" data-id="${esc(g.period)}" role="button" tabindex="0">
               <div class="monthly-card-header">
                 <div style="display: flex; align-items: center; gap: 6px;">
-                  <span class="monthly-card-title">${formatPeriodMonth(g.period)}</span>
+                  <span class="monthly-card-title">${esc(formatPeriodMonth(g.period))}</span>
                   ${isSelected ? `<span class="user-badge" style="background: var(--sage-800); color: #fff; border-color: var(--sage-800);">Aktif</span>` : ''}
                 </div>
                 <span class="monthly-card-count">${g.count} Transaksi</span>
@@ -429,7 +545,7 @@
                   <span class="monthly-stat-val text-expense tabular">-${formatRupiah(g.expense)}</span>
                 </div>
                 <div class="monthly-stat-item" style="text-align: right;">
-                  <span class="monthly-stat-label">Sisa Kas</span>
+                  <span class="monthly-stat-label">${g.net < 0 ? 'Defisit' : 'Sisa Kas'}</span>
                   <span class="monthly-stat-val tabular ${g.net < 0 ? 'text-expense font-bold' : 'text-sage-700'}">${formatRupiah(g.net)}</span>
                 </div>
               </div>
@@ -466,21 +582,21 @@
               const wDisplay = getWalletDisplay(tx, wallets);
               return `
                 <div class="ledger-row">
-                  <div class="ledger-date tabular">${tx.date}</div>
+                  <div class="ledger-date tabular">${esc(tx.date)}</div>
                   <div class="ledger-notes">
-                    <div class="ledger-notes-text">${tx.notes || (tx.type === 'Transfer' ? 'Pindah Saldo Dompet' : '-')}</div>
-                    <div class="mobile-subtext" style="font-size: 11px; color: var(--text-subtle); display: none;">${tx.date} • ${wDisplay} • ${tx.categoryName}</div>
+                    <div class="ledger-notes-text">${esc(tx.notes || (tx.type === 'Transfer' ? 'Pindah Saldo Dompet' : '-'))}</div>
+                    <div class="mobile-subtext" style="font-size: 11px; color: var(--text-subtle); display: none;">${esc(tx.date)} • ${esc(wDisplay)} • ${esc(tx.categoryName)}</div>
                   </div>
-                  <div class="ledger-wallet">${wDisplay}</div>
-                  <div class="ledger-cat">${tx.categoryName}</div>
+                  <div class="ledger-wallet">${esc(wDisplay)}</div>
+                  <div class="ledger-cat">${esc(tx.categoryName)}</div>
                   <div class="ledger-amount tabular ${tx.type === 'Income' ? 'text-income' : (tx.type === 'Expense' ? 'text-expense' : '')}">
                     ${tx.type === 'Income' ? '+' : (tx.type === 'Expense' ? '-' : '')}${formatRupiah(tx.amount)}
                   </div>
                   <div class="ledger-action" style="text-align: right; display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                    <button class="btn-delete-row touch-btn" title="Edit transaksi" onclick="editTx('${tx.id}')" aria-label="Edit">
+                    <button class="btn-delete-row touch-btn" title="Edit transaksi" data-action="edit-tx" data-id="${esc(tx.id)}" aria-label="Edit">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
                     </button>
-                    <button class="btn-delete-row touch-btn" title="Hapus transaksi" onclick="deleteTx('${tx.id}')" aria-label="Hapus">&times;</button>
+                    <button class="btn-delete-row touch-btn" title="Hapus transaksi" data-action="delete-tx" data-id="${esc(tx.id)}" aria-label="Hapus">&times;</button>
                   </div>
                 </div>
               `;
@@ -510,7 +626,8 @@
       if (amtEl) amtEl.value = '';
       if (notesEl) notesEl.value = '';
       const dateEl = document.getElementById('form-date');
-      if (dateEl) dateEl.value = new Date().toISOString().substring(0, 10);
+      // S-05: tanggal default memakai tanggal lokal, bukan UTC.
+      if (dateEl) dateEl.value = localDateStr();
 
       if (defaultType) {
         handleFormTypeChange(defaultType);
@@ -524,13 +641,23 @@
       const catSelect = document.getElementById('budget-cat');
       if (catSelect && appState.data && appState.data.categories) {
         const expenseCats = appState.data.categories.filter(c => c.type === 'Expense');
-        catSelect.innerHTML = expenseCats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        catSelect.innerHTML = expenseCats.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
       }
       const limitInput = document.getElementById('budget-limit');
       if (limitInput) limitInput.value = '';
     }
     const modal = document.getElementById(modalId);
-    if (modal) modal.style.display = 'flex';
+    if (modal) {
+      // S-09/S-16: catat modal terbuka, fokuskan input pertama, kembalikan fokus saat tutup.
+      if (appState.modalStack.indexOf(modalId) === -1) appState.modalStack.push(modalId);
+      if (!appState.lastFocusedElement) appState.lastFocusedElement = document.activeElement;
+      modal.style.display = 'flex';
+      modal.setAttribute('aria-hidden', 'false');
+      const focusTarget = modal.querySelector('input:not([type="hidden"]), select, button');
+      if (focusTarget) {
+        try { focusTarget.focus({ preventScroll: true }); } catch (e) { focusTarget.focus(); }
+      }
+    }
   }
 
   function editTx(txId) {
@@ -551,30 +678,80 @@
     if (amtEl) amtEl.value = new Intl.NumberFormat('id-ID').format(tx.amount || 0);
 
     const dateEl = document.getElementById('form-date');
-    if (dateEl) dateEl.value = tx.date || new Date().toISOString().substring(0, 10);
+    if (dateEl) dateEl.value = tx.date || localDateStr();
 
     const notesEl = document.getElementById('form-notes');
     if (notesEl) notesEl.value = tx.notes || '';
 
+    // S-08: transaksi pada dompet nonaktif tetap bisa diedit - opsi dompet
+    // nonaktif ditambahkan sementara agar nilai select tidak menjadi kosong.
     const walletEl = document.getElementById('form-wallet');
-    if (walletEl && tx.walletId) walletEl.value = tx.walletId;
+    if (walletEl && tx.walletId) {
+      ensureWalletOption(walletEl, tx.walletId, tx.walletName);
+      walletEl.value = tx.walletId;
+    }
 
     if (tx.type === 'Transfer') {
       const destWalletEl = document.getElementById('form-dest-wallet');
-      if (destWalletEl && tx.destWalletId) destWalletEl.value = tx.destWalletId;
+      if (destWalletEl && tx.destWalletId) {
+        ensureWalletOption(destWalletEl, tx.destWalletId, tx.destWalletName);
+        destWalletEl.value = tx.destWalletId;
+      }
     } else {
       const catEl = document.getElementById('form-category');
-      if (catEl && tx.categoryId) catEl.value = tx.categoryId;
+      if (catEl && tx.categoryId) {
+        ensureOption(catEl, tx.categoryId, tx.categoryName);
+        catEl.value = tx.categoryId;
+      }
+    }
+  }
+
+  /** S-08: tambahkan opsi bila id tidak ada di daftar (dompet/kategori nonaktif). */
+  function ensureWalletOption(selectEl, id, label) {
+    const exists = Array.from(selectEl.options).some(o => o.value === id);
+    if (!exists) {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = (label || id) + ' (Nonaktif)';
+      selectEl.appendChild(opt);
+    }
+  }
+
+  function ensureOption(selectEl, id, label) {
+    const exists = Array.from(selectEl.options).some(o => o.value === id);
+    if (!exists) {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = label || id;
+      selectEl.appendChild(opt);
     }
   }
 
   function closeModal(modalId) {
     const modal = document.getElementById(modalId);
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+    }
+    const idx = appState.modalStack.indexOf(modalId);
+    if (idx !== -1) appState.modalStack.splice(idx, 1);
+    // S-16: kembalikan fokus ke elemen pemicu bila masih ada di dokumen.
+    const prev = appState.lastFocusedElement;
+    appState.lastFocusedElement = null;
+    if (prev && document.contains(prev)) {
+      try { prev.focus({ preventScroll: true }); } catch (e) { /* abaikan */ }
+    }
   }
 
   function closeAllModals() {
-    document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
+    // S-09: tutup dari modal teratas agar tidak ada input hilang sekaligus.
+    while (appState.modalStack.length > 0) {
+      closeModal(appState.modalStack[appState.modalStack.length - 1]);
+    }
+    document.querySelectorAll('.modal-overlay').forEach(el => {
+      el.style.display = 'none';
+      el.setAttribute('aria-hidden', 'true');
+    });
   }
 
   function handleFormTypeChange(newType) {
@@ -630,11 +807,27 @@
     }
   }
 
+  /**
+   * QC v1.8.0: sinkronkan select pada modal transaksi yang sudah terbuka saat
+   * data dashboard baru tiba (modal bisa dibuka lebih dulu dari hasil getDashboard).
+   */
+  function refreshOpenTransactionModal_() {
+    const modal = document.getElementById('transaction-modal');
+    if (!modal || modal.style.display !== 'flex') return;
+    updateWalletDropdowns();
+    updateCategoryDropdown(appState.form.type || 'Expense');
+  }
+
   function updateCategoryDropdown(type) {
     const el = document.getElementById('form-category');
     if (!el || !appState.data || !appState.data.categories) return;
     const cats = appState.data.categories.filter(c => c.type === type);
-    el.innerHTML = cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    const currentVal = el.value;
+    el.innerHTML = cats.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+    // S-20: pertahankan pilihan bila masih valid (mis. saat edit).
+    if (currentVal && Array.from(el.options).some(o => o.value === currentVal)) {
+      el.value = currentVal;
+    }
   }
 
   function getWalletDisplay(tx, wallets) {
@@ -670,6 +863,20 @@
       return;
     }
 
+    // S-14: tolak tanggal dengan tahun tidak wajar (salah ketik tahun).
+    const yearNum = parseInt(String(dateVal).substring(0, 4), 10);
+    const maxYear = new Date().getFullYear() + 1;
+    if (!dateVal || isNaN(yearNum) || yearNum < 2000 || yearNum > maxYear) {
+      alert("Tanggal transaksi tidak valid. Periksa kembali tanggal yang dipilih.");
+      return;
+    }
+
+    // S-15: hentikan lebih awal bila perangkat sedang offline.
+    if (navigator.onLine === false) {
+      alert("Perangkat sedang offline. Sambungkan internet lalu coba lagi.");
+      return;
+    }
+
     if (appState.form.type === 'Transfer') {
       if (!destWalletVal) {
         alert("Pilih rekening tujuan transfer.");
@@ -679,6 +886,9 @@
         alert("Kantong asal dan kantong tujuan transfer tidak boleh sama.");
         return;
       }
+    } else if (!catVal) {
+      alert("Pilih kategori transaksi terlebih dahulu.");
+      return;
     }
 
     const payload = {
@@ -704,6 +914,15 @@
 
     const action = editId ? 'updateTransaction' : 'createTransaction';
 
+    if (typeof google === 'undefined' || !google.script || !google.script.run) {
+      alert("Layanan Google Apps Script tidak tersedia di halaman ini.");
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = origBtnText;
+      }
+      return;
+    }
+
     google.script.run
       .withSuccessHandler(res => {
         if (res && res.success) {
@@ -714,9 +933,9 @@
           }
           if (payload.date && payload.date.length >= 7) {
             const txPeriod = payload.date.substring(0, 7);
-            if (txPeriod !== appState.currentMonthPeriod) {
-              appState.currentMonthPeriod = txPeriod;
-            }
+            // S-12: transaksi baru memindahkan fokus Buku Kas ke bulan tsb,
+            // bukan mengubah periode Dashboard.
+            appState.bookMonthPeriod = txPeriod;
           }
           loadDashboardData();
         } else {
@@ -799,13 +1018,30 @@
   }
 
   function filterCategoryChange(val) {
+    // S-07: filter memakai ID kategori (bukan nama) agar stabil saat rename
+    // dan tidak mencampur nama sama pada tipe berbeda.
     appState.filterCategory = val;
     renderApp();
+    restoreSearchFocus();
   }
 
   function searchTransactions(val) {
-    appState.searchQuery = val.toLowerCase().trim();
+    // S-03: simpan apa adanya (huruf besar tetap dipertahankan) dan pertahankan
+    // fokus/kursor input pencarian setelah render ulang.
+    const pos = (document.activeElement && document.activeElement.selectionStart) || val.length;
+    appState.searchQuery = val;
     renderApp();
+    restoreSearchFocus(pos);
+  }
+
+  function restoreSearchFocus(pos) {
+    const input = document.getElementById('tx-search-input');
+    if (!input) return;
+    const caret = (pos === undefined || pos === null) ? input.value.length : pos;
+    try {
+      input.focus({ preventScroll: true });
+      input.setSelectionRange(caret, caret);
+    } catch (e) { /* abaikan */ }
   }
 
   function openCategoryModal() {
@@ -818,8 +1054,11 @@
       submitBtn.disabled = false;
       submitBtn.innerText = 'Simpan Kategori';
     }
-    const modal = document.getElementById('category-modal');
-    if (modal) modal.style.display = 'flex';
+    // S-19: fokus eksplisit (atribut autofocus hanya bekerja saat muat halaman).
+    openModal('category-modal');
+    if (nameEl) {
+      try { nameEl.focus({ preventScroll: true }); } catch (e) { nameEl.focus(); }
+    }
   }
 
   function submitCategoryForm() {
@@ -921,16 +1160,18 @@
 
   function deleteWallet(id) {
     if (!appState.data || !appState.data.wallets) return;
-    if (appState.data.wallets.length <= 1) {
+    const targetW = appState.data.wallets.find(w => w.id === id);
+    // R-06: blokir bila saldo tidak nol (termasuk negatif) dan bila ini dompet aktif terakhir.
+    if (targetW && appState.data.wallets.length <= 1) {
       alert("Aplikasi memerlukan minimal 1 kantong dompet aktif untuk mencatat keuangan.");
       return;
     }
-    const targetW = appState.data.wallets.find(w => w.id === id);
-    if (targetW && (Number(targetW.balance) || 0) > 0) {
+    if (targetW && (Number(targetW.balance) || 0) !== 0) {
       alert("Kantong dompet masih memiliki saldo (" + formatRupiah(targetW.balance) + "). Pindahkan atau kosongkan saldo dompet terlebih dahulu sebelum menghapus.");
       return;
     }
     if (!confirm("Hapus / nonaktifkan kantong dompet ini?")) return;
+    if (appState.isLoading) return;
     appState.isLoading = true;
     renderApp();
 
@@ -952,52 +1193,95 @@
       .apiDispatcher('deleteWallet', { id: id });
   }
 
+  /** R-06: aktifkan kembali dompet yang pernah dinonaktifkan. */
+  function restoreWallet(id) {
+    if (!confirm("Aktifkan kembali dompet ini?")) return;
+    if (appState.isLoading) return;
+    appState.isLoading = true;
+    renderApp();
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res && res.success) {
+          loadDashboardData();
+        } else {
+          alert("Gagal mengaktifkan dompet: " + ((res && res.error) || "Terjadi kesalahan"));
+          appState.isLoading = false;
+          renderApp();
+        }
+      })
+      .withFailureHandler(err => {
+        alert("Gagal terhubung: " + err.message);
+        appState.isLoading = false;
+        renderApp();
+      })
+      .apiDispatcher('restoreWallet', { id: id });
+  }
+
   function renderApp() {
     const root = document.getElementById('app-root');
     if (!root) return;
 
     if (!appState.data) {
-      root.innerHTML = `<div style="padding: 60px 0; text-align: center; color: var(--text-muted); font-size: 13px;">${appState.isLoading ? 'Memuat buku kas...' : 'Gagal memuat data. Silakan muat ulang halaman.'}</div>`;
+      if (appState.isLoading) {
+        root.innerHTML = `<div style="padding: 60px 0; text-align: center; color: var(--text-muted); font-size: 13px;">Memuat buku kas...</div>`;
+      } else {
+        // S-02/S-15: kegagalan awal memperoleh pesan jelas dan tombol coba lagi.
+        root.innerHTML = `
+          <div style="padding: 48px 0; text-align: center; color: var(--text-muted); font-size: 13px;">
+            <div style="font-weight: 700; color: var(--text-main); margin-bottom: 6px;">Gagal memuat data buku kas</div>
+            <div style="margin-bottom: 14px;">Periksa koneksi internet dan pastikan aplikasi Apps Script masih terhubung.</div>
+            <button class="btn btn-primary touch-btn" onclick="retryLoad()">Muat Ulang</button>
+          </div>`;
+      }
       return;
     }
 
     const d = appState.data;
+    // S-06: pertahankan posisi scroll saat render ulang pada tab yang sama.
+    const scrollBefore = window.scrollY;
+    const sameTab = appState.lastRenderedTab === appState.activeTab;
     try {
       d.wallets = d.wallets || [];
       d.categories = d.categories || [];
       d.budgets = d.budgets || [];
       d.recentTransactions = d.recentTransactions || [];
 
-      // Single Source of Truth: Rekalkulasi dinamis dari data dompet & transaksi aktif
       const activeWallets = d.wallets;
       const allTxs = d.recentTransactions;
 
-      // 1. Total Saldo (netWorth) dari total seluruh dompet aktif
+      // S-18: ringkasan diambil dari satu sumber (server) bila tersedia;
+      // perhitungan lokal hanya cadangan bila server tidak mengirimkannya.
       d.netWorth = activeWallets.reduce((sum, w) => sum + (Number(w.balance) || 0), 0);
 
-      // 2. Siklus Bulanan Aktif
-      const currentMonthTxs = allTxs.filter(t => t.date && t.date.startsWith(appState.currentMonthPeriod));
-      const mIncome = currentMonthTxs.filter(t => t.type === 'Income').reduce((s, t) => s + (Number(t.amount) || 0), 0);
-      const mExpense = currentMonthTxs.filter(t => t.type === 'Expense').reduce((s, t) => s + (Number(t.amount) || 0), 0);
-      const mNetSavings = mIncome - mExpense;
-      d.monthSummary = {
-        period: appState.currentMonthPeriod,
-        income: mIncome,
-        expense: mExpense,
-        netSavings: mNetSavings
-      };
+      const localMonthTxs = allTxs.filter(t => t.date && t.date.startsWith(appState.currentMonthPeriod));
+      const localMIncome = localMonthTxs.filter(t => t.type === 'Income').reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      const localMExpense = localMonthTxs.filter(t => t.type === 'Expense').reduce((s, t) => s + (Number(t.amount) || 0), 0);
 
-      // 3. Siklus Harian (Hari Ini)
-      const todayStr = new Date().toISOString().substring(0, 10);
-      const todayTxs = allTxs.filter(t => t.date === todayStr);
-      const tIncome = todayTxs.filter(t => t.type === 'Income').reduce((s, t) => s + (Number(t.amount) || 0), 0);
-      const tExpense = todayTxs.filter(t => t.type === 'Expense').reduce((s, t) => s + (Number(t.amount) || 0), 0);
-      d.todaySummary = {
-        date: todayStr,
-        income: tIncome,
-        expense: tExpense,
-        net: tIncome - tExpense
-      };
+      if (d.monthSummary && d.monthSummary.period === appState.currentMonthPeriod) {
+        // ringkasan server sudah sesuai periode dashboard
+      } else {
+        d.monthSummary = {
+          period: appState.currentMonthPeriod,
+          income: localMIncome,
+          expense: localMExpense,
+          netSavings: localMIncome - localMExpense
+        };
+      }
+      const currentMonthTxs = localMonthTxs;
+
+      // 3. Siklus Harian (Hari Ini) - S-05: tanggal lokal, bukan UTC
+      const todayStr = localDateStr();
+      if (!(d.todaySummary && d.todaySummary.date === todayStr)) {
+        const todayTxs = allTxs.filter(t => t.date === todayStr);
+        const tIncome = todayTxs.filter(t => t.type === 'Income').reduce((s, t) => s + (Number(t.amount) || 0), 0);
+        const tExpense = todayTxs.filter(t => t.type === 'Expense').reduce((s, t) => s + (Number(t.amount) || 0), 0);
+        d.todaySummary = {
+          date: todayStr,
+          income: tIncome,
+          expense: tExpense,
+          net: tIncome - tExpense
+        };
+      }
 
       let contentHtml = '';
 
@@ -1065,16 +1349,36 @@
           ` : d.wallets.map(w => `
             <div class="wallet-pill">
               <div class="wallet-pill-top">
-                <span style="font-weight: 600;">${w.name}</span>
+                <span style="font-weight: 600;">${esc(w.name)}</span>
                 <div style="display:flex; align-items:center; gap:6px;">
-                  <span class="user-badge">${w.type}</span>
-                  <button class="btn-delete-row" title="Hapus dompet" onclick="deleteWallet('${w.id}')">&times;</button>
+                  <span class="user-badge">${esc(w.type)}</span>
+                  <button class="btn-delete-row" title="Hapus dompet" data-action="delete-wallet" data-id="${esc(w.id)}" aria-label="Hapus dompet">&times;</button>
                 </div>
               </div>
               <div class="wallet-pill-val tabular">${formatRupiah(w.balance)}</div>
             </div>
           `).join('')}
         </div>
+
+        <!-- R-06: dompet nonaktif dapat diaktifkan kembali -->
+        ${(d.inactiveWallets && d.inactiveWallets.length > 0) ? `
+        <div class="overview-panel" style="margin-bottom: 24px; padding: 12px 14px;">
+          <div class="section-header" style="margin-bottom: 8px;">
+            <div>
+              <div class="section-title">Dompet Nonaktif</div>
+              <div style="font-size: 11.5px; color: var(--text-muted);">Riwayat transaksinya tetap tersimpan di buku kas</div>
+            </div>
+          </div>
+          ${d.inactiveWallets.map(w => `
+            <div class="mini-bar-item" style="margin-bottom: 8px;">
+              <div class="mini-bar-header">
+                <span style="font-weight: 600;">${esc(w.name)} <span class="user-badge">${esc(w.type)}</span></span>
+                <button class="btn btn-sm touch-btn" data-action="restore-wallet" data-id="${esc(w.id)}">Aktifkan</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        ` : ''}
 
         <!-- Alokasi Anggaran Belanja -->
         <div class="overview-panel" style="margin-bottom: 24px;">
@@ -1095,10 +1399,10 @@
             return `
             <div class="mini-bar-item" style="margin-bottom: 10px;">
               <div class="mini-bar-header">
-                <span style="font-weight: 600;">${b.categoryName}</span>
+                <span style="font-weight: 600;">${esc(b.categoryName)}</span>
                 <div style="display:flex; align-items:center; gap:8px;">
-                  <span class="tabular font-medium">${formatRupiah(spent)} / <span style="color:var(--text-muted);">${formatRupiah(limit)}</span> (${percent}%)</span>
-                  <button class="btn-delete-row touch-btn" title="Hapus batas" onclick="deleteBudget('${b.id}')">&times;</button>
+                  <span class="tabular font-medium">${formatRupiah(spent)} / <span style="color:var(--text-muted);">${formatRupiah(limit)}</span> (${Math.min(100, percent)}%)</span>
+                  <button class="btn-delete-row touch-btn" title="Hapus batas" data-action="delete-budget" data-id="${esc(b.id)}" aria-label="Hapus anggaran">&times;</button>
                 </div>
               </div>
               <div class="progress-track">
@@ -1130,7 +1434,7 @@
             return catRank.map(cat => `
               <div class="mini-bar-item" style="margin-bottom: 10px;">
                 <div class="mini-bar-header">
-                  <span style="font-weight: 600;">${cat.categoryName || cat.name}</span>
+                  <span style="font-weight: 600;">${esc(cat.categoryName || cat.name)}</span>
                   <span class="tabular font-medium">${formatRupiah(cat.amount)} (${cat.percent}%)</span>
                 </div>
                 <div class="progress-track">
@@ -1161,21 +1465,21 @@
             const wDisplay = getWalletDisplay(tx, d.wallets);
             return `
             <div class="ledger-row">
-              <div class="ledger-date tabular">${tx.date}</div>
+              <div class="ledger-date tabular">${esc(tx.date)}</div>
               <div class="ledger-notes">
-                <div class="ledger-notes-text">${tx.notes || (tx.type === 'Transfer' ? 'Pindah Saldo Dompet' : '-')}</div>
-                <div class="mobile-subtext" style="font-size: 11px; color: var(--text-subtle); display: none;">${tx.date} • ${wDisplay} • ${tx.categoryName}</div>
+                <div class="ledger-notes-text">${esc(tx.notes || (tx.type === 'Transfer' ? 'Pindah Saldo Dompet' : '-'))}</div>
+                <div class="mobile-subtext" style="font-size: 11px; color: var(--text-subtle); display: none;">${esc(tx.date)} • ${esc(wDisplay)} • ${esc(tx.categoryName)}</div>
               </div>
-              <div class="ledger-wallet">${wDisplay}</div>
-              <div class="ledger-cat">${tx.categoryName}</div>
+              <div class="ledger-wallet">${esc(wDisplay)}</div>
+              <div class="ledger-cat">${esc(tx.categoryName)}</div>
               <div class="ledger-amount tabular ${tx.type === 'Income' ? 'text-income' : (tx.type === 'Expense' ? 'text-expense' : '')}">
                 ${tx.type === 'Income' ? '+' : (tx.type === 'Expense' ? '-' : '')}${formatRupiah(tx.amount)}
               </div>
               <div class="ledger-action" style="text-align: right; display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                <button class="btn-delete-row touch-btn" title="Edit transaksi" onclick="editTx('${tx.id}')" aria-label="Edit">
+                <button class="btn-delete-row touch-btn" title="Edit transaksi" data-action="edit-tx" data-id="${esc(tx.id)}" aria-label="Edit">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
                 </button>
-                <button class="btn-delete-row touch-btn" title="Hapus transaksi" onclick="deleteTx('${tx.id}')" aria-label="Hapus">&times;</button>
+                <button class="btn-delete-row touch-btn" title="Hapus transaksi" data-action="delete-tx" data-id="${esc(tx.id)}" aria-label="Hapus">&times;</button>
               </div>
             </div>
             `;
@@ -1183,18 +1487,23 @@
         </div>
       `;
     } else if (appState.activeTab === 'transactions') {
-      const monthTxs = d.recentTransactions.filter(tx => tx.date && tx.date.startsWith(appState.currentMonthPeriod));
+      const bookPeriod = appState.bookMonthPeriod || appState.currentMonthPeriod;
+      const monthTxs = d.recentTransactions.filter(tx => tx.date && tx.date.startsWith(bookPeriod));
       const mIncome = monthTxs.filter(t => t.type === 'Income').reduce((s, t) => s + (Number(t.amount) || 0), 0);
       const mExpense = monthTxs.filter(t => t.type === 'Expense').reduce((s, t) => s + (Number(t.amount) || 0), 0);
       const mNet = mIncome - mExpense;
 
       let filtered = monthTxs;
       if (appState.filterCategory !== 'ALL') {
-        filtered = filtered.filter(tx => tx.categoryName === appState.filterCategory);
+        filtered = filtered.filter(tx => tx.categoryId === appState.filterCategory);
       }
       if (appState.searchQuery) {
-        const q = appState.searchQuery.toLowerCase();
-        filtered = filtered.filter(tx => (tx.notes && tx.notes.toLowerCase().includes(q)) || (tx.categoryName && tx.categoryName.toLowerCase().includes(q)));
+        const q = appState.searchQuery.toLowerCase().trim();
+        filtered = filtered.filter(tx =>
+          (tx.notes && tx.notes.toLowerCase().includes(q)) ||
+          (tx.categoryName && tx.categoryName.toLowerCase().includes(q)) ||
+          (tx.walletName && tx.walletName.toLowerCase().includes(q))
+        );
       }
 
       const dateGroups = groupTransactionsByDate(filtered);
@@ -1205,7 +1514,7 @@
           <div class="tx-toolbar">
             <div class="month-stepper">
               <button type="button" class="month-stepper-btn touch-btn" onclick="changeMonthStep(-1)" title="Bulan Sebelumnya">&larr;</button>
-              <div class="month-stepper-label">${formatPeriodMonth(appState.currentMonthPeriod)}</div>
+              <div class="month-stepper-label">${formatPeriodMonth(bookPeriod)}</div>
               <button type="button" class="month-stepper-btn touch-btn" onclick="changeMonthStep(1)" title="Bulan Berikutnya">&rarr;</button>
             </div>
             <div class="view-switcher">
@@ -1240,17 +1549,17 @@
         ${appState.bookView === 'daily' ? `
           <!-- Filter & Search Controls -->
           <div class="filter-controls">
-            <input type="text" class="form-input filter-search" placeholder="Cari catatan transaksi..." oninput="searchTransactions(this.value)" value="${appState.searchQuery}">
+            <input type="text" id="tx-search-input" class="form-input filter-search" placeholder="Cari catatan transaksi..." oninput="searchTransactions(this.value)" value="${esc(appState.searchQuery)}">
             <select class="form-select filter-category" onchange="filterCategoryChange(this.value)">
               <option value="ALL">Semua Kategori</option>
               <optgroup label="Pengeluaran">
                 ${d.categories.filter(c => c.type === 'Expense').map(c => `
-                  <option value="${c.name}" ${appState.filterCategory === c.name ? 'selected' : ''}>${c.name}</option>
+                  <option value="${esc(c.id)}" ${appState.filterCategory === c.id ? 'selected' : ''}>${esc(c.name)}</option>
                 `).join('')}
               </optgroup>
               <optgroup label="Pemasukan">
                 ${d.categories.filter(c => c.type === 'Income').map(c => `
-                  <option value="${c.name}" ${appState.filterCategory === c.name ? 'selected' : ''}>${c.name}</option>
+                  <option value="${esc(c.id)}" ${appState.filterCategory === c.id ? 'selected' : ''}>${esc(c.name)}</option>
                 `).join('')}
               </optgroup>
             </select>
@@ -1259,14 +1568,18 @@
           <!-- Date-Grouped Transaction List -->
           ${dateGroups.length === 0 ? `
             <div class="ledger-box" style="padding: 36px; text-align: center; color: var(--text-muted); font-size: 13px;">
-              Belum ada catatan transaksi di bulan ${formatPeriodMonth(appState.currentMonthPeriod)}. Ketuk tombol + untuk mencatat.
+              Belum ada catatan transaksi di bulan ${formatPeriodMonth(bookPeriod)}. Ketuk tombol + untuk mencatat.
             </div>
           ` : dateGroups.map(group => `
             <div class="date-group">
               <div class="date-group-header">
                 <span class="date-group-title">${formatFullDateWithDay(group.date)}</span>
-                <span class="date-group-subtotal tabular ${group.totalNet >= 0 ? 'text-income' : 'text-expense'}">
-                  ${group.totalNet > 0 ? '+' : ''}${formatRupiah(group.totalNet)}
+                <span class="date-group-subtotal tabular">
+                  <span class="text-income">+${formatRupiah(group.totalIncome)}</span>
+                  <span style="color: var(--text-subtle); margin: 0 4px;">/</span>
+                  <span class="text-expense">-${formatRupiah(group.totalExpense)}</span>
+                  <span style="color: var(--text-subtle); margin: 0 4px;">|</span>
+                  <span class="${group.totalNet >= 0 ? 'text-income' : 'text-expense'}">${group.totalNet > 0 ? '+' : ''}${formatRupiah(group.totalNet)}</span>
                 </span>
               </div>
               <div class="date-group-items">
@@ -1275,20 +1588,20 @@
                   return `
                   <div class="ledger-row">
                     <div class="ledger-notes">
-                      <div class="ledger-notes-text">${tx.notes || (tx.type === 'Transfer' ? 'Pindah Saldo Dompet' : '-')}</div>
+                      <div class="ledger-notes-text">${esc(tx.notes || (tx.type === 'Transfer' ? 'Pindah Saldo Dompet' : '-'))}</div>
                       <div class="ledger-sub" style="display:flex; align-items:center; gap:6px; margin-top:3px;">
-                        <span class="wallet-tag">${wDisplay}</span>
-                        <span style="font-size: 11px; color: var(--text-muted);">${tx.categoryName}</span>
+                        <span class="wallet-tag">${esc(wDisplay)}</span>
+                        <span style="font-size: 11px; color: var(--text-muted);">${esc(tx.categoryName)}</span>
                       </div>
                     </div>
                     <div class="ledger-amount tabular ${tx.type === 'Income' ? 'text-income' : (tx.type === 'Expense' ? 'text-expense' : '')}">
                       ${tx.type === 'Income' ? '+' : (tx.type === 'Expense' ? '-' : '')}${formatRupiah(tx.amount)}
                     </div>
                     <div class="ledger-action" style="text-align: right; display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-                      <button class="btn-delete-row touch-btn" title="Edit transaksi" onclick="editTx('${tx.id}')" aria-label="Edit">
+                      <button class="btn-delete-row touch-btn" title="Edit transaksi" data-action="edit-tx" data-id="${esc(tx.id)}" aria-label="Edit">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
                       </button>
-                      <button class="btn-delete-row touch-btn" title="Hapus transaksi" onclick="deleteTx('${tx.id}')" aria-label="Hapus">&times;</button>
+                      <button class="btn-delete-row touch-btn" title="Hapus transaksi" data-action="delete-tx" data-id="${esc(tx.id)}" aria-label="Hapus">&times;</button>
                     </div>
                   </div>
                   `;
@@ -1305,7 +1618,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
               <div>
                 <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.015em;">Diagram Alokasi Dana</div>
-                <div style="font-size: 11.5px; color: var(--text-muted);">Periode ${formatPeriodMonth(appState.currentMonthPeriod)}</div>
+                <div style="font-size: 11.5px; color: var(--text-muted);">Periode ${formatPeriodMonth(bookPeriod)}</div>
               </div>
               <div class="cycle-pill-group">
                 <button class="cycle-pill ${appState.statsType === 'Expense' ? 'active' : ''}" onclick="switchStatsType('Expense')">Pengeluaran</button>
@@ -1319,27 +1632,27 @@
             })()}
           </div>
 
-          <!-- Pengeluaran per Kantong Dompet -->
+          <!-- Sebaran per Kantong Dompet (S-13: mengikuti mode statistik) -->
           <div class="overview-panel" style="margin-top: 14px;">
             <div class="section-header" style="margin-bottom: 8px;">
               <div>
                 <div class="section-title">Alokasi per Kantong Dompet</div>
-                <div style="font-size: 11.5px; color: var(--text-muted);">Akun yang paling sering digunakan untuk pengeluaran</div>
+                <div style="font-size: 11.5px; color: var(--text-muted);">Akun yang paling sering digunakan untuk ${appState.statsType === 'Income' ? 'pemasukan' : 'pengeluaran'}</div>
               </div>
             </div>
             ${(() => {
-              const wRank = getWalletBreakdown(monthTxs, d.wallets);
+              const wRank = getWalletBreakdown(monthTxs, d.wallets, appState.statsType);
               if (wRank.length === 0) {
-                return `<div style="font-size: 12.5px; color: var(--text-muted); padding: 8px 0;">Belum ada pengeluaran pada bulan ini.</div>`;
+                return `<div style="font-size: 12.5px; color: var(--text-muted); padding: 8px 0;">Belum ada ${appState.statsType === 'Income' ? 'pemasukan' : 'pengeluaran'} pada bulan ini.</div>`;
               }
               return wRank.map(w => `
                 <div class="mini-bar-item" style="margin-bottom: 10px;">
                   <div class="mini-bar-header">
-                    <span style="font-weight: 600;">${w.walletName}</span>
-                    <span class="tabular font-medium">${formatRupiah(w.amount)} (${w.percent}%)</span>
+                    <span style="font-weight: 600;">${esc(w.walletName)}</span>
+                    <span class="tabular font-medium">${formatRupiah(w.amount)} (${Math.min(100, w.percent)}%)</span>
                   </div>
                   <div class="progress-track">
-                    <div class="progress-fill" style="width: ${w.percent}%;"></div>
+                    <div class="progress-fill" style="width: ${Math.min(100, w.percent)}%;"></div>
                   </div>
                 </div>
               `).join('');
@@ -1350,6 +1663,10 @@
     }
 
     root.innerHTML = contentHtml;
+    appState.lastRenderedTab = appState.activeTab;
+    if (sameTab) {
+      try { window.scrollTo(0, scrollBefore); } catch (e) { /* abaikan */ }
+    }
 
     document.querySelectorAll('.nav-item').forEach(el => {
       if (el.getAttribute('data-tab') === appState.activeTab) el.classList.add('active');
@@ -1366,7 +1683,8 @@
       root.innerHTML = `
         <div style="padding: 24px; background: var(--bg-surface); border: 1px solid var(--color-expense); border-radius: var(--radius-md); color: var(--color-expense);">
           <div style="font-weight: 700; margin-bottom: 8px;">Terjadi Kendala Memuat Tampilan</div>
-          <div style="font-size: 12.5px; color: var(--text-muted); font-family: monospace;">${err.message}</div>
+          <div style="font-size: 12.5px; color: var(--text-muted); font-family: monospace;">${esc(err && err.message)}</div>
+          <div style="margin-top: 10px;"><button class="btn btn-sm touch-btn" onclick="retryLoad()">Muat Ulang</button></div>
         </div>
       `;
     }
@@ -1377,14 +1695,25 @@
     if (!d || !d.wallets) return;
     const srcEl = document.getElementById('form-wallet');
     const destEl = document.getElementById('form-dest-wallet');
-    if (srcEl && d.wallets.length > 0) {
-      const currentVal = srcEl.value;
-      srcEl.innerHTML = d.wallets.map(w => `<option value="${w.id}" ${w.id === currentVal ? 'selected' : ''}>${w.name}</option>`).join('');
-    }
-    if (destEl && d.wallets.length > 0) {
-      const currentVal = destEl.value;
-      destEl.innerHTML = d.wallets.map(w => `<option value="${w.id}" ${w.id === currentVal ? 'selected' : ''}>${w.name}</option>`).join('');
-    }
+    const inactive = d.inactiveWallets || [];
+    const buildOptions = (selectEl) => {
+      if (!selectEl) return;
+      const currentVal = selectEl.value;
+      let html = d.wallets.map(w => `<option value="${esc(w.id)}">${esc(w.name)}</option>`).join('');
+      // S-08: dompet nonaktif ikut sebagai opsi hanya bila sedang dipakai
+      // (mis. transaksi lama yang sedang diedit).
+      const usingInactive = currentVal && inactive.some(w => w.id === currentVal);
+      if (usingInactive) {
+        const w = inactive.find(x => x.id === currentVal);
+        html += `<option value="${esc(w.id)}">${esc(w.name)} (Nonaktif)</option>`;
+      }
+      selectEl.innerHTML = html;
+      if (currentVal && Array.from(selectEl.options).some(o => o.value === currentVal)) {
+        selectEl.value = currentVal;
+      }
+    };
+    buildOptions(srcEl);
+    buildOptions(destEl);
   }
 
   if (document.readyState === 'loading') {

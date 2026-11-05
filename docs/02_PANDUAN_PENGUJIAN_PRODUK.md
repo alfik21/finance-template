@@ -5,8 +5,8 @@
 **Format Target**: Google Docs / PDF  
 **Divisi Penanggung Jawab (PIC)**: Finance + Operations  
 **Konteks Produk**: Produk Baru Selesai Dikembangkan (Fresh Development) — Belum Diuji oleh Pengguna Asli  
-**Versi Berkas**: 1.7.5  
-**Tanggal Berlaku**: 26 Oktober 2026  
+**Versi Berkas**: 1.8.0  
+**Tanggal Berlaku**: 5 November 2026  
 **Berkas Lembar Uji Terkait**:
 - Workbook Template Kosong (.xlsx): [`docs/02_PRODUCT_TESTING_CHECKLIST.xlsx`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx)
 - Spesifikasi Lembar Uji Markdown: [`docs/02_PRODUCT_TESTING_CHECKLIST.md`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.md)
@@ -101,7 +101,7 @@ Lakukan verifikasi pada lembar kerja kosong [`docs/02_PRODUCT_TESTING_CHECKLIST.
 
 ### D. Modul Visualisasi & Grafik Dashboard (PIC: Operations + Finance)
 - **TC-DSH-01**: Donut chart alokasi belanja kategori menghitung persentase proporsi secara valid (total 100%).
-- **TC-DSH-02**: Donut chart sebaran dompet menggambarkan porsi likuiditas kas tunai vs bank vs e-wallet.
+- **TC-DSH-02**: Sebaran dompet ditampilkan sebagai bar horizontal proporsi pemakaian kas tunai vs bank vs e-wallet (donut dipakai untuk alokasi kategori, bukan dompet).
 - **TC-DSH-03**: Bar progress anggaran kategori menghitung (Spent / Limit) * 100 tanpa tulisan `undefined%`.
 - **TC-DSH-04**: Kategori yang belanjanya melewati limit otomatis berubah warna menjadi penanda batas merah (*Overbudget*).
 
@@ -111,7 +111,7 @@ Lakukan verifikasi pada lembar kerja kosong [`docs/02_PRODUCT_TESTING_CHECKLIST.
 - **TC-VAL-03**: Sistem menolak mutasi transfer jika rekening asal dan tujuan identik.
 - **TC-VAL-04**: Sistem menolak mutasi transfer jika rekening tujuan belum dipilih.
 - **TC-VAL-05**: Sistem menolak pembuatan dompet baru jika nama dompet dikosongkan.
-- **TC-VAL-06**: Sistem memblokir penghapusan dompet yang masih memiliki sisa saldo kas (> 0).
+- **TC-VAL-06**: Sistem memblokir penghapusan dompet yang saldonya tidak nol (positif maupun negatif).
 - **TC-VAL-07**: Sistem menerapkan *soft-delete* (Aktif = false) jika dompet yang dihapus memiliki riwayat transaksi di masa lalu.
 
 ### F. Modul Verifikasi Salinan Template (PIC: Operations)
@@ -120,8 +120,19 @@ Lakukan verifikasi pada lembar kerja kosong [`docs/02_PRODUCT_TESTING_CHECKLIST.
 - **TC-CPY-03**: Menu toolbar `[ Finance Tracker ]` muncul dalam waktu < 5 detik setelah sheet dibuka.
 - **TC-CPY-04**: Dialog otorisasi keamanan Google dapat diselesaikan dengan memilih *Advanced > Go to Finance Tracker*.
 - **TC-CPY-05**: Kelima tab utama terformat sempurna saat pertama kali dibuka.
-- **TC-CPY-06**: Pengguna dapat melakukan deployment Web App mandiri untuk smartphone.
-- **TC-CPY-07**: Fitur *Add to Home Screen* menghasilkan ikon aplikasi mandiri di ponsel.
+- **TC-CPY-06**: Pengguna dapat melakukan deployment Web App mandiri untuk smartphone (wajib menyetel Script Properties `ALLOWED_EMAILS` agar Web App dapat dibuka - lihat README Langkah 4).
+- **TC-CPY-07**: Fitur *Add to Home Screen* menghasilkan pintasan aplikasi di ponsel (bookmark browser, bukan PWA penuh/offline).
+
+### G. Perintah Pengujian Otomatis (Regression Suite)
+
+Sebelum Fase 1 dinyatakan PASS, jalankan dari root repositori:
+
+| Perintah | Cakupan | Kebutuhan |
+|---|---|---|
+| `npm run test:backend` | 35 tes produk asli (`node:test` + tiruan `SpreadsheetApp`): validasi transaksi, saldo dompet, lock, allowlist email, migrasi sheet, DASHBOARD, AUDIT, resolusi template | Node 20+ saja |
+| `npm test` | Regenerate fixture (`scripts/prepare-test-app.js`) lalu seluruh skrip Playwright UI/akuntansi/demo | `npx playwright install chromium` |
+
+Temuan QC lengkap dan pemetaan perbaikannya ada di [`docs/05_LAPORAN_QC_PRODUCT_TESTING.md`](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) dan [`docs/06_DOKUMENTASI_PERBAIKAN.md`](file:///J:/Aplikasi/finance-template/docs/06_DOKUMENTASI_PERBAIKAN.md).
 
 ---
 

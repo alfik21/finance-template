@@ -1179,7 +1179,15 @@
     .wallet-pill { padding: 12px 14px; }
     .wallet-pill-val { font-size: 14px; }
 
-    .section-actions { display: none !important; }
+    /* R-13: tombol aksi (+ Pengeluaran / + Pemasukan / Pindah Saldo) tetap
+       terlihat di layar kecil, tidak disembunyikan. */
+    .section-actions {
+      display: flex !important;
+      flex-wrap: wrap;
+      gap: 8px;
+      width: 100%;
+    }
+    .section-actions .btn { flex: 1 1 auto; }
     .filter-controls {
       display: flex;
       flex-direction: column;
@@ -1282,7 +1290,20 @@
   body.SIDEBAR .wallets-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 18px; }
   body.SIDEBAR .wallet-pill { padding: 10px 12px; }
   body.SIDEBAR .wallet-pill-val { font-size: 14px; }
-  body.SIDEBAR .section-actions { display: none !important; }
+  /* R-13: di mode Sidebar, tombol Pemasukan/Transfer harus tetap tersedia
+     (sebelumnya tersembunyi sehingga hanya FAB Expense yang tersisa). */
+  body.SIDEBAR .section-actions {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    width: 100%;
+  }
+  body.SIDEBAR .section-actions .btn {
+    padding: 8px 4px;
+    font-size: 11px;
+    text-align: center;
+    white-space: normal;
+  }
   body.SIDEBAR .tx-toolbar-wrapper { display: flex; flex-direction: column; width: 100%; margin-bottom: 14px; gap: 10px; }
   body.SIDEBAR .tx-toolbar { display: flex; flex-direction: column; width: 100%; gap: 10px; }
   body.SIDEBAR .month-stepper { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 4px 6px; border-radius: 12px; }

@@ -1,8 +1,8 @@
 # Finance Tracker (Personal & Business Edition)
 
-Sistem pencatatan dan manajemen kas keuangan pribadi terpadu berbasis **Google Sheets** dan **Google Apps Script Web App (Container-Bound PWA)**. 
+Sistem pencatatan dan manajemen kas keuangan pribadi terpadu berbasis **Google Sheets** dan **Google Apps Script Web App (Container-Bound)**.
 
-Bebas biaya langganan bulanan (*Zero-Subscription*), 100% data tersimpan aman di Google Drive pribadi Anda, dan dapat diakses dari browser komputer maupun dipasang di layar utama smartphone (*Add to Home Screen*).
+Bebas biaya langganan bulanan (*Zero-Subscription*), 100% data tersimpan aman di Google Drive pribadi Anda, dan dapat diakses dari browser komputer maupun ditambahkan sebagai pintasan di layar utama smartphone (*Add to Home Screen*). Catatan: aplikasi ini berupa Web App, bukan PWA penuh (tidak memakai `manifest.json`/service worker) sehingga tetap memerlukan koneksi internet.
 
 ---
 
@@ -12,14 +12,15 @@ Bebas biaya langganan bulanan (*Zero-Subscription*), 100% data tersimpan aman di
 - **Buku Kas 3 Tampilan Fleksibel**:
   - **Tampilan Harian**: Daftar mutasi kas terkelompok rapi per hari dengan subtotal harian.
   - **Tampilan Bulanan**: Kartu ringkasan performa per bulan (Masuk, Keluar, Sisa Kas) dengan pemilih bulan dinamis.
-  - **Tampilan Statistik**: Diagram lingkaran (*Donut Chart*) persentase alokasi belanja per kategori & per kantong dompet.
+  - **Tampilan Statistik**: Diagram lingkaran (*Donut Chart*) persentase alokasi belanja per kategori, serta bar horizontal alokasi per kantong dompet.
 - **Kantong Saldo Multi-Akun & Saldo Awal**: Mendukung rekening bank, dompet tunai (*cash*), dan e-wallet. Dilengkapi pengaturan **Saldo Awal Tabungan** sehingga aset awal tercatat tanpa merusak arus kas masuk bulanan berjalan.
 - **Mutasi Transfer Kas Antar Dompet**: Fitur pindah dana antar rekening dengan validasi cerdas pencegah transfer ke rekening yang sama.
 - **Target Anggaran Berulang (*Recurring Budgets*)**: Tetapkan batas belanja per kategori yang otomatis berulang setiap awal bulan baru tanpa perlu diinput ulang.
 - **Tombol Cepat Cerdas 1-Ketuk (*Smart Habit Chips*)**: Mengisi nominal, catatan, dan kategori belanja rutin (bensin, makan siang, kopi) secara instan hanya dengan 1 ketukan.
 - **Fitur Koreksi Transaksi (Edit & Hapus)**: Edit dan perbarui mutasi transaksi yang salah input secara langsung dari smartphone.
 - **Format Rupiah Otomatis Realtime**: Input nominal otomatis memformat pemisah ribuan titik (`.`) saat mengetik angka nominal.
-- **Dual Mode Akses Spreadsheet**: Buka antarmuka aplikasi langsung dari menu toolbar Google Sheets sebagai **Sidebar Kanan** (380px) atau **Jendela Penuh (Dialog)** (980x680px).
+- **Dual Mode Akses Spreadsheet**: Buka antarmuka aplikasi langsung dari menu toolbar Google Sheets sebagai **Sidebar Kanan** (380px) atau **Jendela Penuh (Dialog)** (1080x720px).
+- **Validasi & Keamanan Data**: Nominal, tanggal, tipe, kategori, dan dompet divalidasi di backend; operasi tulis memakai `LockService`; penghapusan tercatat di tab `AUDIT`; akses Web App dibatasi allowlist email pemilik.
 
 ---
 
@@ -43,13 +44,16 @@ Bebas biaya langganan bulanan (*Zero-Subscription*), 100% data tersimpan aman di
 │   └── 04_LICENSE_AND_TERMS_OF_USE.md        # Perjanjian lisensi, hak modifikasi, & ketentuan refund
 ├── demo/
 │   ├── index.html                 # Interactive Product Preview (Showcase simulator untuk calon pembeli)
+│   ├── assets/tailwindcss.js      # Tailwind lokal agar demo tidak bergantung CDN
 │   └── WebApp.html                # Standalone Web App client untuk frame preview demo
 ├── tests/
 │   ├── e2e/                       # Pengujian otomatis Playwright (transaksi & demo)
-│   ├── fixtures/                  # Fixture pengujian lokal
+│   ├── backend/                   # Regresi backend GAS (node:test + fake SpreadsheetApp)
+│   ├── fixtures/                  # Fixture pengujian lokal (hasil generate)
 │   └── mocks/                     # Google Apps Script API mock engine
 ├── scripts/
-│   └── prepare-test-app.js        # Compiler fixture pengujian & sinkronisasi file demo
+│   ├── prepare-test-app.js        # Compiler fixture pengujian & sinkronisasi file demo
+│   └── clasp-version.js           # Menyamakan versi Apps Script dengan package.json
 ├── preview.html                   # Pratinjau aplikasi offline untuk komputer lokal
 ├── setup_guide.md                 # Panduan lengkap penjual: Master sheet, trik URL /copy, & hosting demo
 ├── package.json                   # Metadata proyek & version tracking
@@ -87,6 +91,10 @@ Anda dapat menguji antarmuka dan alur kerja aplikasi secara langsung di browser 
    - Klik tombol **+** di sebelah Files > pilih **HTML** > beri nama `App.html`. Salin isi dari [`src/frontend/App.html`](file:///J:/Aplikasi/finance-template/src/frontend/App.html).
 3. Klik tombol **Simpan** (Ctrl+S / Cmd+S).
 
+> **Penting (R-01)**: nama file HTML harus persis `Index`, `Styles`, dan `App` pada instalasi manual (tanpa folder `frontend/`). Sejak v1.8.0 backend mendukung dua mode sekaligus: file datar seperti di atas **atau** struktur `frontend/Index.html` bila Anda memakai `clasp push` dengan `rootDir: "./src"` (lihat `.clasp.json`). Tidak perlu mengubah `include()` secara manual.
+
+> **Alternatif untuk pengguna teknis**: gunakan [`@google/clasp`](https://github.com/google/clasp) — `npm install`, lalu `npm run login` dan `npm run push`. Perintah `npm run deploy` juga membuat versi Apps Script otomatis dari nomor versi `package.json`.
+
 ### Langkah 3: Inisialisasi Otomatis Spreadsheet
 1. Kembali ke tab Google Sheets Anda, lalu lakukan **Refresh / Muat Ulang Halaman (F5)**.
 2. Tunggu beberapa detik hingga menu kustom baru muncul di menu bar atas:  
@@ -106,13 +114,29 @@ Anda dapat menguji antarmuka dan alur kerja aplikasi secara langsung di browser 
    - **Execute as**: `User accessing the web app`
    - **Who has access**: `Anyone with Google account` (atau `Anyone`)
 4. Klik **Deploy** dan salin **Web app URL** yang muncul.
+5. **Wajib (R-02)**: buka **Project Settings** > **Script Properties** di Apps Script, lalu tambahkan properti:
+   - `ALLOWED_EMAILS` = daftar email pemilik yang boleh membuka Web App, dipisah koma (contoh: `nama@gmail.com, admin@usaha.com`).
+   - Alternatif: `ALLOWED_EMAIL_OWNER` = `true` untuk mengizinkan email pemilik deployment saja.
+   Tanpa properti ini, `doGet` akan menolak akses meskipun link dibuka dengan akun Google yang benar.
 
 ### Langkah 5: Pasang di Layar Utama HP (Add to Home Screen)
 Buka link Web App tersebut di smartphone Anda:
 - **Di iPhone (Safari)**: Buka URL > tap ikon **Share** (kotak panah ke atas) > pilih **Add to Home Screen** (*Tambah ke Layar Utama*).
 - **Di Android (Chrome)**: Buka URL > tap menu titik tiga di pojok kanan atas > pilih **Add to Home screen** / **Install app**.
 
-Kini aplikasi dapat dibuka dalam 1 detik langsung dari layar HP tanpa perlu membuka spreadsheet manual.
+Kini aplikasi dapat dibuka dalam 1 detik langsung dari pintasan layar HP tanpa perlu membuka spreadsheet manual. Ini adalah pintasan browser (*bookmark*), bukan aplikasi PWA yang dapat berjalan offline.
+
+---
+
+## Pengujian Otomatis
+
+| Perintah | Cakupan |
+|---|---|
+| `npm run test:backend` | Regresi backend produk asli (35 tes `node:test` dengan tiruan `SpreadsheetApp`): validasi transaksi, saldo, lock, allowlist email, DASHBOARD, AUDIT, dan resolusi template. Tidak memerlukan browser. |
+| `npm test` | Regenerate fixture lalu menjalankan seluruh tes Playwright (UI, akuntansi, demo). Memerlukan `npx playwright install chromium` dan lingkungan yang dapat menjalankan browser. |
+| `npm run test:all` | `test:backend` + `test`. |
+
+Artefak `WebApp.html`, `demo/WebApp.html`, `preview.html`, dan `tests/fixtures/app-test.html` seluruhnya **hasil generate** (`node scripts/prepare-test-app.js`) dan tidak boleh diedit manual; build bersifat deterministik (tidak menulis tanggal).
 
 ---
 
@@ -127,3 +151,5 @@ Seluruh dokumen pelengkap komersial dan acuan operasional tersedia di folder [`d
 | 2b | [**Product Testing Checklist (Blank Template)**](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.md) | Lembar kerja kosong verifikasi rumus & fungsi fitur | Google Sheets | Finance + Operations | [**Workbook XLSX 2 Tab**](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx) |
 | 3 | [**User Guide**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.md) | Panduan penggunaan untuk pembeli | PDF | Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.docx) |
 | 4 | [**License & Terms of Use**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.md) | Mengatur hak penggunaan, distribusi, dan ketentuan pembelian | PDF | Operations + Finance | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.docx) |
+| 5 | [**Laporan QC & Product Testing**](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) | Hasil audit 67 temuan (produk asli, demo, dan frontend bersama) | Markdown | QA | - |
+| 6 | [**Dokumentasi Perbaikan v1.8.0**](file:///J:/Aplikasi/finance-template/docs/06_DOKUMENTASI_PERBAIKAN.md) | Pemetaan setiap temuan ke perbaikan kode + bukti pengujian | Markdown | Engineering | - |
