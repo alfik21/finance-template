@@ -53,9 +53,18 @@
   }
 
   function initApp() {
+    setupDemoModeBanner();
     loadDashboardData();
     setupKeyboardShortcuts();
     setupOfflineWatcher();
+  }
+
+  // Banner demo hanya tampil pada artefak statis/mock, bukan deployment GAS.
+  function setupDemoModeBanner() {
+    const hasMockBackend = typeof window.__MOCK_DB__ !== 'undefined';
+    const hasAppsScriptBackend = typeof google !== 'undefined' && google.script && google.script.run;
+    const banner = document.getElementById('demo-mode-banner');
+    if (banner) banner.style.display = (hasMockBackend || !hasAppsScriptBackend) ? 'block' : 'none';
   }
 
   function loadDashboardData() {

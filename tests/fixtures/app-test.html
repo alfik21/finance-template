@@ -1346,6 +1346,10 @@
   Perangkat sedang offline. Perubahan tidak akan tersimpan sampai koneksi pulih.
 </div>
 
+<div id="demo-mode-banner" role="status" style="display: none; background: #FEF3C7; border-bottom: 1px solid #FCD34D; color: #78350F; text-align: center; font-size: 12px; font-weight: 600; padding: 6px 12px;">
+  <strong>MODE DEMO</strong> &middot; Data contoh di browser Anda, tanpa koneksi Google Sheets.
+</div>
+
 <div class="app-container">
   <!-- Desktop Sidebar -->
   <aside class="sidebar">
@@ -2257,9 +2261,18 @@ try {
   }
 
   function initApp() {
+    setupDemoModeBanner();
     loadDashboardData();
     setupKeyboardShortcuts();
     setupOfflineWatcher();
+  }
+
+  // Banner demo hanya tampil pada artefak statis/mock, bukan deployment GAS.
+  function setupDemoModeBanner() {
+    const hasMockBackend = typeof window.__MOCK_DB__ !== 'undefined';
+    const hasAppsScriptBackend = typeof google !== 'undefined' && google.script && google.script.run;
+    const banner = document.getElementById('demo-mode-banner');
+    if (banner) banner.style.display = (hasMockBackend || !hasAppsScriptBackend) ? 'block' : 'none';
   }
 
   function loadDashboardData() {
