@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Tracker — Panduan Fitur &amp; Solusi Keuangan Praktis</title>
+
+    <!-- Google Fonts: Plus Jakarta Sans for titles/body, JetBrains Mono for metrics and tabular data -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           FIXED 16:9 STAGE: MANDATORY BASE STYLES
+           =========================================== */
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background: #111815;
+            color: #F1F4EE;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .deck-viewport {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            background: #111815;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .deck-stage {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            transform-origin: 0 0;
+            background: #18231E;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            display: block;
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+            background: #18231E;
+            box-sizing: border-box;
+            padding: 72px 96px;
+        }
+
+        .slide.active,
+        .slide.visible {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 1;
+        }
+
+        /* Prevent image / svg overflow */
+        img, video, canvas, svg {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* ===========================================
+           DESIGN SYSTEM VARIABLES (SAGE UTILITARIAN)
+           =========================================== */
+        :root {
+            --bg-sage-dark: #18231E;
+            --bg-sage-surface: #22312A;
+            --bg-sage-surface-hover: #293B32;
+            --bg-sage-card-alt: #2D4137;
+            --bg-ivory: #F4F6F1;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-card: rgba(255, 255, 255, 0.12);
+            --border-highlight: rgba(16, 185, 129, 0.35);
+            --ink-ivory: #F1F4EE;
+            --ink-muted: #9BAEA4;
+            --ink-dark: #17211C;
+            --ink-dark-muted: #53625A;
+            --accent-emerald: #10B981;
+            --accent-emerald-soft: rgba(16, 185, 129, 0.12);
+            --accent-amber: #E5A83B;
+            --accent-amber-soft: rgba(229, 168, 59, 0.12);
+            --font-display: 'Plus Jakarta Sans', sans-serif;
+            --font-body: 'Plus Jakarta Sans', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===========================================
+           COMMON SLIDE HEADER & CHROME
+           =========================================== */
+        .slide-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 22px;
+            margin-bottom: 38px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: var(--bg-sage-surface);
+            border: 1px solid var(--border-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-emerald);
+        }
+
+        .header-project-name {
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--ink-ivory);
+            letter-spacing: -0.01em;
+        }
+
+        .header-category-tag {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--accent-emerald);
+            background: var(--accent-emerald-soft);
+            border: 1px solid var(--border-highlight);
+            padding: 4px 12px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .header-meta {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--ink-muted);
+            letter-spacing: 0.05em;
+        }
+
+        .header-meta span b {
+            color: var(--ink-ivory);
+            font-weight: 600;
+        }
+
+        /* ===========================================
+           COMMON SLIDE FOOTER
+           =========================================== */
+        .slide-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 22px;
+            position: absolute;
+            bottom: 48px;
+            left: 96px;
+            right: 96px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--ink-muted);
+            letter-spacing: 0.06em;
+        }
+
+        .slide-footer-left {
+            display: flex;
+            gap: 24px;
+        }
+
+        .slide-footer-badge {
+            color: var(--accent-emerald);
+            font-weight: 600;
+        }
+
+        /* ===========================================
+           TYPOGRAPHY & UTILITY CLASSES
+           =========================================== */
+        .section-tag {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent-emerald);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .section-tag::before {
+            content: '';
+            width: 14px;
+            height: 2px;
+            background: var(--accent-emerald);
+        }
+
+        .slide-heading {
+            font-family: var(--font-display);
+            font-size: 56px;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+            color: var(--ink-ivory);
+            margin-bottom: 20px;
+            max-width: 1400px;
+        }
+
+        .slide-heading span.highlight {
+            color: var(--accent-emerald);
+        }
+
+        .slide-heading span.amber {
+            color: var(--accent-amber);
+        }
+
+        .slide-lead {
+            font-size: 22px;
+            line-height: 1.55;
+            color: var(--ink-muted);
+            font-weight: 400;
+            max-width: 1250px;
+            margin-bottom: 36px;
+        }
+
+        /* ===========================================
+           SLIDE 1: HERO
+           =========================================== */
+        .slide-1-grid {
+            display: grid;
+            grid-template-columns: 1.25fr 0.85fr;
+            gap: 72px;
+            align-items: center;
+            margin-top: 16px;
+        }
+
+        .slide-1-title {
+            font-family: var(--font-display);
+            font-size: 76px;
+            font-weight: 800;
+            line-height: 1.08;
+            letter-spacing: -0.035em;
+            color: var(--ink-ivory);
+            margin-bottom: 28px;
+        }
+
+        .telemetry-box {
+            background: var(--bg-sage-surface);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
+            padding: 44px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .telemetry-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 18px;
+        }
+
+        .telemetry-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .telemetry-meta h4 {
+            font-family: var(--font-display);
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--ink-ivory);
+            margin-bottom: 4px;
+        }
+
+        .telemetry-meta p {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--ink-muted);
+        }
+
+        .telemetry-val {
+            font-family: var(--font-mono);
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--accent-emerald);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 28px;
+            margin-top: 52px;
+        }
+
+        .kpi-cell h3 {
+            font-family: var(--font-mono);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--ink-ivory);
+            margin-bottom: 4px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .kpi-cell p {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        /* ===========================================
+           SLIDE 2: PROBLEMS
+           =========================================== */
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            margin-top: 20px;
+        }
+
+        .problem-card {
+            background: var(--bg-sage-surface);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
+            padding: 44px 38px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .problem-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 38px;
+            right: 38px;
+            height: 3px;
+            background: rgba(229, 168, 59, 0.65);
+            border-radius: 0 0 3px 3px;
+        }
+
+        .card-num {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent-amber);
+            margin-bottom: 22px;
+            letter-spacing: 0.12em;
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--ink-ivory);
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+
+        .card-body {
+            font-size: 18px;
+            line-height: 1.6;
+            color: var(--ink-muted);
+            margin-bottom: 24px;
+        }
+
+        .card-impact-tag {
+            margin-top: auto;
+            background: rgba(229, 168, 59, 0.1);
+            border: 1px solid rgba(229, 168, 59, 0.25);
+            padding: 14px 18px;
+            border-radius: 8px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--accent-amber);
+            font-weight: 500;
+        }
+
+        /* ===========================================
+           SLIDE 3: VALUE PROPOSITION
+           =========================================== */
+        .value-split {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 48px;
+            align-items: stretch;
+            margin-top: 16px;
+        }
+
+        .value-hero-card {
+            background: var(--bg-ivory);
+            color: var(--ink-dark);
+            border-radius: 14px;
+            padding: 56px 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .value-hero-badge {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #0E7048;
+        }
+
+        .value-hero-quote {
+            font-family: var(--font-display);
+            font-size: 38px;
+            font-weight: 800;
+            line-height: 1.25;
+            letter-spacing: -0.03em;
+            color: var(--ink-dark);
+            margin: 28px 0;
+        }
+
+        .value-hero-sub {
+            font-size: 19px;
+            line-height: 1.55;
+            color: var(--ink-dark-muted);
+        }
+
+        .pillars-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .pillar-card {
+            background: var(--bg-sage-surface);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 28px 32px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .pillar-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            background: var(--accent-emerald-soft);
+            border: 1px solid var(--border-highlight);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-emerald);
+            flex-shrink: 0;
+        }
+
+        .pillar-info h4 {
+            font-family: var(--font-display);
+            font-size: 21px;
+            font-weight: 700;
+            color: var(--ink-ivory);
+            margin-bottom: 6px;
+        }
+
+        .pillar-info p {
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--ink-muted);
+        }
+
+        /* ===========================================
+           SLIDE 4: MULTI-DEVICE ACCESSIBILITY
+           =========================================== */
+        .access-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 16px;
+        }
+
+        .access-card {
+            background: var(--bg-sage-surface);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
+            padding: 44px 40px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .access-card.featured {
+            border-color: var(--border-highlight);
+            background: #24352D;
+        }
+
+        .access-badge {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 24px;
+            align-self: flex-start;
+        }
+
+        .badge-green {
+            background: var(--accent-emerald-soft);
+            border: 1px solid var(--border-highlight);
+            color: var(--accent-emerald);
+        }
+
+        .badge-gray {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-subtle);
+            color: var(--ink-muted);
+        }
+
+        .access-title {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--ink-ivory);
+            margin-bottom: 14px;
+            line-height: 1.25;
+        }
+
+        .access-desc {
+            font-size: 18px;
+            line-height: 1.6;
+            color: var(--ink-muted);
+            margin-bottom: 28px;
+        }
+
+        .access-specs {
+            margin-top: auto;
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .spec-line {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 14px;
+        }
+
+        .spec-line span:first-child { color: var(--ink-muted); }
+        .spec-line span:last-child { color: var(--accent-emerald); font-weight: 600; }
+
+        /* ===========================================
+           SLIDE 5: EVERYDAY CORE FEATURES
+           =========================================== */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            margin-top: 16px;
+        }
+
+        .feature-card {
+            background: var(--bg-sage-surface);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
+            padding: 40px 34px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feature-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            background: var(--accent-emerald-soft);
+            border: 1px solid var(--border-highlight);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-emerald);
+            margin-bottom: 24px;
+        }
+
+        .feature-card h4 {
+            font-family: var(--font-display);
+            font-size: 23px;
+            font-weight: 800;
+            color: var(--ink-ivory);
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .feature-card p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--ink-muted);
+            margin-bottom: 24px;
+        }
+
+        .feature-visual {
+            margin-top: auto;
+            background: #17231E;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+        }
+
+        /* ===========================================
+           SLIDE 6: BUDGETS & INSIGHTS
+           =========================================== */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 44px;
+            margin-top: 16px;
+            align-items: stretch;
+        }
+
+        .insights-card {
+            background: var(--bg-sage-surface);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
+            padding: 44px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .insights-card h4 {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--ink-ivory);
+            margin-bottom: 14px;
+        }
+
+        .insights-card p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: var(--ink-muted);
+        }
+
+        .budget-box {
+            background: #17231E;
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-top: 24px;
+        }
+
+        .budget-bar-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .budget-bar-meta {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 13px;
+        }
+
+        .budget-bar-track {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .fill-emerald { background: var(--accent-emerald); }
+        .fill-amber { background: var(--accent-amber); }
+        .fill-red { background: #EF4444; }
+
+        .report-pills {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .report-pill-item {
+            background: #17231E;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-size: 13px;
+        }
+
+        /* ===========================================
+           SLIDE 7: 3-MINUTE ONBOARDING
+           =========================================== */
+        .step-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            margin-top: 24px;
+        }
+
+        .step-box {
+            background: var(--bg-sage-surface);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
+            padding: 44px 36px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .step-huge-num {
+            font-family: var(--font-mono);
+            font-size: 40px;
+            font-weight: 800;
+            color: var(--accent-emerald);
+            margin-bottom: 20px;
+            line-height: 1;
+        }
+
+        .step-box h4 {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--ink-ivory);
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .step-box p {
+            font-size: 17px;
+            line-height: 1.6;
+            color: var(--ink-muted);
+            margin-bottom: 24px;
+        }
+
+        .step-time-badge {
+            margin-top: auto;
+            background: #17231E;
+            border: 1px solid var(--border-subtle);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--accent-emerald);
+            align-self: flex-start;
+        }
+
+        /* ===========================================
+           SLIDE 8: CALL TO ACTION (OFFER)
+           =========================================== */
+        .cta-split {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 48px;
+            margin-top: 20px;
+            align-items: stretch;
+        }
+
+        .cta-main-card {
+            background: var(--bg-sage-surface);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .cta-main-card h3 {
+            font-family: var(--font-display);
+            font-size: 34px;
+            font-weight: 800;
+            color: var(--ink-ivory);
+            margin-bottom: 16px;
+            line-height: 1.25;
+        }
+
+        .cta-checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin: 28px 0;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 17px;
+            color: var(--ink-ivory);
+        }
+
+        .check-item svg {
+            color: var(--accent-emerald);
+            flex-shrink: 0;
+        }
+
+        .cta-pricing-card {
+            background: var(--bg-ivory);
+            color: var(--ink-dark);
+            border-radius: 14px;
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .price-label {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #0E7048;
+        }
+
+        .price-figure {
+            font-family: var(--font-display);
+            font-size: 52px;
+            font-weight: 800;
+            color: var(--ink-dark);
+            letter-spacing: -0.03em;
+            margin: 12px 0 6px 0;
+        }
+
+        .price-sub {
+            font-size: 16px;
+            color: var(--ink-dark-muted);
+            margin-bottom: 24px;
+        }
+
+        .cta-btn-action {
+            background: #17211C;
+            color: #F1F4EE;
+            border: none;
+            padding: 18px 28px;
+            border-radius: 10px;
+            font-family: var(--font-display);
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ===========================================
+           ANIMATIONS & STAGGERED REVEALS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.65s var(--ease-out-expo), transform 0.65s var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal:nth-child(1) { transition-delay: 0.08s; }
+        .reveal:nth-child(2) { transition-delay: 0.18s; }
+        .reveal:nth-child(3) { transition-delay: 0.28s; }
+        .reveal:nth-child(4) { transition-delay: 0.38s; }
+
+        /* ===========================================
+           CONTROLS, HOTZONE & INLINE EDITING
+           =========================================== */
+        .deck-controls {
+            position: fixed;
+            left: 50%;
+            bottom: 22px;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(24, 35, 30, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-card);
+            border-radius: 999px;
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .deck-btn {
+            background: none;
+            border: none;
+            color: var(--ink-ivory);
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .deck-btn:hover {
+            background: var(--bg-sage-card-alt);
+            color: var(--accent-emerald);
+        }
+
+        .deck-counter {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-muted);
+            letter-spacing: 0.08em;
+            min-width: 90px;
+            text-align: center;
+        }
+
+        .deck-counter b {
+            color: var(--accent-emerald);
+        }
+
+        .edit-hotzone {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            z-index: 10000;
+            cursor: pointer;
+        }
+
+        .edit-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            background: var(--bg-sage-surface);
+            border: 1px solid var(--border-card);
+            color: var(--ink-ivory);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, background 0.2s;
+            z-index: 10001;
+            cursor: pointer;
+        }
+
+        .edit-toggle.show,
+        .edit-toggle.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .edit-toggle.active {
+            background: var(--accent-emerald);
+            color: #121915;
+            border-color: var(--accent-emerald);
+        }
+
+        [contenteditable="true"] {
+            outline: 2px dashed var(--accent-emerald) !important;
+            outline-offset: 4px;
+            border-radius: 4px;
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.15s !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hotzone & Edit Toggle (Clean Vector Icon, Zero Emoji) -->
+    <div class="edit-hotzone"></div>
+    <button class="edit-toggle" id="editToggle" title="Mode Edit Teks (Tekan E)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+    </button>
+
+    <div class="deck-viewport">
+        <main class="deck-stage" id="deckStage">
+
+            <!-- ==========================================
+                 SLIDE 1: JUDUL & SOLUSI UTAMA
+                 ========================================== -->
+            <section class="slide active visible">
+                <header class="slide-header">
+                    <div class="header-brand">
+                        <div class="header-icon-box">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                            </svg>
+                        </div>
+                        <span class="header-project-name">Finance Tracker</span>
+                        <span class="header-category-tag">Personal &amp; Business Edition</span>
+                    </div>
+                    <div class="header-meta">
+                        <span>MODEL: <b>SEKALI BELI SEUMUR HIDUP</b></span>
+                        <span>PRIVASI: <b>100% GOOGLE DRIVE PRIBADI</b></span>
+                    </div>
+                </header>
+
+                <div class="slide-1-grid">
+                    <div>
+                        <div class="section-tag reveal">Aplikasi Keuangan Masa Kini</div>
+                        <h1 class="slide-1-title reveal">
+                            Catat Keuangan Lebih Rapi. <br>
+                            <span class="highlight">Cepat di HP</span>, Tanpa Biaya Bulanan.
+                        </h1>
+                        <p class="slide-lead reveal">
+                            Kelola uang pribadi dan kas usaha dengan nyaman. Memadukan kecepatan aplikasi ponsel pintar dengan keamanan spreadsheet Google milik Anda sendiri.
+                        </p>
+                    </div>
+
+                    <div class="telemetry-box reveal">
+                        <div class="telemetry-item">
+                            <div class="telemetry-meta">
+                                <h4>Biaya Langganan</h4>
+                                <p>Sekali beli, bebas biaya iuran selamanya</p>
+                            </div>
+                            <span class="telemetry-val">Rp 0/bulan</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <div class="telemetry-meta">
+                                <h4>Keamanan Data</h4>
+                                <p>Tersimpan langsung di akun Google Anda</p>
+                            </div>
+                            <span class="telemetry-val">100% Privat</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <div class="telemetry-meta">
+                                <h4>Kemudahan Akses</h4>
+                                <p>Bisa dibuka di HP dan komputer laptop</p>
+                            </div>
+                            <span class="telemetry-val">Multi-Device</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <div class="telemetry-meta">
+                                <h4>Waktu Catat Belanja</h4>
+                                <p>Cukup 1 ketukan untuk belanja harian</p>
+                            </div>
+                            <span class="telemetry-val">&lt; 3 Detik</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-strip reveal">
+                    <div class="kpi-cell">
+                        <h3>Hemat Jutaan</h3>
+                        <p>Bebas Iuran Aplikasi Bulanan</p>
+                    </div>
+                    <div class="kpi-cell">
+                        <h3>Tanpa Install</h3>
+                        <p>Pintasan Layar Utama HP</p>
+                    </div>
+                    <div class="kpi-cell">
+                        <h3>Semua Dompet</h3>
+                        <p>Bank, E-Wallet &amp; Uang Tunai</p>
+                    </div>
+                    <div class="kpi-cell">
+                        <h3>3 Menit Pakai</h3>
+                        <p>Setup Mudah Tanpa Rumus</p>
+                    </div>
+                </div>
+
+                <footer class="slide-footer">
+                    <div class="slide-footer-left">
+                        <span>PANDUAN LENGKAP PENGGUNA &bull; FINANCE TRACKER</span>
+                        <span class="slide-footer-badge">BEBAS IURAN BULANAN</span>
+                    </div>
+                    <div>SLIDE 01 / 08</div>
+                </footer>
+            </section>
+
+            <!-- ==========================================
+                 SLIDE 2: MASALAH KEUANGAN PENGGUNA
+                 ========================================== -->
+            <section class="slide">
+                <header class="slide-header">
+                    <div class="header-brand">
+                        <div class="header-icon-box">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                        </div>
+                        <span class="header-project-name">Finance Tracker</span>
+                        <span class="header-category-tag">Tantangan Finansial</span>
+                    </div>
+                    <div class="header-meta">
+                        <span>FOKUS: <b>KENDALA HARIAN PENGGUNA</b></span>
+                    </div>
+                </header>
+
+                <div class="section-tag reveal">Pernahkah Anda Mengalami Ini?</div>
+                <h2 class="slide-heading reveal">Tiga Kendala yang Bikin <span class="amber">Malas Mencatat Keuangan</span></h2>
+                <p class="slide-lead reveal">
+                    Banyak orang ingin keuangan rapi, tetapi berhenti di tengah jalan karena cara yang ada saat ini terlalu mahal, rumit, atau tidak praktis.
+                </p>
+
+                <div class="problem-grid">
+                    <div class="problem-card reveal">
+                        <div class="card-num">KENDALA 01</div>
+                        <h3 class="card-title">Beban Langganan yang Terus Berulang</h3>
+                        <p class="card-body">
+                            Aplikasi keuangan di Play Store / App Store rata-rata meminta biaya iuran Rp 30.000 hingga Rp 99.000 setiap bulan. Niat ingin hemat malah tekor membayar biaya langganan software.
+                        </p>
+                        <div class="card-impact-tag">Biaya Sia-Sia: Rp 500.000 - Rp 1.200.000/tahun</div>
+                    </div>
+
+                    <div class="problem-card reveal">
+                        <div class="card-num">KENDALA 02</div>
+                        <h3 class="card-title">Khawatir Data Rekening Dilihat Orang Lain</h3>
+                        <p class="card-body">
+                            Data saldo tabungan, mutasi rekening, dan omzet usaha Anda disimpan di server pihak ketiga yang rawan bocor, dijual, atau hilang jika layanan aplikasi tersebut mendadak tutup.
+                        </p>
+                        <div class="card-impact-tag">Risiko Privasi: Data pribadi di luar kendali Anda</div>
+                    </div>
+
+                    <div class="problem-card reveal">
+                        <div class="card-num">KENDALA 03</div>
+                        <h3 class="card-title">Isi Tabel Excel di HP Terlalu Ribet</h3>
+                        <p class="card-body">
+                            Mencatat di spreadsheet manual lewat layar sentuh HP terasa lambat. Sel-sel berukuran kecil bikin salah ketik, tampilan harus di-zoom berulang kali, dan rumus rawan terhapus.
+                        </p>
+                        <div class="card-impact-tag">Tidak Praktis: Malas mencatat &rarr; Uang habis tak terlacak</div>
+                    </div>
+                </div>
+
+                <footer class="slide-footer">
+                    <div class="slide-footer-left">
+                        <span>SOLUSI UNTUK PRIBADI, FREELANCER &amp; UMKM</span>
+                    </div>
+                    <div>SLIDE 02 / 08</div>
+                </footer>
+            </section>
+
+            <!-- ==========================================
+                 SLIDE 3: SOLUSI PRODUK
+                 ========================================== -->
+            <section class="slide">
+                <header class="slide-header">
+                    <div class="header-brand">
+                        <div class="header-icon-box">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                        </div>
+                        <span class="header-project-name">Finance Tracker</span>
+                        <span class="header-category-tag">Solusi Cerdas</span>
+                    </div>
+                    <div class="header-meta">
+                        <span>TEKNOLOGI: <b>GOOGLE SHEETS + WEB APP</b></span>
+                    </div>
+                </header>
+
+                <div class="section-tag reveal">Solusi yang Kami Hadirkan</div>
+                <h2 class="slide-heading reveal">Kenyamanan Aplikasi Modern, <span class="highlight">Keamanan Google Pribadi</span></h2>
+
+                <div class="value-split">
+                    <div class="value-hero-card reveal">
+                        <span class="value-hero-badge">Prinsip Produk</span>
+                        <div class="value-hero-quote">
+                            "Mencatat uang masuk dan keluar semudah mengirim pesan di ponsel, dengan laporan rapi otomatis yang tersimpan di Google Sheets Anda."
+                        </div>
+                        <p class="value-hero-sub">
+                            Anda tidak perlu menginstal aplikasi berat dari toko aplikasi. Cukup buka link di browser atau tambahkan ke layar utama HP, semuanya langsung terhubung ke spreadsheet Anda.
+                        </p>
+                    </div>
+
+                    <div class="pillars-stack">
+                        <div class="pillar-card reveal">
+                            <div class="pillar-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="1" x2="12" y2="23"/>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                </svg>
+                            </div>
+                            <div class="pillar-info">
+                                <h4>Sekali Beli untuk Selamanya</h4>
+                                <p>Tanpa iuran bulanan dan tanpa biaya tersembunyi. Beli template sekali, gunakan seterusnya tanpa batas waktu.</p>
+                            </div>
+                        </div>
+
+                        <div class="pillar-card reveal">
+                            <div class="pillar-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                            </div>
+                            <div class="pillar-info">
+                                <h4>100% Aman Milik Anda Sendiri</h4>
+                                <p>File database tersimpan rapi di Google Drive akun Anda sendiri. Hanya Anda yang memiliki akses penuh atas data keuangan Anda.</p>
+                            </div>
+                        </div>
+
+                        <div class="pillar-card reveal">
+                            <div class="pillar-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                                </svg>
+                            </div>
+                            <div class="pillar-info">
+                                <h4>Desain Nyaman &amp; Bebas Iklan</h4>
+                                <p>Tampilan bersih bergaya Sage Green yang menyejukkan mata, tanpa iklan yang mengganggu, dan bebas dari elemen membingungkan.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <footer class="slide-footer">
+                    <div class="slide-footer-left">
+                        <span>KEMUDAHAN MAKSIMAL UNTUK AKTIVITAS SEHARI-HARI</span>
+                    </div>
+                    <div>SLIDE 03 / 08</div>
+                </footer>
+            </section>
+
+            <!-- ==========================================
+                 SLIDE 4: DUAL AKSES HP & LAPTOP
+                 ========================================== -->
+            <section class="slide">
+                <header class="slide-header">
+                    <div class="header-brand">
+                        <div class="header-icon-box">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                <line x1="8" y1="21" x2="16" y2="21"/>
+                                <line x1="12" y1="17" x2="12" y2="21"/>
+                            </svg>
+                        </div>
+                        <span class="header-project-name">Finance Tracker</span>
+                        <span class="header-category-tag">Akses Fleksibel</span>
+                    </div>
+                    <div class="header-meta">
+                        <span>PILIHAN AKSES: <b>SMARTPHONE &amp; KOMPUTER</b></span>
+                    </div>
+                </header>
+
+                <div class="section-tag reveal">Dua Cara Akses yang Praktis</div>
+                <h2 class="slide-heading reveal">Buka Cepat di Ponsel, <span class="highlight">Pantau Leluasa di Laptop</span></h2>
+                <p class="slide-lead reveal">
+                    Gunakan antarmuka yang paling nyaman sesuai situasi: catat mutasi saat bepergian via HP atau evaluasi laporan bulanan di meja kerja.
+                </p>
+
+                <div class="access-grid">
+                    <div class="access-card featured reveal">
+                        <span class="access-badge badge-green">Paling Favorit &bull; Praktis di Jalan</span>
+                        <h3 class="access-title">Tampilan Ponsel (Layar Utama HP)</h3>
+                        <p class="access-desc">
+                            Pasang pintasan di layar utama smartphone iPhone (Safari) atau Android (Chrome). Terbuka dalam 1 detik dengan tombol besar yang pas di genggaman satu tangan.
+                        </p>
+                        <div class="access-specs">
+                            <div class="spec-line"><span>Cocok Untuk</span><span>Catat kopi, makan siang, bensin di jalan</span></div>
+                            <div class="spec-line"><span>Kecepatan Buka</span><span>1 Detik langsung siap isi</span></div>
+                            <div class="spec-line"><span>Pengalaman</span><span>Persis seperti aplikasi smartphone</span></div>
+                        </div>
+                    </div>
+
+                    <div class="access-card reveal">
+                        <span class="access-badge badge-gray">Komputer / Laptop</span>
+                        <h3 class="access-title">Tampilan Spreadsheet (Sidebar &amp; Dialog)</h3>
+                        <p class="access-desc">
+                            Saat membuka Google Sheets di komputer, Anda bisa memunculkan panel input di sebelah kanan layar atau membuka jendela evaluasi lengkap dengan grafik visual.
+                        </p>
+                        <div class="access-specs">
+                            <div class="spec-line"><span>Cocok Untuk</span><span>Evaluasi akhir bulan &amp; cek ringkasan</span></div>
+                            <div class="spec-line"><span>Keunggulan</span><span>Bisa lihat tabel data asli secara utuh</span></div>
+                            <div class="spec-line"><span>Integrasi</span><span>Otomatis sinkron dengan input dari HP</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <footer class="slide-footer">
+                    <div class="slide-footer-left">
+                        <span>SATU DATABASE SINKRON OTOMATIS DI SEMUA PERANGKAT</span>
+                    </div>
+                    <div>SLIDE 04 / 08</div>
+                </footer>
+            </section>
+
+            <!-- ==========================================
+                 SLIDE 5: FITUR PENGGUNAAN HARIAN
+                 ========================================== -->
+            <section class="slide">
+                <header class="slide-header">
+                    <div class="header-brand">
+                        <div class="header-icon-box">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                            </svg>
+                        </div>
+                        <span class="header-project-name">Finance Tracker</span>
+                        <span class="header-category-tag">Fitur Praktis</span>
+                    </div>
+                    <div class="header-meta">
+                        <span>PENGGUNAAN: <b>MUDAH, CEPAT &amp; INTUITIF</b></span>
+                    </div>
+                </header>
+
+                <div class="section-tag reveal">Fitur Utama Sehari-hari</div>
+                <h2 class="slide-heading reveal">Bikin Pencatatan Keuangan <span class="highlight">Menyenangkan &amp; Cepat</span></h2>
+                <p class="slide-lead reveal">
+                    Dirancang khusus agar Anda tidak malas mencatat setiap ada pengeluaran kecil maupun transaksi besar.
+                </p>
+
+                <div class="features-grid">
+                    <div class="feature-card reveal">
+                        <div class="feature-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                            </svg>
+                        </div>
+                        <h4>Tombol Cepat 1-Ketuk (Habit Chips)</h4>
+                        <p>
+                            Punya belanjaan rutin seperti makan siang, bensin, atau kopi? Cukup sentuh 1 tombol, nominal dan kategorinya langsung terisi otomatis. Selesai dalam 3 detik!
+                        </p>
+                        <div class="feature-visual">
+                            <span style="color: var(--accent-emerald); font-weight: 600;">[ Makan Siang Rp 35k ]</span><br>
+                            <span style="color: var(--ink-muted);">[ Bensin Rp 50k ] &bull; [ Kopi Rp 22k ]</span>
+                        </div>
+                    </div>
+
+                    <div class="feature-card reveal">
+                        <div class="feature-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="6" width="20" height="12" rx="2"/>
+                                <circle cx="12" cy="12" r="2"/>
+                                <path d="M6 12h.01M18 12h.01"/>
+                            </svg>
+                        </div>
+                        <h4>Banyak Dompet &amp; Rekening</h4>
+                        <p>
+                            Pisahkan saldo rekening bank (BCA, Mandiri), e-wallet (GoPay, OVO), dan uang tunai. Mutasi transfer antar rekening otomatis terhitung tanpa merusak total belanja bulanan.
+                        </p>
+                        <div class="feature-visual">
+                            <span>BCA: Rp 14.500.000</span><br>
+                            <span>GoPay: Rp 350.000 &bull; Cash: Rp 800.000</span>
+                        </div>
+                    </div>
+
+                    <div class="feature-card reveal">
+                        <div class="feature-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </div>
+                        <h4>Format Otomatis &amp; Bisa Diedit</h4>
+                        <p>
+                            Nominal otomatis diberi titik pemisah ribuan saat diketik (Rp 1.500.000). Jika ada salah input tanggal atau nominal, Anda bisa mengedit atau menghapusnya langsung dari HP.
+                        </p>
+                        <div class="feature-visual">
+                            <span style="color: var(--accent-emerald); font-weight: 600;">Koreksi Langsung di Ponsel</span><br>
+                            <span style="color: var(--ink-muted);">Saldo otomatis terhitung ulang</span>
+                        </div>
+                    </div>
+                </div>
+
+                <footer class="slide-footer">
+                    <div class="slide-footer-left">
+                        <span>PENGALAMAN PENGGUNA TANPA FRIKSI &bull; COCOK UNTUK ORANG SIBUK</span>
+                    </div>
+                    <div>SLIDE 05 / 08</div>
+                </footer>
+            </section>
+
+            <!-- ==========================================
+                 SLIDE 6: KONTROL ANGGARAN & LAPORAN
+                 ========================================== -->
+            <section class="slide">
+                <header class="slide-header">
+                    <div class="header-brand">
+                        <div class="header-icon-box">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
+                                <path d="M22 12A10 10 0 0 0 12 2v10z"/>
+                            </svg>
+                        </div>
+                        <span class="header-project-name">Finance Tracker</span>
+                        <span class="header-category-tag">Kontrol &amp; Laporan</span>
+                    </div>
+                    <div class="header-meta">
+                        <span>VISUALISASI: <b>GRAFIK ALOKASI REALTIME</b></span>
+                    </div>
+                </header>
+
+                <div class="section-tag reveal">Keuangan Selalu Terkendali</div>
+                <h2 class="slide-heading reveal">Cegah Boncos dengan <span class="highlight">Batas Anggaran &amp; Laporan Visual</span></h2>
+                <p class="slide-lead reveal">
+                    Ketahui ke mana uang Anda mengalir setiap bulan, dan dapatkan peringatan otomatis sebelum pengeluaran melebihi target batas.
+                </p>
+
+                <div class="insights-grid">
+                    <div class="insights-card reveal">
+                        <div>
+                            <h4>Batas Belanja Otomatis (Recurring Budget)</h4>
+                            <p>
+                                Tentukan batas anggaran untuk pos belanja (misal belanja dapur, kafe, transportasi). Kuota anggaran otomatis diperbarui setiap awal bulan tanpa perlu diatur ulang.
+                            </p>
+                        </div>
+
+                        <div class="budget-box">
+                            <div class="budget-bar-row">
+                                <div class="budget-bar-meta">
+                                    <span>Operasional / Harian (Aman)</span>
+                                    <span style="color: var(--accent-emerald);">45% &bull; Sisa Rp 1,1 jt</span>
+                                </div>
+                                <div class="budget-bar-track"><div class="fill-emerald" style="height: 100%; width: 45%;"></div></div>
+                            </div>
+
+                            <div class="budget-bar-row">
+                                <div class="budget-bar-meta">
+                                    <span>Makan Di Luar (Mendekati Batas)</span>
+                                    <span style="color: var(--accent-amber);">82% &bull; Sisa Rp 360 rb</span>
+                                </div>
+                                <div class="budget-bar-track"><div class="fill-amber" style="height: 100%; width: 82%;"></div></div>
+                            </div>
+
+                            <div class="budget-bar-row">
+                                <div class="budget-bar-meta">
+                                    <span>Belanja Keinginan (Overbudget)</span>
+                                    <span style="color: #EF4444;">115% &bull; Lewat Batas</span>
+                                </div>
+                                <div class="budget-bar-track"><div class="fill-red" style="height: 100%; width: 100%;"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="insights-card reveal">
+                        <div>
+                            <h4>3 Tampilan Laporan yang Sangat Jelas</h4>
+                            <p>
+                                Beralih antara daftar mutasi per hari, rangkuman performa bulanan (Total Masuk vs Total Keluar vs Sisa Kas), serta grafik donat persentase alokasi belanja.
+                            </p>
+                        </div>
+
+                        <div class="report-pills">
+                            <div class="report-pill-item">
+                                <span style="color: var(--ink-ivory); font-weight: 600;">Laporan Harian</span>
+                                <span style="color: var(--accent-emerald);">Rincian mutasi dengan subtotal per hari</span>
+                            </div>
+                            <div class="report-pill-item">
+                                <span style="color: var(--ink-ivory); font-weight: 600;">Rangkuman Bulanan</span>
+                                <span style="color: var(--accent-emerald);">Kartu surplus / sisa kas per bulan</span>
+                            </div>
+                            <div class="report-pill-item">
+                                <span style="color: var(--ink-ivory); font-weight: 600;">Grafik Statistik</span>
+                                <span style="color: var(--accent-emerald);">Diagram alokasi belanja per kategori</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <footer class="slide-footer">
+                    <div class="slide-footer-left">
+                        <span>PENGAMBILAN KEPUTUSAN KEUANGAN JAUH LEBIH BIJAK</span>
+                    </div>
+                    <div>SLIDE 06 / 08</div>
+                </footer>
+            </section>
+
+            <!-- ==========================================
+                 SLIDE 7: 3 LANGKAH MUDAH ONBOARDING
+                 ========================================== -->
+            <section class="slide">
+                <header class="slide-header">
+                    <div class="header-brand">
+                        <div class="header-icon-box">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 14 14"/>
+                            </svg>
+                        </div>
+                        <span class="header-project-name">Finance Tracker</span>
+                        <span class="header-category-tag">Langkah Penggunaan</span>
+                    </div>
+                    <div class="header-meta">
+                        <span>WAKTU SETUP: <b>HANYA 3 MENIT</b></span>
+                        <span>KEAHLIAN: <b>TANPA CODING / RUMUS</b></span>
+                    </div>
+                </header>
+
+                <div class="section-tag reveal">Sangat Mudah Dipakai</div>
+                <h2 class="slide-heading reveal">Mulai dalam 3 Langkah, <span class="highlight">Siap Pakai Selamanya</span></h2>
+                <p class="slide-lead reveal">
+                    Anda tidak perlu memahami rumus Excel yang rumit. Sistem kami sudah menyiapkan semuanya secara otomatis.
+                </p>
+
+                <div class="step-cards-grid">
+                    <div class="step-box reveal">
+                        <div class="step-huge-num">01</div>
+                        <h4>Salin Template ke Drive Anda</h4>
+                        <p>
+                            Buka tautan khusus yang kami sediakan dan klik tombol Salin (*Make a Copy*). Template spreadsheet otomatis masuk ke Google Drive pribadi Anda.
+                        </p>
+                        <div class="step-time-badge">Waktu: 30 Detik</div>
+                    </div>
+
+                    <div class="step-box reveal">
+                        <div class="step-huge-num">02</div>
+                        <h4>Atur Rekening &amp; Saldo Awal</h4>
+                        <p>
+                            Buka panel aplikasi dan masukkan nama rekening bank, e-wallet, dan saldo awal Anda saat ini. Seluruh rumus dan lembar sheet akan terbentuk rapi secara otomatis.
+                        </p>
+                        <div class="step-time-badge">Waktu: 1 Menit</div>
+                    </div>
+
+                    <div class="step-box reveal">
+                        <div class="step-huge-num">03</div>
+                        <h4>Pasang di Layar Utama HP</h4>
+                        <p>
+                            Buka link aplikasi di browser ponsel Anda, lalu pilih *Add to Home Screen*. Kini Anda punya aplikasi pencatat keuangan pribadi di HP selamanya!
+                        </p>
+                        <div class="step-time-badge">Waktu: 1 Menit</div>
+                    </div>
+                </div>
+
+                <footer class="slide-footer">
+                    <div class="slide-footer-left">
+                        <span>PANDUAN VIDEO &amp; DOKUMEN LANGKAH-DEMI-LANGKAH DISERTAKAN</span>
+                    </div>
+                    <div>SLIDE 07 / 08</div>
+                </footer>
+            </section>
+
+            <!-- ==========================================
+                 SLIDE 8: PENAWARAN & AJAKAN BERTINDAK (CTA)
+                 ========================================== -->
+            <section class="slide">
+                <header class="slide-header">
+                    <div class="header-brand">
+                        <div class="header-icon-box">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+                            </svg>
+                        </div>
+                        <span class="header-project-name">Finance Tracker</span>
+                        <span class="header-category-tag">Dapatkan Sekarang</span>
+                    </div>
+                    <div class="header-meta">
+                        <span>GARANSI: <b>DOKUMEN &amp; PANDUAN LENGKAP</b></span>
+                    </div>
+                </header>
+
+                <div class="section-tag reveal">Investasi Terbaik untuk Finansial Anda</div>
+                <h2 class="slide-heading reveal">Kendalikan Keuangan Anda Mulai Hari Ini</h2>
+
+                <div class="cta-split">
+                    <div class="cta-main-card reveal">
+                        <div>
+                            <h3>Paket Lengkap Finance Tracker</h3>
+                            <p style="font-size: 18px; line-height: 1.6; color: var(--ink-muted);">
+                                Dapatkan sistem pencatatan keuangan pribadi dan bisnis siap pakai yang bebas langganan, aman, dan dapat digunakan di semua perangkat Anda.
+                            </p>
+                        </div>
+
+                        <div class="cta-checklist">
+                            <div class="check-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span>Master Template Google Sheets &amp; Web App (Siap Salin 1-Klik)</span>
+                            </div>
+                            <div class="check-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span>Akses seumur hidup tanpa biaya langganan bulanan selamanya</span>
+                            </div>
+                            <div class="check-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span>Buku panduan lengkap (User Guide) &amp; video cara instalasi 3 menit</span>
+                            </div>
+                            <div class="check-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span>Simulator demo interaktif untuk mencoba langsung sebelum membeli</span>
+                            </div>
+                        </div>
+
+                        <div style="font-family: var(--font-mono); font-size: 14px; color: var(--accent-emerald);">
+                            Bebas Risiko &bull; 100% Kepemilikan di Akun Google Anda
+                        </div>
+                    </div>
+
+                    <div class="cta-pricing-card reveal">
+                        <div>
+                            <span class="price-label">Penawaran Spesial Peluncuran</span>
+                            <div class="price-figure">Sekali Bayar</div>
+                            <p class="price-sub">Gunakan selamanya tanpa biaya iuran bulanan.</p>
+                            
+                            <div style="background: rgba(23, 33, 28, 0.06); border-radius: 8px; padding: 18px; margin-bottom: 24px;">
+                                <div style="font-size: 14px; color: var(--ink-dark-muted); margin-bottom: 4px;">Bandingkan dengan Aplikasi Biasa:</div>
+                                <div style="font-size: 16px; font-weight: 700; color: #B91C1C;">SaaS Lain: Rp 500k – 1jt+ / tahun</div>
+                                <div style="font-size: 16px; font-weight: 700; color: #0E7048; margin-top: 4px;">Finance Tracker: Rp 0 / tahun</div>
+                            </div>
+                        </div>
+
+                        <button class="cta-btn-action" onclick="alert('Silakan coba demo interaktif di folder demo/index.html atau hubungi admin untuk pemesanan!');">
+                            <span>Coba Demo / Beli Sekarang</span>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                <polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <footer class="slide-footer">
+                    <div class="slide-footer-left">
+                        <span>FINANCE TRACKER 2026 &bull; BEBAS BIAYA LANGGANAN BULANAN</span>
+                        <span class="slide-footer-badge">SIAP PAKAI HARI INI</span>
+                    </div>
+                    <div>SLIDE 08 / 08</div>
+                </footer>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Slide Navigation Controls -->
+    <nav class="deck-controls" aria-label="Slide Controls">
+        <button class="deck-btn" id="prevBtn" title="Slide Sebelumnya (Panah Kiri)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        </button>
+        <div class="deck-counter" id="slideCounter">
+            SLIDE <b id="currentSlideNum">01</b> / <span id="totalSlideNum">08</span>
+        </div>
+        <button class="deck-btn" id="nextBtn" title="Slide Berikutnya (Panah Kanan / Spasi)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+            </svg>
+        </button>
+    </nav>
+
+    <!-- Slide Presentation JavaScript Controller -->
+    <script>
+        /* ===========================================
+           SLIDE PRESENTATION CONTROLLER
+           =========================================== */
+        class SlidePresentation {
+            constructor() {
+                this.slides = Array.from(document.querySelectorAll('.slide'));
+                this.currentSlide = 0;
+                this.stage = document.getElementById('deckStage');
+                this.currentSlideNum = document.getElementById('currentSlideNum');
+                this.totalSlideNum = document.getElementById('totalSlideNum');
+                this.prevBtn = document.getElementById('prevBtn');
+                this.nextBtn = document.getElementById('nextBtn');
+
+                if (this.totalSlideNum) {
+                    this.totalSlideNum.textContent = String(this.slides.length).padStart(2, '0');
+                }
+
+                this.setupStageScale();
+                this.setupKeyboardNav();
+                this.setupClickNav();
+                this.setupTouchNav();
+                this.showSlide(0);
+            }
+
+            setupStageScale() {
+                const scale = () => {
+                    const factor = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+                    const x = (window.innerWidth - 1920 * factor) / 2;
+                    const y = (window.innerHeight - 1080 * factor) / 2;
+                    this.stage.style.transform = `translate(${x}px, ${y}px) scale(${factor})`;
+                };
+                scale();
+                window.addEventListener('resize', scale);
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    // Skip if currently editing text
+                    if (e.target.getAttribute && e.target.getAttribute('contenteditable') === 'true') {
+                        return;
+                    }
+
+                    switch(e.key) {
+                        case 'ArrowRight':
+                        case 'ArrowDown':
+                        case ' ':
+                        case 'PageDown':
+                            e.preventDefault();
+                            this.next();
+                            break;
+                        case 'ArrowLeft':
+                        case 'ArrowUp':
+                        case 'PageUp':
+                            e.preventDefault();
+                            this.prev();
+                            break;
+                        case 'Home':
+                            e.preventDefault();
+                            this.showSlide(0);
+                            break;
+                        case 'End':
+                            e.preventDefault();
+                            this.showSlide(this.slides.length - 1);
+                            break;
+                    }
+                });
+            }
+
+            setupClickNav() {
+                if (this.prevBtn) {
+                    this.prevBtn.addEventListener('click', () => this.prev());
+                }
+                if (this.nextBtn) {
+                    this.nextBtn.addEventListener('click', () => this.next());
+                }
+            }
+
+            setupTouchNav() {
+                let startX = 0;
+                let startY = 0;
+                window.addEventListener('touchstart', (e) => {
+                    if (e.touches.length === 1) {
+                        startX = e.touches[0].clientX;
+                        startY = e.touches[0].clientY;
+                    }
+                }, { passive: true });
+
+                window.addEventListener('touchend', (e) => {
+                    if (e.changedTouches.length === 1) {
+                        const deltaX = e.changedTouches[0].clientX - startX;
+                        const deltaY = e.changedTouches[0].clientY - startY;
+                        if (Math.abs(deltaX) > 60 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                            if (deltaX < 0) this.next();
+                            else this.prev();
+                        }
+                    }
+                }, { passive: true });
+            }
+
+            next() {
+                if (this.currentSlide < this.slides.length - 1) {
+                    this.showSlide(this.currentSlide + 1);
+                }
+            }
+
+            prev() {
+                if (this.currentSlide > 0) {
+                    this.showSlide(this.currentSlide - 1);
+                }
+            }
+
+            showSlide(index) {
+                this.currentSlide = Math.max(0, Math.min(index, this.slides.length - 1));
+                this.slides.forEach((slide, i) => {
+                    const isActive = (i === this.currentSlide);
+                    slide.classList.toggle('active', isActive);
+                    slide.classList.toggle('visible', isActive);
+                });
+
+                if (this.currentSlideNum) {
+                    this.currentSlideNum.textContent = String(this.currentSlide + 1).padStart(2, '0');
+                }
+            }
+        }
+
+        /* ===========================================
+           INLINE EDITING SYSTEM (E KEY / HOTZONE)
+           =========================================== */
+        class InlineEditor {
+            constructor() {
+                this.isActive = false;
+                this.toggleBtn = document.getElementById('editToggle');
+                this.hotzone = document.querySelector('.edit-hotzone');
+                this.storageKey = 'finance_tracker_deck_client_edits';
+                this.setupHotzone();
+                this.setupKeyboard();
+                this.loadSavedContent();
+            }
+
+            setupHotzone() {
+                let hideTimeout = null;
+
+                if (this.hotzone && this.toggleBtn) {
+                    this.hotzone.addEventListener('mouseenter', () => {
+                        clearTimeout(hideTimeout);
+                        this.toggleBtn.classList.add('show');
+                    });
+
+                    this.hotzone.addEventListener('mouseleave', () => {
+                        hideTimeout = setTimeout(() => {
+                            if (!this.isActive) this.toggleBtn.classList.remove('show');
+                        }, 400);
+                    });
+
+                    this.toggleBtn.addEventListener('mouseenter', () => {
+                        clearTimeout(hideTimeout);
+                    });
+
+                    this.toggleBtn.addEventListener('mouseleave', () => {
+                        hideTimeout = setTimeout(() => {
+                            if (!this.isActive) this.toggleBtn.classList.remove('show');
+                        }, 400);
+                    });
+
+                    this.hotzone.addEventListener('click', () => this.toggleEditMode());
+                    this.toggleBtn.addEventListener('click', () => this.toggleEditMode());
+                }
+            }
+
+            setupKeyboard() {
+                document.addEventListener('keydown', (e) => {
+                    if ((e.key === 'e' || e.key === 'E') && !e.target.getAttribute('contenteditable')) {
+                        e.preventDefault();
+                        this.toggleEditMode();
+                    }
+                    if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+                        e.preventDefault();
+                        this.saveContent();
+                    }
+                });
+            }
+
+            toggleEditMode() {
+                this.isActive = !this.isActive;
+                if (this.toggleBtn) {
+                    this.toggleBtn.classList.toggle('active', this.isActive);
+                    this.toggleBtn.classList.toggle('show', this.isActive);
+                }
+
+                const editableElements = document.querySelectorAll(
+                    '.slide-heading, .slide-lead, .card-title, .card-body, .pillar-info h4, .pillar-info p, .telemetry-meta h4, .telemetry-meta p, .access-title, .access-desc, .feature-card h4, .feature-card p, .insights-card h4, .insights-card p, .step-box h4, .step-box p, .cta-main-card h3, .cta-main-card p'
+                );
+
+                editableElements.forEach(el => {
+                    el.setAttribute('contenteditable', this.isActive ? 'true' : 'false');
+                });
+
+                if (!this.isActive) {
+                    this.saveContent();
+                }
+            }
+
+            saveContent() {
+                const stage = document.getElementById('deckStage');
+                if (!stage) return;
+                try {
+                    localStorage.setItem(this.storageKey, stage.innerHTML);
+                } catch (err) {
+                    console.warn('LocalStorage save error:', err);
+                }
+            }
+
+            loadSavedContent() {
+                try {
+                    const saved = localStorage.getItem(this.storageKey);
+                    if (saved) {
+                        const stage = document.getElementById('deckStage');
+                        if (stage) stage.innerHTML = saved;
+                    }
+                } catch (err) {
+                    console.warn('LocalStorage load error:', err);
+                }
+            }
+        }
+
+        // Initialize presentation and inline editor
+        document.addEventListener('DOMContentLoaded', () => {
+            window.presentation = new SlidePresentation();
+            window.editor = new InlineEditor();
+        });
+    </script>
+</body>
+</html>
