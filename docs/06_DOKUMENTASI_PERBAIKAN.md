@@ -1,10 +1,10 @@
-# Dokumentasi Perbaikan — Finance Tracker v1.8.6
+# Dokumentasi Perbaikan — Finance Tracker v1.8.7
 
 **Dokumen**: Dokumentasi Perbaikan Bug (Bug Fix Documentation)
 **Sumber temuan**: [`docs/05_LAPORAN_QC_PRODUCT_TESTING.md`](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) (67 temuan: 25 produk asli, 22 demo, 20 frontend bersama)
-**Versi produk**: 1.8.6 (`package.json`)
+**Versi produk**: 1.8.7 (`package.json`)
 **Tanggal perbaikan**: 5 November 2026
-**Status**: Seluruh 67 temuan tertutup, ditambah 1 temuan baru yang ditemukan selama verifikasi (T-01) dan sudah diperbaiki. Pekerjaan lanjutan v1.8.1 (keamanan dependensi, CI, sinkronisasi dokumen/generator), v1.8.2 (penyelarasan 32 TC dan penambahan 4 tes backend), v1.8.3 (izin bawaan pemilik tanpa setup Script Properties), v1.8.4 (kompatibilitas pelari tes lintas Node 20/22 di CI), v1.8.5 (rekonsiliasi awal demo), serta v1.8.6 (penghapusan saldo gaib melalui mutasi transfer alami dan pembersihan berkas redundan) tercatat di bagian 9 s/d 14.
+**Status**: Seluruh 67 temuan tertutup, ditambah 1 temuan baru yang ditemukan selama verifikasi (T-01) dan sudah diperbaiki. Pekerjaan lanjutan v1.8.1 (keamanan dependensi, CI, sinkronisasi dokumen/generator), v1.8.2 (penyelarasan 32 TC dan penambahan 4 tes backend), v1.8.3 (izin bawaan pemilik tanpa setup Script Properties), v1.8.4 (kompatibilitas pelari tes lintas Node 20/22 di CI), v1.8.5 (rekonsiliasi awal demo), v1.8.6 (penghapusan saldo gaib melalui mutasi transfer alami dan pembersihan berkas redundan), serta v1.8.7 (perapian layout badge master sidebar) tercatat di bagian 9 s/d 15.
 
 ---
 
@@ -333,3 +333,19 @@ Batch ini menyelesaikan transparansi asal-usul kas demo secara natural (menghila
 - Menyesuaikan pengujian unit manifest pada `tests/backend/backend.test.js` agar hanya memvalidasi `src/appsscript.json`.
 - Membersihkan folder artefak lokal `test-results/`.
 - Hasil pengujian: Seluruh 44 tes regresi backend lulus 100%, 8 script inline bebas galat sintaks.
+
+---
+
+## 15. Pekerjaan Lanjutan v1.8.7
+
+Batch ini merapikan estetika tipografi dan tata letak badge identitas aplikasi pada sidebar desktop:
+
+### 15.1 Perapian Layout Badge Identitas (*Anti-Wrapping*)
+- **Masalah Visual**:
+  - Pada header sidebar desktop (`Index.html`), teks badge identitas sebelumnya tertulis `Template Master`.
+  - Karena lebar sidebar terbatas (240px dengan padding 16px) dan berada sebaris dengan nama aplikasi `Finance Tracker`, ruang yang tersisa tidak mencukupi untuk 15 karakter teks badge.
+  - Akibat tidak adanya deklarasi `white-space: nowrap`, teks badge patah secara vertikal menjadi dua baris canggung (`Template` di atas, `Master` di bawah) di dalam badge pill lonjong.
+- **Tindakan Perbaikan**:
+  1. **Penyelarasan Teks**: Menyeragamkan label badge sidebar desktop menjadi `Master` (persis sama dengan header mobile pada baris 65).
+  2. **Penguatan CSS**: Menambahkan properti `white-space: nowrap;`, `flex-shrink: 0;`, `display: inline-flex; align-items: center; justify-content: center;`, dan `line-height: 1.4;` pada kelas `.user-badge` di `Styles.html` untuk menjamin badge selalu tampil utuh dalam satu baris horizontal tanpa risiko patah teks.
+- **Hasil Pengujian**: Tampilan badge menjadi bersih, padat, dan estetis sesuai standar tipografi utilitarian *Sage Green*. 44 tes backend lulus, 8 script inline bebas galat.
