@@ -4,7 +4,7 @@
 **Tipe Dokumen**: Panduan Pengguna & Serah Terima Pembeli (Edisi Rilis Perdana)  
 **Format Target**: PDF (Tata Letak Standar 4 Halaman Siap Cetak / Print-Ready)  
 **Divisi Penanggung Jawab (PIC)**: Operations  
-**Versi Berkas**: 1.8.3  
+**Versi Berkas**: 1.8.4  
 
 ---
 

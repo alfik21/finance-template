@@ -1,10 +1,10 @@
-# Dokumentasi Perbaikan — Finance Tracker v1.8.3
+# Dokumentasi Perbaikan — Finance Tracker v1.8.4
 
 **Dokumen**: Dokumentasi Perbaikan Bug (Bug Fix Documentation)
 **Sumber temuan**: [`docs/05_LAPORAN_QC_PRODUCT_TESTING.md`](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) (67 temuan: 25 produk asli, 22 demo, 20 frontend bersama)
-**Versi produk**: 1.8.3 (`package.json`)
+**Versi produk**: 1.8.4 (`package.json`)
 **Tanggal perbaikan**: 5 November 2026
-**Status**: Seluruh 67 temuan tertutup, ditambah 1 temuan baru yang ditemukan selama verifikasi (T-01) dan sudah diperbaiki. Pekerjaan lanjutan v1.8.1 (keamanan dependensi, CI, sinkronisasi dokumen/generator), v1.8.2 (penyelarasan 32 TC dan penambahan 4 tes backend), serta v1.8.3 (izin bawaan pemilik tanpa setup Script Properties) tercatat di bagian 9, 10, & 11.
+**Status**: Seluruh 67 temuan tertutup, ditambah 1 temuan baru yang ditemukan selama verifikasi (T-01) dan sudah diperbaiki. Pekerjaan lanjutan v1.8.1 (keamanan dependensi, CI, sinkronisasi dokumen/generator), v1.8.2 (penyelarasan 32 TC dan penambahan 4 tes backend), v1.8.3 (izin bawaan pemilik tanpa setup Script Properties), serta v1.8.4 (kompatibilitas pelari tes lintas Node 20/22 di CI) tercatat di bagian 9 s/d 12.
 
 ---
 
@@ -271,3 +271,14 @@ Batch ini menyelesaikan kendala akses izin pemilik spreadsheet tanpa mewajibkan 
 - `isEmailAllowed_()` diperbarui agar secara default selalu mengizinkan akun pemilik sah (`Session.getEffectiveUser()`). Pengguna luar/asing tetap ditolak kecuali terdaftar di `ALLOWED_EMAILS`.
 - Opsi pembatasan ketat tetap dipertahankan dengan menyetel `ALLOWED_EMAIL_OWNER=false`.
 - Hasil pengujian: Ditambahkan 2 tes unit baru pada `backend.test.js` (`44 pass, 0 fail`).
+
+---
+
+## 12. Pekerjaan Lanjutan v1.8.4
+
+Batch ini menyelesaikan kompatibilitas perintah uji backend lintas versi Node.js (Node 20 dan Node 22) pada lingkungan CI Linux:
+
+### 12.1 Kompatibilitas Argumen Runner `node --test` di CI Linux
+- Pada Node 20 di Linux/bash, perintah `node --test "tests/backend/*.test.js"` tidak mengekspansi tanda bintang `*` karena tanda petik ganda mencegah shell globbing dan runner bawaan Node 20 belum mendukung internal globbing untuk argumen string literal. Hal ini menyebabkan kegagalan: `Could not find '.../tests/backend/*.test.js'`.
+- Script `test:backend` di `package.json` dispesifikasikan langsung ke berkas `tests/backend/backend.test.js` tanpa tanda petik yang membingungkan parser.
+- Hasil pengujian: Lulus 100% pada Node 20, 22, dan 24 lintas platform (Linux, macOS, dan Windows).

@@ -1,6 +1,6 @@
 {
   "name": "finance-template",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "description": "Edisi **Template Spreadsheet Terpadu (Container-Bound)** yang menempel langsung di dalam Google Spreadsheet pembeli.",
   "main": "src/backend/Code.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "test": "npm run prepare:fixture && playwright test",
     "test:headed": "npm run prepare:fixture && playwright test --headed",
     "test:ui": "npm run prepare:fixture && playwright test --ui",
-    "test:backend": "node --test \"tests/backend/*.test.js\"",
+    "test:backend": "node --test tests/backend/backend.test.js",
     "test:syntax": "node scripts/check-syntax.js",
     "verify": "npm run test:backend && npm run prepare:fixture && npm run test:syntax",
     "test:all": "npm run test:backend && npm test",
