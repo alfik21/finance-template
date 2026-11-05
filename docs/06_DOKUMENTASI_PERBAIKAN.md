@@ -1,10 +1,10 @@
-# Dokumentasi Perbaikan — Finance Tracker v1.8.5
+# Dokumentasi Perbaikan — Finance Tracker v1.8.6
 
 **Dokumen**: Dokumentasi Perbaikan Bug (Bug Fix Documentation)
 **Sumber temuan**: [`docs/05_LAPORAN_QC_PRODUCT_TESTING.md`](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) (67 temuan: 25 produk asli, 22 demo, 20 frontend bersama)
-**Versi produk**: 1.8.5 (`package.json`)
+**Versi produk**: 1.8.6 (`package.json`)
 **Tanggal perbaikan**: 5 November 2026
-**Status**: Seluruh 67 temuan tertutup, ditambah 1 temuan baru yang ditemukan selama verifikasi (T-01) dan sudah diperbaiki. Pekerjaan lanjutan v1.8.1 (keamanan dependensi, CI, sinkronisasi dokumen/generator), v1.8.2 (penyelarasan 32 TC dan penambahan 4 tes backend), v1.8.3 (izin bawaan pemilik tanpa setup Script Properties), v1.8.4 (kompatibilitas pelari tes lintas Node 20/22 di CI), serta v1.8.5 (rekonsiliasi logika akuntansi saldo awal dan pemasukan data contoh) tercatat di bagian 9 s/d 13.
+**Status**: Seluruh 67 temuan tertutup, ditambah 1 temuan baru yang ditemukan selama verifikasi (T-01) dan sudah diperbaiki. Pekerjaan lanjutan v1.8.1 (keamanan dependensi, CI, sinkronisasi dokumen/generator), v1.8.2 (penyelarasan 32 TC dan penambahan 4 tes backend), v1.8.3 (izin bawaan pemilik tanpa setup Script Properties), v1.8.4 (kompatibilitas pelari tes lintas Node 20/22 di CI), v1.8.5 (rekonsiliasi awal demo), serta v1.8.6 (penghapusan saldo gaib melalui mutasi transfer alami dan pembersihan berkas redundan) tercatat di bagian 9 s/d 14.
 
 ---
 
@@ -302,3 +302,34 @@ Batch ini menyelesaikan cacat logika akuntansi pada database tampilan demo dan s
   5. **Kronologi Transaksi**: Timestamp `TX-1` (jam 12:30 WIB) dibuat lebih baru daripada `TX-2` (jam 08:00 WIB), sehingga Makan Siang Nasi Padang muncul secara presisi di baris paling atas daftar transaksi terakhir.
   6. **Fidelitas Mock**: Pada fungsi `saveWallet` di `tests/mocks/google-script-mock.js`, properti `initialBalance` kini dipasangkan ke objek dompet baru sehingga dompet baru yang ditambahkan di simulator spreadsheet menampilkan nilai saldo awal yang tepat. Selain itu, fungsi `updateTransaction` mempertahankan `createdAt` asli transaksi agar urutan kronologis tidak teracak saat hanya mengedit nominal atau catatan.
 - **Hasil Pengujian**: Seluruh 44 pengujian backend lulus, 8 script inline bebas galat sintaks, dan seluruh artefak showcase terdistribusi secara sinkron.
+
+---
+
+## 14. Pekerjaan Lanjutan v1.8.6
+
+Batch ini menyelesaikan transparansi asal-usul kas demo secara natural (menghilangkan ketergantungan saldo gaib/saldo awal tanpa riwayat) dan membersihkan berkas manifest duplikat di root repositori:
+
+### 14.1 Aliran Kas Alami Penuh (*Natural Cash Flow*) Tanpa Saldo Gaib
+- **Latar Belakang & Cacat Logika**:
+  - Pada v1.8.5, dompet tunai dan e-wallet mengandalkan kolom Saldo Awal (*Initial Balance*) di sheet `DOMPET` (Rp 550.000 dan Rp 2.000.000) tanpa ada catatan transaksi mutasi di Buku Kas.
+  - Jika pengunjung menghapus transaksi gaji bulanan, pemasukan menjadi Rp 0, pengeluaran Rp 50.000 (makan siang), dan sisa kas menjadi -Rp 50.000, namun saldo di GoPay (Rp 2.000.000) dan Dompet Tunai (Rp 500.000) masih ada secara tiba-tiba tanpa riwayat uang masuk.
+- **Tindakan Perbaikan**:
+  1. **Saldo Awal Murni Nol**: Saldo awal seluruh akun dompet (`W-1`, `W-2`, `W-3`) disetel ke **Rp 0** di `demo/index.html` dan `tests/mocks/google-script-mock.js`.
+  2. **Pemasukan Gaji Pokok**: Dicatat sebesar **Rp 12.550.000** masuk ke rekening utama *BCA Tabungan*.
+  3. **Pencatatan Pindah Saldo (Transfer) Alami**:
+     - Ditambahkan transaksi transfer **Tarik Tunai ATM** sebesar **Rp 550.000** dari *BCA Tabungan → Dompet Tunai*.
+     - Ditambahkan transaksi transfer **Top Up Saldo GoPay** sebesar **Rp 2.000.000** dari *BCA Tabungan → GoPay*.
+  4. **Pengeluaran**: Dicatat transaksi makan siang sebesar **Rp 50.000** dari *Dompet Tunai*.
+  5. **Hasil Neraca**:
+     - BCA Tabungan: 12.550.000 - 550.000 - 2.000.000 = **Rp 10.000.000**.
+     - Dompet Tunai: 550.000 - 50.000 = **Rp 500.000**.
+     - GoPay: **Rp 2.000.000**.
+     - Total Kekayaan Bersih (*Net Worth*): **Rp 12.500.000**.
+     - Pemasukan Kas: Rp 12.550.000, Pengeluaran Kas: Rp 50.000, Sisa Kas Bersih: Rp 12.500.000.
+  6. **Bukti Konsistensi**: Jika transaksi gaji bulanan dihapus, rekening BCA menjadi minus Rp 2.550.000 (karena dana yang ditarik/ditransfer belum ada) dan total saldo seluruh akun menjadi tepat **-Rp 50.000**, persis sama dengan sisa kas pengeluaran makan siang tanpa ada uang gaib.
+
+### 14.2 Pembersihan Berkas Repositori (*Repository Hygiene*)
+- Menghapus berkas redundan `appsscript.json` di root repositori. Konfigurasi `.clasp.json` menggunakan `"rootDir": "./src"`, sehingga `src/appsscript.json` menjadi satu-satunya sumber kebenaran (*single source of truth*) yang diunggah ke Google Apps Script.
+- Menyesuaikan pengujian unit manifest pada `tests/backend/backend.test.js` agar hanya memvalidasi `src/appsscript.json`.
+- Membersihkan folder artefak lokal `test-results/`.
+- Hasil pengujian: Seluruh 44 tes regresi backend lulus 100%, 8 script inline bebas galat sintaks.

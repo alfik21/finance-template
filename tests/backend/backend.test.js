@@ -111,25 +111,24 @@ test("R-02: pemilik spreadsheet bisa dibatasi bila ALLOWED_EMAIL_OWNER=false", (
 });
 
 test("R-21/R-02: manifest menyatu USER_ACCESSING + scope terbatas", () => {
-  for (const rel of ["appsscript.json", "src/appsscript.json"]) {
-    const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8"));
-    assert.equal(manifest.webapp.executeAs, "USER_ACCESSING", rel);
-    assert.equal(manifest.webapp.access, "ANYONE", rel);
-    assert.deepEqual(
-      manifest.oauthScopes.slice().sort(),
-      [
-        "https://www.googleapis.com/auth/script.container.ui",
-        "https://www.googleapis.com/auth/spreadsheets.currentonly",
-        "https://www.googleapis.com/auth/userinfo.email",
-      ].sort(),
-      rel
-    );
-    assert.equal(
-      manifest.oauthScopes.some((s) => s.endsWith("/auth/spreadsheets")),
-      false,
-      `${rel}: scope spreadsheets penuh tidak boleh diminta bersama currentonly`
-    );
-  }
+  const rel = "src/appsscript.json";
+  const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8"));
+  assert.equal(manifest.webapp.executeAs, "USER_ACCESSING", rel);
+  assert.equal(manifest.webapp.access, "ANYONE", rel);
+  assert.deepEqual(
+    manifest.oauthScopes.slice().sort(),
+    [
+      "https://www.googleapis.com/auth/script.container.ui",
+      "https://www.googleapis.com/auth/spreadsheets.currentonly",
+      "https://www.googleapis.com/auth/userinfo.email",
+    ].sort(),
+    rel
+  );
+  assert.equal(
+    manifest.oauthScopes.some((s) => s.endsWith("/auth/spreadsheets")),
+    false,
+    `${rel}: scope spreadsheets penuh tidak boleh diminta bersama currentonly`
+  );
 });
 
 /* ========================================================================== *

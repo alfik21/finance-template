@@ -154,20 +154,20 @@ if (!window.__MOCK_DB__) {
     inactiveWallets: [],
     todaySummary: {
       date: todayStr,
-      income: 10000000,
+      income: 12550000,
       expense: 50000,
-      net: 9950000
+      net: 12500000
     },
     monthSummary: {
       period: currentPeriod,
-      income: 10000000,
+      income: 12550000,
       expense: 50000,
-      netSavings: 9950000
+      netSavings: 12500000
     },
     wallets: [
-      { id: "W-1", name: "Dompet Tunai", type: "Cash", balance: 500000, initialBalance: 550000, icon: "Wallet", active: true },
+      { id: "W-1", name: "Dompet Tunai", type: "Cash", balance: 500000, initialBalance: 0, icon: "Wallet", active: true },
       { id: "W-2", name: "BCA Tabungan", type: "Bank", balance: 10000000, initialBalance: 0, icon: "CreditCard", active: true },
-      { id: "W-3", name: "GoPay", type: "E-Wallet", balance: 2000000, initialBalance: 2000000, icon: "Smartphone", active: true }
+      { id: "W-3", name: "GoPay", type: "E-Wallet", balance: 2000000, initialBalance: 0, icon: "Smartphone", active: true }
     ],
     categories: [
       { id: "C-IN-1", name: "Gaji Pokok", type: "Income", icon: "Briefcase" },
@@ -196,9 +196,37 @@ if (!window.__MOCK_DB__) {
       {
         id: "TX-2",
         date: todayStr,
+        createdAt: "2026-01-01T03:00:00.000Z",
+        type: "Transfer",
+        amount: 550000,
+        walletId: "W-2",
+        walletName: "BCA Tabungan",
+        destWalletId: "W-1",
+        destWalletName: "Dompet Tunai",
+        categoryId: "",
+        categoryName: "Pindah Saldo",
+        notes: "Tarik Tunai ATM"
+      },
+      {
+        id: "TX-3",
+        date: todayStr,
+        createdAt: "2026-01-01T02:00:00.000Z",
+        type: "Transfer",
+        amount: 2000000,
+        walletId: "W-2",
+        walletName: "BCA Tabungan",
+        destWalletId: "W-3",
+        destWalletName: "GoPay",
+        categoryId: "",
+        categoryName: "Pindah Saldo",
+        notes: "Top Up Saldo GoPay"
+      },
+      {
+        id: "TX-4",
+        date: todayStr,
         createdAt: "2026-01-01T01:00:00.000Z",
         type: "Income",
-        amount: 10000000,
+        amount: 12550000,
         walletId: "W-2",
         walletName: "BCA Tabungan",
         categoryId: "C-IN-1",

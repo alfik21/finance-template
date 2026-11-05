@@ -5,7 +5,7 @@
 **Format Target**: Google Docs / PDF  
 **Divisi Penanggung Jawab (PIC)**: Finance + Operations  
 **Konteks Produk**: Produk Baru Selesai Dikembangkan (Fresh Development) — Belum Diuji oleh Pengguna Asli  
-**Versi Berkas**: 1.8.5  
+**Versi Berkas**: 1.8.6  
 **Tanggal Berlaku**: 5 November 2026  
 **Berkas Lembar Uji Terkait**:
 - Workbook Template Kosong (.xlsx): [`docs/02_PRODUCT_TESTING_CHECKLIST.xlsx`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx)
