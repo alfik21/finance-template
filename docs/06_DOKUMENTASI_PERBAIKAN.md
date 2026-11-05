@@ -1,10 +1,10 @@
-# Dokumentasi Perbaikan — Finance Tracker v1.8.2
+# Dokumentasi Perbaikan — Finance Tracker v1.8.3
 
 **Dokumen**: Dokumentasi Perbaikan Bug (Bug Fix Documentation)
 **Sumber temuan**: [`docs/05_LAPORAN_QC_PRODUCT_TESTING.md`](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) (67 temuan: 25 produk asli, 22 demo, 20 frontend bersama)
-**Versi produk**: 1.8.2 (`package.json`)
+**Versi produk**: 1.8.3 (`package.json`)
 **Tanggal perbaikan**: 5 November 2026
-**Status**: Seluruh 67 temuan tertutup, ditambah 1 temuan baru yang ditemukan selama verifikasi (T-01) dan sudah diperbaiki. Pekerjaan lanjutan v1.8.1 (keamanan dependensi, CI, sinkronisasi dokumen/generator) dan v1.8.2 (penyelarasan 32 TC dan penambahan 4 tes backend) tercatat di bagian 9 & 10.
+**Status**: Seluruh 67 temuan tertutup, ditambah 1 temuan baru yang ditemukan selama verifikasi (T-01) dan sudah diperbaiki. Pekerjaan lanjutan v1.8.1 (keamanan dependensi, CI, sinkronisasi dokumen/generator), v1.8.2 (penyelarasan 32 TC dan penambahan 4 tes backend), serta v1.8.3 (izin bawaan pemilik tanpa setup Script Properties) tercatat di bagian 9, 10, & 11.
 
 ---
 
@@ -259,3 +259,15 @@ Batch ini menutup celah pengujian backend dan memperbaiki inkonsistensi formula 
   3. Pengujian `openAppDialog()` untuk memastikan modal dibuka dengan dimensi 1080x720 px.
   4. Pengujian idempotensi `ensureDatabaseStructure()` untuk memastikan struktur sheet dan seed awal tidak terduplikasi saat inisialisasi ulang.
 - Hasil: 42 tes unit backend seluruhnya **LULUS (42 pass, 0 fail)**.
+
+---
+
+## 11. Pekerjaan Lanjutan v1.8.3
+
+Batch ini menyelesaikan kendala akses izin pemilik spreadsheet tanpa mewajibkan konfigurasi Script Properties manual:
+
+### 11.1 Otomatisasi Izin Pemilik Sah Spreadsheet (R-02)
+- Sebelumnya, fungsi `isEmailAllowed_()` memblokir seluruh akun bila properti `ALLOWED_EMAILS` atau `ALLOWED_EMAIL_OWNER=true` belum disetel pada *Script Properties*. Hal ini menyebabkan pemilik workbook yang membuka aplikasi pertama kali terhalang oleh pesan: `"Akses ditolak: email '...' tidak terdaftar sebagai pemilik"`.
+- `isEmailAllowed_()` diperbarui agar secara default selalu mengizinkan akun pemilik sah (`Session.getEffectiveUser()`). Pengguna luar/asing tetap ditolak kecuali terdaftar di `ALLOWED_EMAILS`.
+- Opsi pembatasan ketat tetap dipertahankan dengan menyetel `ALLOWED_EMAIL_OWNER=false`.
+- Hasil pengujian: Ditambahkan 2 tes unit baru pada `backend.test.js` (`44 pass, 0 fail`).

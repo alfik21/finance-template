@@ -63,22 +63,33 @@ function resolveIndexTemplateFile_() {
 /**
  * R-02: Whitelist email pemilik. Web app deploy dengan executeAs USER_ACCESSING
  * tetap hanya boleh diakses akun yang terdaftar.
- * Atur via Script Properties: ALLOWED_EMAILS (dipisah koma) atau ALLOWED_EMAIL_OWNER=true.
+ * - Secara bawaan (default), akun pemilik sah spreadsheet (Session.getEffectiveUser())
+ *   selalu diizinkan agar pembeli tidak terblokir di workbook mereka sendiri.
+ * - Akun tambahan dapat didaftarkan via Script Properties: ALLOWED_EMAILS (dipisah koma).
+ * - Mode pemilik bawaan dapat dimatikan dengan menyetel ALLOWED_EMAIL_OWNER=false.
  */
 function isEmailAllowed_(email) {
   if (!email) return false;
+  const user = String(email).trim().toLowerCase();
   try {
     const props = PropertiesService.getScriptProperties();
-    const ownerList = String(props.getProperty("ALLOWED_EMAILS") || "")
-      .split(",")
-      .map(function (s) { return s.trim().toLowerCase(); })
-      .filter(Boolean);
-    if (ownerList.indexOf(String(email).toLowerCase()) !== -1) return true;
-    if (String(props.getProperty("ALLOWED_EMAIL_OWNER") || "").toLowerCase() === "true") {
+    const allowOwner = props ? String(props.getProperty("ALLOWED_EMAIL_OWNER") || "true").toLowerCase() : "true";
+
+    // 1. Pemilik spreadsheet (effective user) selalu diizinkan secara default.
+    if (allowOwner !== "false") {
       try {
         const ownerEmail = Session.getEffectiveUser().getEmail();
-        if (ownerEmail && ownerEmail.toLowerCase() === String(email).toLowerCase()) return true;
-      } catch (e2) {}
+        if (ownerEmail && ownerEmail.trim().toLowerCase() === user) return true;
+      } catch (eOwner) {}
+    }
+
+    // 2. Daftar email tambahan di Script Properties (ALLOWED_EMAILS).
+    if (props) {
+      const ownerList = String(props.getProperty("ALLOWED_EMAILS") || "")
+        .split(",")
+        .map(function (s) { return s.trim().toLowerCase(); })
+        .filter(Boolean);
+      if (ownerList.indexOf(user) !== -1) return true;
     }
   } catch (e) {}
   return false;
@@ -90,6 +101,9 @@ function isEmailAllowed_(email) {
 function assertWebAccessAllowed_() {
   let email = "";
   try { email = Session.getActiveUser().getEmail(); } catch (e) {}
+  if (!email) {
+    try { email = Session.getEffectiveUser().getEmail(); } catch (eEff) {}
+  }
   if (!isEmailAllowed_(email)) {
     throw new Error(
       "Akses ditolak: email '" + (email || "tanpa identitas") +

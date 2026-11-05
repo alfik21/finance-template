@@ -88,6 +88,28 @@ test("R-02: allowlist menerima email terdaftar dan mode ALLOWED_EMAIL_OWNER", ()
   assert.doesNotThrow(() => byOwner.sandbox.doGet({}));
 });
 
+test("R-02: pemilik spreadsheet (effective user) otomatis diizinkan tanpa menyetel Script Properties", () => {
+  const h = createHarness({
+    sheets: baseSheets(),
+    email: "mafaa.fikri7@gmail.com",
+    ownerEmail: "mafaa.fikri7@gmail.com",
+    properties: {}, // kosong tanpa ALLOWED_EMAILS
+  });
+  assert.doesNotThrow(() => h.sandbox.doGet({}));
+  const res = h.sandbox.apiDispatcher("getDashboard", {});
+  assert.equal(res.success, true);
+});
+
+test("R-02: pemilik spreadsheet bisa dibatasi bila ALLOWED_EMAIL_OWNER=false", () => {
+  const h = createHarness({
+    sheets: baseSheets(),
+    email: "mafaa.fikri7@gmail.com",
+    ownerEmail: "mafaa.fikri7@gmail.com",
+    properties: { ALLOWED_EMAIL_OWNER: "false" },
+  });
+  assert.throws(() => h.sandbox.doGet({}), /Akses ditolak/);
+});
+
 test("R-21/R-02: manifest menyatu USER_ACCESSING + scope terbatas", () => {
   for (const rel of ["appsscript.json", "src/appsscript.json"]) {
     const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8"));
