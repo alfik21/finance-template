@@ -1,5 +1,5 @@
 ﻿# Surat Perjanjian Lisensi & Ketentuan Penggunaan
-## Finance Tracker â€” Personal & Business Edition
+## Finance Tracker â€” Personal Edition
 
 **Tipe Dokumen**: Perjanjian Lisensi Produk Digital & Syarat Layanan Hukum  
 **Format Target**: PDF (Dokumen Hukum Formal 2 Halaman Siap Cetak / Legal PDF)  
@@ -23,7 +23,7 @@ PEMBERITAHUAN HUKUM: DENGAN MEMBELI, MENYALIN, MENGUNDUH, MENGAKSES, ATAU MENGGU
 
 1.1. **Sifat Lisensi**: Pemilik Hak Cipta memberikan kepada Pembeli suatu lisensi non-eksklusif, berlaku seumur hidup (*perpetual*), tidak dapat dipindahtangankan (*non-transferable*), dan terbatas untuk penggunaan tunggal (*Single-User Standard Commercial & Personal License*).  
 1.2. **Lingkup Hak Pakai**:
-- Pembeli berhak menggunakan salinan Finance Tracker untuk mencatat, mengelola, dan memantau keuangan perorangan, rumah tangga, atau arus kas entitas usaha mikro, kecil, dan menengah (UMKM) yang dimiliki secara langsung oleh Pembeli.
+- Pembeli berhak menggunakan salinan Finance Tracker untuk mencatat, mengelola, dan memantau keuangan perorangan dan rumah tangga yang dimiliki secara langsung oleh Pembeli.
 - Berkas template diizinkan untuk disimpan pada akun Google Drive pribadi Pembeli dan diakses melalui perangkat pribadi Pembeli (komputer, tablet, dan smartphone).
 
 ---

@@ -10,7 +10,7 @@ Dokumen ini disusun khusus bagi Anda sebagai **Kreator / Pemilik Produk** untuk:
 
 ## 1. Nilai Jual Produk (Selling Points)
 
-Mengapa template ini sangat diminati oleh target pasar pencatat keuangan pribadi dan UMKM?
+Mengapa template ini sangat diminati oleh target pasar pencatat keuangan pribadi dan rumah tangga?
 
 1. **Sekali Bayar, Tanpa Biaya Berlangganan (Zero Subscription)**:
    - Aplikasi keuangan di Play Store / App Store umumnya membebankan langganan Rp 30.000 - Rp 99.000 setiap bulan.
@@ -49,7 +49,7 @@ Sebagai penjual, Anda cukup membuat **1 Master Spreadsheet** sekali saja. Pembel
 
 > **Catatan penamaan file (R-01)**: pada instalasi manual, nama file HTML harus persis `Index`, `Styles`, dan `App` (tanpa folder). Backend v1.8.0 juga mendukung struktur `frontend/Index.html` bila Anda memakai `clasp push` dengan `rootDir: "./src"`, jadi kedua metode instalasi aman.
 
-> **Wajib untuk Web App (R-02)**: setelah deploy Web App, buka **Project Settings > Script Properties** dan tambahkan `ALLOWED_EMAILS` berisi email pembeli (dipisah koma) atau `ALLOWED_EMAIL_OWNER=true`. Tanpa allowlist, Web App menolak akses meski link benar.
+> **Wajib untuk Web App (R-02)**: link Web App hanya boleh dibuka email terdaftar. Lihat subsection **D. Batasi Akses Web App** di bawah.
 
 ### C. Jalankan Setup Otomatis Template
 1. Kembali ke tab Google Sheets, lalu lakukan **Refresh halaman (F5)**.
@@ -61,12 +61,27 @@ Sebagai penjual, Anda cukup membuat **1 Master Spreadsheet** sekali saja. Pembel
    - Pilih akun Google Anda.
    - Klik **Advanced (Lanjutan)** > Klik **Go to Finance Tracker (unsafe)**.
    - Klik **Allow / Izinkan**.
-5. Sheet akan otomatis memformat 5 tab utama bertema *Sage Green*:
+5. Sheet akan otomatis memformat 6 tab utama bertema *Sage Green*:
    - **`DASHBOARD`**: Kartu ringkasan kas, sisa anggaran, dan alokasi kantong dompet.
    - **`TRANSAKSI`**: Lembar pencatatan mutasi kas (Tanggal, Tipe, Kategori, Dompet, Nominal).
    - **`DOMPET`**: Daftar kantong rekening bank, e-wallet, dan kas tunai.
    - **`KATEGORI`**: Master kategori pengeluaran dan pemasukan.
    - **`ANGGARAN`**: Target batas belanja per kategori yang berulang bulanan (*Recurring*).
+   - **`PENGATURAN`**: Pengaturan aplikasi, termasuk daftar email yang diizinkan membuka Web App.
+
+### D. Batasi Akses Web App: Hanya Email Terdaftar (Wajib)
+
+Setting deployment Apps Script **tidak** bisa membatasi akses per-email, sehingga penyaringan dilakukan di sisi server (R-02). Sumber daftar email izin, dari yang paling utama:
+
+1. **Sheet `PENGATURAN`** (dibuat otomatis pada langkah C) — isi kolom **NILAI**:
+   - `Email Pemilik` = akun Google Anda.
+   - `Email Tambahan` = email lain yang boleh membuka link, dipisah koma (contoh: `satu@gmail.com, dua@gmail.com`).
+2. **Pemilik spreadsheet** selalu diizinkan secara bawaan. Matikan dengan Script Properties `ALLOWED_EMAIL_OWNER=false`.
+3. **Cadangan**: Script Properties `ALLOWED_EMAILS` (dipisah koma) bila Anda tidak memakai sheet `PENGATURAN`.
+
+**Yang terjadi bila email tidak terdaftar**: pengunjung melihat halaman ramah **"Akses Ditolak"** (tanpa data apa pun), dan seluruh fungsi API (`getDashboard`, `createTransaction`, dll) ikut diblokir.
+
+> Perubahan daftar email **langsung berlaku** tanpa deploy ulang. Pastikan deployment memakai **Execute as: User accessing the web app**; bila memakai *Execute as: Me*, setiap pengunjung dianggap tanpa identitas dan akan ditolak (*fail-closed*).
 
 ---
 
@@ -115,7 +130,7 @@ Folder `demo/` telah dirancang khusus agar dapat dihosting secara gratis di berb
 Sertakan teks ini pada halaman *Thank You Page*, email otomatis pembeli, atau pesan WhatsApp:
 
 ```text
-Halo Kak! Terima kasih banyak telah membeli "Finance Tracker (Personal & Business Edition)".
+Halo Kak! Terima kasih banyak telah membeli "Finance Tracker (Personal Edition)".
 
 Berikut adalah akses file template Google Spreadsheet milik Kakak:
 Link Akses: https://docs.google.com/spreadsheets/d/1jXZXm9cc1LVcyfx-YRqXAKXySK6da_T6ni5z3yuw1u_gZfHmb56kJ9OH/copy
@@ -157,7 +172,7 @@ Anda dapat menyalin teks promosi ini untuk deskripsi produk di Lynk.id, Mayar, S
 > **Deskripsi:**  
 > Sering merasa uang gaji atau omzet kas cepat habis tapi tidak tahu ke mana perginya? Atau bosan dengan aplikasi pengatur keuangan di Play Store / App Store yang membebankan biaya langganan bulanan mahal?
 >
-> Kenalkan **Finance Tracker**, solusi pencatatan dan pemantauan arus kas berbasis Google Sheets & Web App mandiri yang dirancang untuk kebutuhan personal maupun operasional usaha mikro.
+> Kenalkan **Finance Tracker**, solusi pencatatan dan pemantauan arus kas berbasis Google Sheets & Web App mandiri yang dirancang untuk kebutuhan keuangan pribadi dan rumah tangga.
 >
 > **Fitur Unggulan:**  
 > - **Sekali Beli, Milik Anda Selamanya**: Tanpa biaya langganan bulanan (*Zero-Subscription*), 100% data tersimpan privat di Google Drive milik Anda sendiri.  

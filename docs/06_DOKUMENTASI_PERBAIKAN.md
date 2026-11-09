@@ -12,7 +12,7 @@
 
 | Kelompok | Jumlah | Status | Bukti utama |
 |---|---|---|---|
-| A. Produk asli (R-01 s/d R-25) | 25 | Selesai | 50 tes regresi backend `node:test` |
+| A. Produk asli (R-01 s/d R-25) | 25 | Selesai | 52 tes regresi backend `node:test` |
 | B. Produk demo (D-01 s/d D-22) | 22 | Selesai | Verifikasi browser in-app (showcase + iframe) |
 | C. Frontend bersama (S-01 s/d S-20) | 20 | Selesai | Verifikasi browser + tes backend terkait |
 | Temuan baru T-01 (regresi verifikasi) | 1 | Selesai | Reproduksi dan verifikasi ulang di browser |
@@ -31,7 +31,7 @@ Tiga keputusan struktural yang memengaruhi seluruh perbaikan:
 | ID | Perbaikan (lokasi kode) | Logika dan alur pengguna | Bukti |
 |---|---|---|---|
 | R-01 | `Code.js`: `resolveIndexTemplateFile_()` mencoba kandidat `["frontend/Index", "Index"]`; `include()` jatuh balik dari `frontend/X` ke `X` | Pembeli yang mengikuti panduan instalasi manual (file datar `Index.html`) maupun pengguna `clasp push` (`rootDir: "./src"`) sama-sama bisa membuka aplikasi. Bila kedua nama tidak ada, muncul pesan error yang menyebut kedua opsi penamaan, bukan galat `No HTML file named frontend/Index was found` | Tes `R-01` (3 kasus) |
-| R-02 | `appsscript.json` + `src/appsscript.json` menyatu; `Code.js`: `doGet` dan `apiDispatcher` memeriksa allowlist `ALLOWED_EMAILS` / `ALLOWED_EMAIL_OWNER` dari Script Properties | Link Web App hanya bisa dibuka email yang terdaftar. Tanpa properti, pengunjung menerima halaman penolakan yang menjelaskan cara mengisi allowlist, bukan data keuangan | Tes `R-02` (3 kasus) |
+| R-02 | `appsscript.json` + `src/appsscript.json` menyatu; `Code.js`: `doGet` dan `apiDispatcher` memeriksa whitelist email dari **sheet `PENGATURAN`** (baris `Email Pemilik` / `Email Tambahan`), **pemilik spreadsheet (`ss.getOwner()`)**, dan cadangan Script Properties `ALLOWED_EMAILS` / `ALLOWED_EMAIL_OWNER` | Link Web App hanya bisa dibuka email yang terdaftar. Pengunjung yang tidak terdaftar menerima halaman **"Akses Ditolak"** yang ramah (bukan error mentah), dan seluruh fungsi API ikut diblokir | Tes `R-02` (6 kasus) + e2e |
 | R-03 | `TransactionService.js`: `getDashboardData()` murni baca; pembuatan dompet default dipindah ke `ensureDatabaseStructure()`; penyegaran `DASHBOARD` hanya lewat `refreshDashboardSummary_()` pada jalur tulis | Membuka dashboard, mengganti tab, atau memuat ulang tidak pernah menambah/mengubah baris sheet. Baris `W-1` tidak pernah terduplikasi sehingga net worth tidak meleset | Tes `R-03` (2 kasus) |
 | R-04 | `TransactionService.js`: `validateTransactionPayload_()` â€” `type` harus dari whitelist, `Number.isFinite` + `Math.round`, regex tanggal ISO (`YYYY-MM-DD`), `walletId`/`categoryId` wajib ada dan aktif, kategori harus sesuai tipe, transfer wajib beda dompet dan dompet tujuan aktif | Pengguna menolong dirinya sendiri lewat validasi form; pemanggil API langsung (misal lewat Apps Script editor) menerima galat jelas: `Nominal tidak valid`, `Tipe transaksi tidak dikenal`, `Tanggal harus format YYYY-MM-DD`, `Kategori tidak cocok dengan tipe transaksi` | Tes `R-04` (2 kasus) |
 | R-05 | `TransactionService.js`: duplikasi kategori dicek pada `(nama, tipe)` | Membuat kategori Income "Bonus" lalu Expense "Bonus" tidak saling berebut. Dropdown kategori tidak lagi kosong dan transaksi tersimpan tanpa kategori | Tes `R-05` |
@@ -138,7 +138,7 @@ Menekan tombol yang memakai `onclick="openModal(...)"` **sebelum** skrip halaman
 npm run test:backend        # node --test "tests/backend/*.test.js"
 ```
 
-Hasil: **50 tes, 50 lulus, 0 gagal** (per 9 November 2026, termasuk 6 tes menu & tutup buku v1.9.0) (Node 20+, tanpa browser). Cakupan: R-01, R-02, R-03, R-04, R-05, R-06, R-07, R-08, R-09, R-10, R-11, R-13, R-14, R-15, R-16, R-17, R-19/R-21, R-22, R-23, R-24, R-25, S-08.
+Hasil: **52 tes, 52 lulus, 0 gagal** (per 9 November 2026, termasuk 6 tes menu & tutup buku v1.9.0 serta 6 tes pembatasan akses R-02) (Node 20+, tanpa browser). Cakupan: R-01, R-02, R-03, R-04, R-05, R-06, R-07, R-08, R-09, R-10, R-11, R-13, R-14, R-15, R-16, R-17, R-19/R-21, R-22, R-23, R-24, R-25, S-08.
 
 Tiga tes lahir langsung dari bug pada proses perbaikan sendiri (bukti tes bekerja):
 
@@ -229,7 +229,7 @@ Verifikasi clasp 3.4.1: `npx clasp --version` = 3.4.1, `npx clasp show-file-stat
 
 ### 9.2 CI GitHub Actions (`.github/workflows/ci.yml`)
 
-Job `backend-and-artifacts` (Node 20 dan 22): `npm ci` â†’ `npm run test:backend` (50 tes) â†’ regenerasi artefak + `git diff --exit-code` (deteksi drift D-19/D-22) â†’ `npm run test:syntax` â†’ `npm audit --audit-level=high` (gerbang keamanan).
+Job `backend-and-artifacts` (Node 20 dan 22): `npm ci` â†’ `npm run test:backend` (52 tes) â†’ regenerasi artefak + `git diff --exit-code` (deteksi drift D-19/D-22) â†’ `npm run test:syntax` â†’ `npm audit --audit-level=high` (gerbang keamanan).
 Job `e2e` (Playwright) berjalan `continue-on-error: true` sehingga informatif sampai terbukti stabil (lihat bagian 8).
 
 Gerbang lokal baru: `npm run test:syntax` (`scripts/check-syntax.js`) dan `npm run verify` (tes backend + build fixture + cek sintaks).
@@ -373,4 +373,25 @@ Perubahan dan alasannya:
 - **Sinkronisasi**: `demo/index.html` (bullet "Bisa Dipasang di HP (PWA)" → "Pintasan", "Buka di Sidebar Spreadsheet" → "Buka dari Menu Spreadsheet"), `docs/03` (daftar isi menu), dan seluruh penyebutan jumlah tes (38 → 50).
 
 Bukti: `npm run test:backend` = 50/50 lulus, termasuk 6 tes baru (registrasi menu, prompt batal/tahun tidak valid, `checkPendingArchive_`, sukses arsip dengan saldo tetap sama, dan penolakan tahun tidak sah).
+
+---
+
+## 17. Pekerjaan Lanjutan (Akses Berbasis Spreadsheet & Penyelarasan Branding)
+
+Batch ini memindahkan konfigurasi akses Web App dari Script Properties ke spreadsheet, menambah halaman penolakan yang ramah, dan menyamakan tampilan demo dengan `family-finance-template`.
+
+### 17.1 Whitelist Email Berbasis Sheet `PENGATURAN` (R-02)
+- **Sumber izin baru**: `Code.js` membaca daftar email dari sheet `PENGATURAN` (baris berlabel mengandung `EMAIL`, nilai dipisah koma/titik koma/baris baru), lalu pemilik spreadsheet via `ss.getOwner()`, dan Script Properties `ALLOWED_EMAILS` sebagai cadangan.
+- **Mengapa `ss.getOwner()`**: pada deployment `USER_ACCESSING`, `Session.getEffectiveUser()` selalu sama dengan pengunjung sehingga akan membocorkan akses ke semua orang.
+- **Sheet baru**: `ensureDatabaseStructure()` membuat tab `PENGATURAN` (`PENGATURAN | NILAI | KETERANGAN`) berisi baris `Email Pemilik` dan `Email Tambahan`.
+- **Halaman penolakan ramah**: `doGet()` tidak lagi melempar exception; pengunjung non-terdaftar menerima `buildAccessDeniedOutput_()` (judul "Akses Ditolak - Finance Tracker") berisi email terdeteksi, penyebab, dan langkah solusi.
+- **Frontend**: `apiDispatcher` menandai respons `accessDenied`, lalu `App.html` menampilkan layar penuh "Akses Ditolak" (`showAccessDeniedScreen`) pada seluruh alur memuat dan menyimpan data.
+- **Fail-closed**: email kosong (deployment salah / `Execute as: Me`) tetap ditolak.
+- **Hasil pengujian**: `npm run test:backend` = **52/52 lulus**, termasuk 6 tes R-02 (halaman ramah, penanda `accessDenied`, whitelist sheet `PENGATURAN`, fail-closed, pemilik via `getOwner`, dan `ALLOWED_EMAIL_OWNER=false`).
+
+### 17.2 Penyelarasan Branding & Tampilan Demo
+- Nama edisi diseragamkan menjadi **Finance Tracker (Personal Edition)**; seluruh penyebutan "Business / Usaha / UMKM" dihapus dari `README.md`, `setup_guide.md`, seluruh `docs/`, `presentation.html`, dan `scripts/generate-docs-docx.js`.
+- Banner **Mode Demo** pada `src/frontend/Index.html` disamakan dengan `family-finance-template`: kartu amber membulat + ikon peringatan, bukan baris datar.
+- Halaman showcase (`demo/index.html` → `preview.html`): badge **Interactive Preview**, judul "- Interactive Product Preview", label tombol **Buka Demo Layar Penuh** / **Mobile (iPhone)**, serta baris tautan **Mode Aplikasi Penuh** diseragamkan; aksen logo/tombol/kartu seragam `#1b4332` (Sage Green) di kedua proyek.
+- **Hasil pengujian**: `npm run verify` lulus (52 tes + regenerasi artefak + 0 galat sintaks) dan Playwright e2e **14/14 lulus**.
 

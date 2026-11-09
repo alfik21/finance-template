@@ -1,5 +1,5 @@
 ﻿# Panduan Pengguna (User Guide)
-## Finance Tracker â€” Personal & Business Edition
+## Finance Tracker â€” Personal Edition
 
 **Tipe Dokumen**: Panduan Pengguna & Serah Terima Pembeli (Edisi Rilis Perdana)  
 **Format Target**: PDF (Tata Letak Standar 4 Halaman Siap Cetak / Print-Ready)  
@@ -74,7 +74,7 @@ Saat pertama kali membuka menu aplikasi di Google Sheets, Google mewajibkan konf
 6. Saat muncul peringatan *"Google hasn't verified this app"*, klik tautan kecil di kiri bawah: **"Advanced"** (*Lanjutan*).
 7. Klik baris tulisan: **"Go to Finance Tracker (unsafe)"** (*Buka Finance Tracker*).
 8. Gulir ke bawah lalu klik tombol **"Allow"** (*Izinkan*).
-9. Aplikasi akan terbuka, dan struktur lembar kerja (`DASHBOARD`, `TRANSAKSI`, `DOMPET`, `KATEGORI`, `ANGGARAN`) akan otomatis terbentuk rapi.
+9. Aplikasi akan terbuka, dan struktur lembar kerja (`DASHBOARD`, `TRANSAKSI`, `DOMPET`, `KATEGORI`, `ANGGARAN`, `PENGATURAN`) akan otomatis terbentuk rapi.
 
 ```text
 +-----------------------------------------------------------------------------------+
@@ -196,7 +196,13 @@ Akses Finance Tracker di smartphone layaknya aplikasi native tanpa perlu membuka
 4. Konfigurasikan: Execute as = *User accessing the web app*, Who has access = *Anyone with Google account*.
 5. Klik **Deploy** dan salin URL Web App yang dihasilkan. Kirimkan tautan tersebut ke smartphone Anda.
 
-### Langkah 2: Pasang di Layar Utama HP
+### Langkah 2: Daftarkan Email yang Boleh Membuka Link (Wajib)
+Link Web App hanya dapat dibuka oleh email yang terdaftar:
+1. Buka sheet **`PENGATURAN`** > isi kolom **NILAI**: `Email Pemilik` (akun Google Anda) dan `Email Tambahan` (email lain, dipisah koma).
+2. Alternatif: **Project Settings > Script Properties** > tambahkan `ALLOWED_EMAILS` (dipisah koma).
+3. Email yang tidak terdaftar akan melihat halaman **"Akses Ditolak"** tanpa data apa pun; seluruh fungsi aplikasi ikut diblokir. Perubahan langsung berlaku tanpa deploy ulang.
+
+### Langkah 3: Pasang di Layar Utama HP
 - **Pengguna iPhone (Safari)**: Buka tautan URL di Safari > ketuk tombol **Share** (kotak panah ke atas) > pilih **"Add to Home Screen"** (*Tambah ke Layar Utama*).
 - **Pengguna Android (Chrome)**: Buka tautan URL di Chrome > ketuk **Menu Titik Tiga** di pojok kanan atas > pilih **"Add to Home screen"** / **"Install app"**.
 
@@ -217,6 +223,7 @@ Akses Finance Tracker di smartphone layaknya aplikasi native tanpa perlu membuka
 | Muncul pesan "Authorization Required" berulang kali. | Ada lebih dari 1 akun Google aktif di jendela browser yang sama. | Gunakan jendela **Incognito / Private Browsing**, masuk hanya dengan satu akun Google pemilik file, lalu otorisasi ulang. |
 | Tombol "Hapus Dompet" menampilkan galat. | Dompet masih memiliki sisa saldo kas (> 0). | Pindahkan sisa saldo melalui menu **Transfer** hingga bersaldo 0 sebelum menghapusnya. |
 | Rumus spreadsheet terhapus tidak sengaja. | Sel formula tertekan atau terhapus manual. | Buka menu **File** > **Version history** > **See version history**, lalu pilih versi sebelum terhapus dan pulihkan (*Restore*). |
+| Muncul halaman **"Akses Ditolak"** saat membuka link Web App. | Email Anda belum terdaftar, atau deployment memakai *Execute as: Me* sehingga email pengunjung tidak terbaca. | Isi sheet **`PENGATURAN`** (`Email Pemilik` / `Email Tambahan`) atau properti `ALLOWED_EMAILS`; pastikan **Execute as: User accessing the web app**. Perubahan langsung berlaku. |
 
 ---
 

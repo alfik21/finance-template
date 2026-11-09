@@ -25,7 +25,7 @@
 
 ## Ringkasan Eksekutif (Executive Summary)
 
-Finance Tracker adalah produk pencatatan keuangan pribadi dan usaha kecil berbasis Google Apps Script Web App yang terikat langsung di dalam Google Sheets (*container-bound*). 
+Finance Tracker adalah produk pencatatan keuangan pribadi dan rumah tangga berbasis Google Apps Script Web App yang terikat langsung di dalam Google Sheets (*container-bound*). 
 
 Sistem ini **baru saja selesai dibangun dan dikembangkan (*freshly developed*)** oleh tim pengembang. Sebelum produk dibuka untuk penjualan komersial publik, produk wajib melalui dua tahapan verifikasi kritis:
 1. **Pengujian Kendali Mutu Internal (Internal QA)**: Memastikan tidak ada galat rumus, rekonsiliasi saldo akurat, dan validasi data berfungsi normal.
@@ -36,7 +36,7 @@ Sistem ini **baru saja selesai dibangun dan dikembangkan (*freshly developed*)**
 ## 1. Identitas dan Deskripsi Produk
 
 ### 1.1. Nama Produk
-- **Nama Komersial**: Finance Tracker (Personal & Business Edition)
+- **Nama Komersial**: Finance Tracker (Personal Edition)
 - **Nama Teknis Repositori**: `finance-template`
 
 ### 1.2. Deskripsi Konseptual
@@ -55,9 +55,9 @@ Profil pengguna yang ditargetkan untuk pengujian awal dan penjualan komersial:
 - **Karakteristik**: Arus kas masuk tidak teratur dari berbagai klien, memiliki banyak rekening (Bank BCA, Mandiri, e-wallet GoPay/OVO).
 - **Fokus Uji Coba**: Kemudahan melacak saldo kas nyata (*Net Worth*) di banyak kantong dompet dan fitur pemindahan dana antar-rekening (*Transfer*).
 
-### 2.2. Pemilik Usaha Mikro, Kecil, dan Menengah (UMKM)
-- **Karakteristik**: Mengelola arus kas harian tanpa software akuntansi berbayar mahal.
-- **Fokus Uji Coba**: Kemudahan pencatatan omzet harian dan pemisahan belanja modal vs belanja operasional.
+### 2.2. Pencatat Keuangan Pribadi & Rumah Tangga
+- **Karakteristik**: Mencatat pengeluaran harian dan pemasukan tanpa software akuntansi berbayar mahal.
+- **Fokus Uji Coba**: Kemudahan pencatatan kas harian dan pemisahan belanja pribadi vs kebutuhan rumah tangga.
 
 ### 2.3. Pengguna Sadar Privasi Data Finansial
 - **Karakteristik**: Tidak ingin data mutasi bank tersimpan di server pihak ketiga yang berisiko bocor atau dijual.

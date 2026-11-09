@@ -1,4 +1,4 @@
-﻿# Finance Tracker (Personal & Business Edition)
+﻿# Finance Tracker (Personal Edition)
 
 Sistem pencatatan dan manajemen kas keuangan pribadi terpadu berbasis **Google Sheets** dan **Google Apps Script Web App (Container-Bound)**.
 
@@ -20,7 +20,7 @@ Bebas biaya langganan bulanan (*Zero-Subscription*), 100% data tersimpan aman di
 - **Fitur Koreksi Transaksi (Edit & Hapus)**: Edit dan perbarui mutasi transaksi yang salah input secara langsung dari smartphone.
 - **Format Rupiah Otomatis Realtime**: Input nominal otomatis memformat pemisah ribuan titik (`.`) saat mengetik angka nominal.
 - **Akses Langsung dari Menu Spreadsheet**: Buka antarmuka aplikasi lewat menu toolbar Google Sheets **`Finance Tracker` > `Buka Aplikasi (Modal)`** (jendela 1080x720px); menu juga memuat perintah **Jalankan Setup / Resei Template**, **Tutup Buku & Arsipkan Tahun Lalu**, dan **Petunjuk Pasang di HP (Pintasan)**.
-- **Validasi & Keamanan Data**: Nominal, tanggal, tipe, kategori, dan dompet divalidasi di backend; operasi tulis memakai `LockService`; penghapusan tercatat di tab `AUDIT`; akses Web App dibatasi allowlist email pemilik.
+- **Validasi & Keamanan Data**: Nominal, tanggal, tipe, kategori, dan dompet divalidasi di backend; operasi tulis memakai `LockService`; penghapusan tercatat di tab `AUDIT`; akses Web App dibatasi daftar email di sheet `PENGATURAN` (email lain melihat halaman **Akses Ditolak**).
 
 ---
 
@@ -104,7 +104,7 @@ Anda dapat menguji antarmuka dan alur kerja aplikasi secara langsung di browser 
    - Klik **Lanjutkan / Review Permissions** > pilih akun Google Anda.
    - Klik **Advanced (Lanjutan)** > klik **Go to Finance Tracker (unsafe)**.
    - Klik **Allow / Izinkan**.
-5. Seluruh struktur tab sheet (`TRANSAKSI`, `DOMPET`, `KATEGORI`, `ANGGARAN`, `DASHBOARD`) akan terformat rapi secara otomatis.
+5. Seluruh struktur tab sheet (`TRANSAKSI`, `DOMPET`, `KATEGORI`, `ANGGARAN`, `DASHBOARD`, `PENGATURAN`) akan terformat rapi secara otomatis.
 
 ### Langkah 4: Deploy Web App untuk Akses Smartphone
 1. Di halaman Apps Script, klik tombol biru **Deploy** (Terapkan) di pojok kanan atas > pilih **New deployment** (Penerapan baru).
@@ -114,10 +114,15 @@ Anda dapat menguji antarmuka dan alur kerja aplikasi secara langsung di browser 
    - **Execute as**: `User accessing the web app`
    - **Who has access**: `Anyone with Google account` (atau `Anyone`)
 4. Klik **Deploy** dan salin **Web app URL** yang muncul.
-5. **Wajib (R-02)**: buka **Project Settings** > **Script Properties** di Apps Script, lalu tambahkan properti:
-   - `ALLOWED_EMAILS` = daftar email pemilik yang boleh membuka Web App, dipisah koma (contoh: `nama@gmail.com, admin@usaha.com`).
-   - Alternatif: `ALLOWED_EMAIL_OWNER` = `true` untuk mengizinkan email pemilik deployment saja.
-   Tanpa properti ini, `doGet` akan menolak akses meskipun link dibuka dengan akun Google yang benar.
+5. **Wajib (R-02): batasi siapa saja yang boleh membuka link Web App.** Sumber daftar email izin, dari yang paling utama:
+   - **Sheet `PENGATURAN`** (dibuat otomatis saat setup) — isi kolom **NILAI** pada baris:
+     - `Email Pemilik` = akun Google Anda,
+     - `Email Tambahan` = email lain yang diizinkan, dipisah koma (contoh: `satu@gmail.com, dua@gmail.com`).
+   - **Pemilik spreadsheet** selalu diizinkan secara bawaan. Matikan dengan properti `ALLOWED_EMAIL_OWNER=false`.
+   - **Cadangan: Script Properties** `ALLOWED_EMAILS` (dipisah koma) bila Anda tidak memakai sheet.
+
+   Email yang tidak terdaftar akan melihat halaman **"Akses Ditolak"** (bukan error), dan seluruh fungsi API ikut diblokir. Perubahan daftar email langsung berlaku tanpa deploy ulang.
+   - **Catatan deployment**: gunakan **Execute as: User accessing the web app**. Bila salah setel (Execute as: Me), setiap pengunjung dianggap tanpa identitas dan akan ditolak (*fail-closed*).
 
 ### Langkah 5: Pasang di Layar Utama HP (Add to Home Screen)
 Buka link Web App tersebut di smartphone Anda:
@@ -132,7 +137,7 @@ Kini aplikasi dapat dibuka dalam 1 detik langsung dari pintasan layar HP tanpa p
 
 | Perintah | Cakupan |
 |---|---|
-| `npm run test:backend` | Regresi backend produk asli (50 tes `node:test` dengan tiruan `SpreadsheetApp`): validasi transaksi, saldo, lock, allowlist email, DASHBOARD, AUDIT, resolusi template, serta menu dan tutup buku/arsip tahunan. Tidak memerlukan browser. |
+| `npm run test:backend` | Regresi backend produk asli (52 tes `node:test` dengan tiruan `SpreadsheetApp`): validasi transaksi, saldo, lock, allowlist email, DASHBOARD, AUDIT, resolusi template, serta menu dan tutup buku/arsip tahunan. Tidak memerlukan browser. |
 | `npm run test:syntax` | Parse seluruh `<script>` inline pada artefak hasil generate (`WebApp.html`, `preview.html`, `demo/index.html`, `demo/WebApp.html`, `tests/fixtures/app-test.html`); gagal bila ada script rusak. |
 | `npm run verify` | `test:backend` + regenerasi fixture + `test:syntax`. Gerbang cepat sebelum commit. |
 | `npm test` | Regenerate fixture lalu menjalankan seluruh tes Playwright (UI, akuntansi, demo). Memerlukan `npx playwright install chromium` dan lingkungan yang dapat menjalankan browser. |

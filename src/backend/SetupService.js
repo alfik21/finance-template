@@ -81,6 +81,26 @@ function ensureDatabaseStructure() {
       setup: (sheet) => {
         sheet.setTabColor("#D97706");
       }
+    },
+    {
+      // R-02: daftar email yang diizinkan membuka Web App dibaca dari sheet ini
+      // (baris berlabel mengandung "EMAIL"), sehingga pembeli cukup mengedit
+      // spreadsheet - tanpa membuka Script Properties.
+      name: "PENGATURAN",
+      headers: ["PENGATURAN", "NILAI", "KETERANGAN"],
+      seeds: [],
+      setup: (sheet) => {
+        sheet.setTabColor("#475569");
+      },
+      content: (sheet) => {
+        const rows = [
+          ["Email Pemilik", "", "Email Google pemilik spreadsheet (selalu diizinkan)"],
+          ["Email Tambahan", "", "Email lain yang boleh membuka Web App, dipisah koma"]
+        ];
+        sheet.getRange(2, 1, rows.length, 3).setValues(rows);
+        sheet.getRange(2, 1, rows.length, 1).setFontWeight("bold");
+        return rows.length;
+      }
     }
   ];
 
@@ -187,7 +207,8 @@ const KNOWN_HEADERS_ = {
   Kategori_ID: true, Nominal: true, Catatan: true, Dibuat_Pada: true,
   Nama_Dompet: true, Saldo_Awal: true, Ikon: true, Aktif: true,
   Nama_Kategori: true, Periode: true, Limit_Nominal: true,
-  Nilai: true, Keterangan: true, Diperbarui: true
+  Nilai: true, Keterangan: true, Diperbarui: true,
+  PENGATURAN: true, NILAI: true
 };
 
 function isKnownHeader_(name) {

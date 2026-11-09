@@ -1346,8 +1346,18 @@
   Perangkat sedang offline. Perubahan tidak akan tersimpan sampai koneksi pulih.
 </div>
 
-<div id="demo-mode-banner" role="status" style="display: none; background: #FEF3C7; border-bottom: 1px solid #FCD34D; color: #78350F; text-align: center; font-size: 12px; font-weight: 600; padding: 6px 12px;">
-  <strong>MODE DEMO</strong> &middot; Data contoh di browser Anda, tanpa koneksi Google Sheets.
+<div id="demo-mode-banner" role="status" style="display: none; margin: 12px 16px 0; background: #FFFBEB; border: 1px solid #FCD34D; border-radius: 12px; padding: 8px 12px;">
+  <div style="display: flex; align-items: flex-start; gap: 8px;">
+    <svg style="width: 14px; height: 14px; color: #B45309; flex-shrink: 0; margin-top: 2px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"></path>
+      <line x1="12" y1="9" x2="12" y2="13"></line>
+      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+    <p style="margin: 0; font-size: 11px; line-height: 1.5; color: #92400E;">
+      <strong style="font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #78350F;">Mode Demo</strong> &middot;
+      Data contoh di browser, tanpa koneksi Google Sheets.
+    </p>
+  </div>
 </div>
 
 <div class="app-container">
@@ -2275,6 +2285,47 @@ try {
     if (banner) banner.style.display = (hasMockBackend || !hasAppsScriptBackend) ? 'block' : 'none';
   }
 
+  /* ==========================================================================
+   * R-02: layar penolakan akses (email tidak terdaftar di whitelist)
+   * ========================================================================*/
+
+  /** Tampilkan layar penuh "Akses Ditolak" (tanpa data aplikasi apa pun). */
+  function showAccessDeniedScreen(message) {
+    if (document.getElementById('access-denied-screen')) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'access-denied-screen';
+    overlay.setAttribute('role', 'alert');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:var(--bg-canvas,#f6f8f7);' +
+      'display:flex;align-items:center;justify-content:center;padding:24px;';
+    overlay.innerHTML =
+      '<div style="max-width:520px;background:var(--bg-surface,#fff);border:1px solid var(--border-color,#e1e5ea);' +
+      'border-radius:16px;padding:28px;box-shadow:0 10px 30px rgba(28,30,33,.08);font-family:var(--font-sans, sans-serif);">' +
+      '<span style="display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;' +
+      'color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:999px;padding:4px 10px;margin-bottom:14px;">Akses Ditolak</span>' +
+      '<h1 style="font-size:20px;margin:0 0 10px;color:var(--text-main,#1c1e21);">Anda tidak memiliki akses ke Finance Tracker</h1>' +
+      '<div style="background:var(--bg-subtle,#f4f7f5);border:1px solid var(--border-color,#e1e5ea);border-radius:10px;' +
+      'padding:12px 14px;font-size:13px;color:var(--text-main,#1c1e21);margin-bottom:14px;word-break:break-word;">' +
+      '<b>Email terdeteksi:</b><br>' + esc(typeof userEmail !== 'undefined' ? userEmail : '') + '</div>' +
+      '<p style="font-size:14px;line-height:1.6;color:var(--text-muted,#656b73);margin:0 0 12px;">' + esc(message || '') + '</p>' +
+      '<p style="font-size:14px;line-height:1.6;color:var(--text-muted,#656b73);margin:0 0 12px;"><b>Solusi:</b> ' +
+      'Daftarkan email Anda pada sheet <b>PENGATURAN</b> (baris <b>Email Pemilik</b> / <b>Email Tambahan</b>, dipisah koma) ' +
+      'atau pada <b>Project Settings &gt; Script Properties &gt; ALLOWED_EMAILS</b>. Perubahan langsung berlaku tanpa deploy ulang.</p>' +
+      '<p style="font-size:12px;color:var(--text-subtle,#94a3b8);margin:0;">Link Web App ini hanya dibuka oleh akun Google ' +
+      'yang terdaftar sebagai pemilik atau pengguna izin spreadsheet.</p>' +
+      '</div>';
+    document.body.appendChild(overlay);
+  }
+
+  /** true bila respons server adalah penolakan akses (lalu tampilkan layar). */
+  function handleAccessDenied_(res) {
+    if (res && res.accessDenied) {
+      appState.isLoading = false;
+      showAccessDeniedScreen(res.error);
+      return true;
+    }
+    return false;
+  }
+
   function loadDashboardData() {
     // S-06: hanya menampilkan layar "Memuat" saat data pertama kali kosong.
     if (!appState.data) appState.isLoading = true;
@@ -2303,6 +2354,7 @@ try {
             // terkunci pada alert "Pilih kategori". Isi ulang bila modal terbuka.
             refreshOpenTransactionModal_();
           } else {
+            if (handleAccessDenied_(res)) return;
             alert("Kendala memuat data: " + ((res && res.error) || "Gagal memuat data") +
               ". Periksa koneksi internet lalu muat ulang.");
           }
@@ -3156,6 +3208,7 @@ try {
           }
           loadDashboardData();
         } else {
+          if (handleAccessDenied_(res)) return;
           alert("Gagal menyimpan transaksi: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
@@ -3196,6 +3249,7 @@ try {
           }
           loadDashboardData();
         } else {
+          if (handleAccessDenied_(res)) return;
           alert("Gagal menyimpan anggaran: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
@@ -3229,7 +3283,7 @@ try {
     renderApp();
 
     google.script.run
-      .withSuccessHandler(res => { if (res && res.success) loadDashboardData(); else alert("Gagal: " + (res.error || "Terjadi kesalahan")); })
+      .withSuccessHandler(res => { if (handleAccessDenied_(res)) return; if (res && res.success) loadDashboardData(); else alert("Gagal: " + (res.error || "Terjadi kesalahan")); })
       .withFailureHandler(err => { alert(err.message); appState.isLoading = false; renderApp(); })
       .apiDispatcher('deleteTransaction', { id: id });
   }
@@ -3313,6 +3367,7 @@ try {
           }
           loadDashboardData();
         } else {
+          if (handleAccessDenied_(res)) return;
           alert("Gagal menyimpan kategori: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
@@ -3358,6 +3413,7 @@ try {
           }
           loadDashboardData();
         } else {
+          if (handleAccessDenied_(res)) return;
           alert("Gagal menyimpan dompet: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
@@ -3397,6 +3453,7 @@ try {
         if (res && res.success) {
           loadDashboardData();
         } else {
+          if (handleAccessDenied_(res)) return;
           alert("Gagal menghapus dompet: " + ((res && res.error) || "Terjadi kesalahan"));
           appState.isLoading = false;
           renderApp();
@@ -3421,6 +3478,7 @@ try {
         if (res && res.success) {
           loadDashboardData();
         } else {
+          if (handleAccessDenied_(res)) return;
           alert("Gagal mengaktifkan dompet: " + ((res && res.error) || "Terjadi kesalahan"));
           appState.isLoading = false;
           renderApp();

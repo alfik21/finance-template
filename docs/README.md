@@ -1,5 +1,5 @@
 ﻿# Indeks Dokumentasi Penjualan & Operasional
-## Finance Tracker â€” Personal & Business Edition
+## Finance Tracker â€” Personal Edition
 
 Dokumen ini merupakan panduan katalog dokumentasi komersial dan operasional produk Finance Tracker versi 1.9.0. Seluruh dokumen telah diselaraskan dengan standar tata letak resmi dan disesuaikan untuk konteks **produk yang baru selesai dibangun/dikembangkan (*fresh build*) dan sedang bersiap untuk tahap verifikasi mutu internal (QA) serta pengujian pengguna asli (*User Acceptance Testing / UAT*)**.
 

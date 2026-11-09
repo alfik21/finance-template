@@ -7,12 +7,15 @@ test.describe('E2E: Showcase Preview & Standalone Mode', () => {
     const previewPath = 'file://' + path.resolve(__dirname, '../../preview.html').replace(/\\/g, '/');
     await page.goto(previewPath);
 
-    // 1. Cek Header Showcase
+    // 1. Cek Header Showcase (badge "Interactive Preview" & banner Mode Demo seragam
+    //    dengan family-finance-template)
     await expect(page.locator('h1')).toContainText('Finance Tracker');
+    await expect(page.locator('span', { hasText: 'Interactive Preview' }).first()).toBeVisible();
+    await expect(page.locator('[role="alert"]')).toContainText('Mode Demo');
     await expect(page.locator('#deviceContainer')).toBeVisible();
 
-    // 2. Cek Tombol Buka Demo Layar Penuh / Mode Aplikasi
-    const btnFullscreen = page.locator('a:has-text("Buka Demo Layar Penuh / Mode Aplikasi")');
+    // 2. Cek Tombol Buka Demo Layar Penuh (label diseragamkan dengan family-finance-template)
+    const btnFullscreen = page.locator('a:has-text("Buka Demo Layar Penuh")');
     await expect(btnFullscreen).toBeVisible();
     await expect(btnFullscreen).toHaveAttribute('href', 'WebApp.html');
     await expect(btnFullscreen).toHaveAttribute('target', '_blank');

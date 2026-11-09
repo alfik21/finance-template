@@ -67,6 +67,47 @@
     if (banner) banner.style.display = (hasMockBackend || !hasAppsScriptBackend) ? 'block' : 'none';
   }
 
+  /* ==========================================================================
+   * R-02: layar penolakan akses (email tidak terdaftar di whitelist)
+   * ========================================================================*/
+
+  /** Tampilkan layar penuh "Akses Ditolak" (tanpa data aplikasi apa pun). */
+  function showAccessDeniedScreen(message) {
+    if (document.getElementById('access-denied-screen')) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'access-denied-screen';
+    overlay.setAttribute('role', 'alert');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:var(--bg-canvas,#f6f8f7);' +
+      'display:flex;align-items:center;justify-content:center;padding:24px;';
+    overlay.innerHTML =
+      '<div style="max-width:520px;background:var(--bg-surface,#fff);border:1px solid var(--border-color,#e1e5ea);' +
+      'border-radius:16px;padding:28px;box-shadow:0 10px 30px rgba(28,30,33,.08);font-family:var(--font-sans, sans-serif);">' +
+      '<span style="display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;' +
+      'color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:999px;padding:4px 10px;margin-bottom:14px;">Akses Ditolak</span>' +
+      '<h1 style="font-size:20px;margin:0 0 10px;color:var(--text-main,#1c1e21);">Anda tidak memiliki akses ke Finance Tracker</h1>' +
+      '<div style="background:var(--bg-subtle,#f4f7f5);border:1px solid var(--border-color,#e1e5ea);border-radius:10px;' +
+      'padding:12px 14px;font-size:13px;color:var(--text-main,#1c1e21);margin-bottom:14px;word-break:break-word;">' +
+      '<b>Email terdeteksi:</b><br>' + esc(typeof userEmail !== 'undefined' ? userEmail : '') + '</div>' +
+      '<p style="font-size:14px;line-height:1.6;color:var(--text-muted,#656b73);margin:0 0 12px;">' + esc(message || '') + '</p>' +
+      '<p style="font-size:14px;line-height:1.6;color:var(--text-muted,#656b73);margin:0 0 12px;"><b>Solusi:</b> ' +
+      'Daftarkan email Anda pada sheet <b>PENGATURAN</b> (baris <b>Email Pemilik</b> / <b>Email Tambahan</b>, dipisah koma) ' +
+      'atau pada <b>Project Settings &gt; Script Properties &gt; ALLOWED_EMAILS</b>. Perubahan langsung berlaku tanpa deploy ulang.</p>' +
+      '<p style="font-size:12px;color:var(--text-subtle,#94a3b8);margin:0;">Link Web App ini hanya dibuka oleh akun Google ' +
+      'yang terdaftar sebagai pemilik atau pengguna izin spreadsheet.</p>' +
+      '</div>';
+    document.body.appendChild(overlay);
+  }
+
+  /** true bila respons server adalah penolakan akses (lalu tampilkan layar). */
+  function handleAccessDenied_(res) {
+    if (res && res.accessDenied) {
+      appState.isLoading = false;
+      showAccessDeniedScreen(res.error);
+      return true;
+    }
+    return false;
+  }
+
   function loadDashboardData() {
     // S-06: hanya menampilkan layar "Memuat" saat data pertama kali kosong.
     if (!appState.data) appState.isLoading = true;
@@ -95,6 +136,7 @@
             // terkunci pada alert "Pilih kategori". Isi ulang bila modal terbuka.
             refreshOpenTransactionModal_();
           } else {
+            if (handleAccessDenied_(res)) return;
             alert("Kendala memuat data: " + ((res && res.error) || "Gagal memuat data") +
               ". Periksa koneksi internet lalu muat ulang.");
           }
@@ -948,6 +990,7 @@
           }
           loadDashboardData();
         } else {
+          if (handleAccessDenied_(res)) return;
           alert("Gagal menyimpan transaksi: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
@@ -988,6 +1031,7 @@
           }
           loadDashboardData();
         } else {
+          if (handleAccessDenied_(res)) return;
           alert("Gagal menyimpan anggaran: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
@@ -1021,7 +1065,7 @@
     renderApp();
 
     google.script.run
-      .withSuccessHandler(res => { if (res && res.success) loadDashboardData(); else alert("Gagal: " + (res.error || "Terjadi kesalahan")); })
+      .withSuccessHandler(res => { if (handleAccessDenied_(res)) return; if (res && res.success) loadDashboardData(); else alert("Gagal: " + (res.error || "Terjadi kesalahan")); })
       .withFailureHandler(err => { alert(err.message); appState.isLoading = false; renderApp(); })
       .apiDispatcher('deleteTransaction', { id: id });
   }
@@ -1105,6 +1149,7 @@
           }
           loadDashboardData();
         } else {
+          if (handleAccessDenied_(res)) return;
           alert("Gagal menyimpan kategori: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
@@ -1150,6 +1195,7 @@
           }
           loadDashboardData();
         } else {
+          if (handleAccessDenied_(res)) return;
           alert("Gagal menyimpan dompet: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
@@ -1189,6 +1235,7 @@
         if (res && res.success) {
           loadDashboardData();
         } else {
+          if (handleAccessDenied_(res)) return;
           alert("Gagal menghapus dompet: " + ((res && res.error) || "Terjadi kesalahan"));
           appState.isLoading = false;
           renderApp();
@@ -1213,6 +1260,7 @@
         if (res && res.success) {
           loadDashboardData();
         } else {
+          if (handleAccessDenied_(res)) return;
           alert("Gagal mengaktifkan dompet: " + ((res && res.error) || "Terjadi kesalahan"));
           appState.isLoading = false;
           renderApp();

@@ -1,5 +1,5 @@
 ﻿# Panduan & Prosedur Pengujian Produk (Product Testing Guide)
-## Finance Tracker â€” Personal & Business Edition
+## Finance Tracker â€” Personal Edition
 
 **Tipe Dokumen**: Standar Operasional Prosedur (SOP) Pengujian Mutu  
 **Format Target**: Google Docs / PDF  
@@ -19,7 +19,7 @@ Produk Finance Tracker ini **baru saja selesai dibangun dan selesai dikembangkan
 
 Oleh karena itu, dokumen ini menetapkan kerangka kerja pengujian bertahap:
 1. **Fase 1: Verifikasi Fungsional Internal (Internal QA)**: Dilakukan oleh tim internal **Finance** dan **Operations** untuk memverifikasi 32 kasus uji teknis.
-2. **Fase 2: Pengujian Penerimaan Pengguna Asli (User Acceptance Testing / UAT)**: Dilakukan bersama 3â€“5 orang perwakilan pengguna nyata (pekerja lepas / pemilik UMKM) untuk mengamati kendala navigasi, kebingungan bahasa, atau hambatan saat pertama kali membuka template.
+2. **Fase 2: Pengujian Penerimaan Pengguna Asli (User Acceptance Testing / UAT)**: Dilakukan bersama 3â€“5 orang perwakilan pengguna nyata (pekerja lepas / pencatat keuangan rumah tangga) untuk mengamati kendala navigasi, kebingungan bahasa, atau hambatan saat pertama kali membuka template.
 
 ---
 
@@ -36,7 +36,7 @@ Oleh karena itu, dokumen ini menetapkan kerangka kerja pengujian bertahap:
                                       v (Jika Lulus 100%)
 +---------------------------------------------------------------------------------+
 | TAHAP 2: PENGUJIAN PENGGUNA ASLI / PILOT USER TESTING (UAT)                     |
-| - Libatkan 3-5 Calon Pengguna Riil (Freelancer & Pemilik UMKM)                 |
+| - Libatkan 3-5 Calon Pengguna Riil (Freelancer & Pencatat Keuangan Rumah Tangga)
 | - Pengguna Mencoba Mandiri: Akses Link /copy > Otorisasi > Catat Transaksi     |
 | - Pengumpulan Masukan (Feedback) Kenyamanan & Keterbacaan Bahasa               |
 +---------------------------------------------------------------------------------+
@@ -129,12 +129,12 @@ Sebelum Fase 1 dinyatakan PASS, jalankan dari root repositori:
 
 | Perintah | Cakupan | Kebutuhan |
 |---|---|---|
-| `npm run test:backend` | 50 tes produk asli (`node:test` + tiruan `SpreadsheetApp`): validasi transaksi, saldo dompet, lock, allowlist email, migrasi sheet, DASHBOARD, AUDIT, resolusi template, menu spreadsheet, serta tutup buku/arsip tahunan | Node 20+ saja |
+| `npm run test:backend` | 52 tes produk asli (`node:test` + tiruan `SpreadsheetApp`): validasi transaksi, saldo dompet, lock, whitelist email (sheet `PENGATURAN` + pemilik), migrasi sheet, DASHBOARD, AUDIT, resolusi template, menu spreadsheet, serta tutup buku/arsip tahunan | Node 20+ saja |
 | `npm run test:syntax` | Parse seluruh script inline pada artefak hasil generate; gagal bila ada script rusak | Node 20+ saja |
 | `npm run verify` | `test:backend` + regenerasi fixture + `test:syntax` (gerbang cepat sebelum commit) | Node 20+ saja |
 | `npm test` | Regenerate fixture (`scripts/prepare-test-app.js`) lalu seluruh skrip Playwright UI/akuntansi/demo | `npx playwright install chromium` |
 
-Hasil regresi terakhir: **50/50 tes lulus, 0 galat sintaks, `npm audit` 0 kerentanan**. Pemeriksaan yang sama dijalankan otomatis oleh CI (`.github/workflows/ci.yml`) setiap push/PR.
+Hasil regresi terakhir: **52/52 tes lulus, 0 galat sintaks, `npm audit` 0 kerentanan**. Pemeriksaan yang sama dijalankan otomatis oleh CI (`.github/workflows/ci.yml`) setiap push/PR.
 
 Temuan QC lengkap dan pemetaan perbaikannya ada di [`docs/05_LAPORAN_QC_PRODUCT_TESTING.md`](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) dan [`docs/06_DOKUMENTASI_PERBAIKAN.md`](file:///J:/Aplikasi/finance-template/docs/06_DOKUMENTASI_PERBAIKAN.md).
 
@@ -146,7 +146,7 @@ Setelah seluruh 32 butir Fase 1 bertanda **PASS**, lanjutkan ke pengujian dengan
 
 ### A. Kriteria Pemilihan Partisipan Uji Coba:
 - 1â€“2 orang pekerja lepas / profesional mandiri.
-- 1â€“2 orang pemilik usaha mikro / gerai dagang kecil.
+- 1â€“2 orang pencatat keuangan pribadi / rumah tangga.
 - 1 orang pengguna awam yang belum pernah menggunakan Google Apps Script.
 
 ### B. Skenario Tugas Pengguna Asli (Tanpa Bantuan Panduan Lisan):

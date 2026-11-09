@@ -55,13 +55,21 @@ test("R-01: pesan error jelas bila template tidak ada sama sekali", () => {
  * R-02 / R-21: whitelist email & manifest
  * ========================================================================== */
 
-test("R-02: doGet menolak email yang tidak terdaftar", () => {
+test("R-02: doGet menolak email yang tidak terdaftar dengan halaman ramah", () => {
   const h = createHarness({
     sheets: baseSheets(),
     email: "intruder@example.com",
     properties: {}, // tanpa allowlist
   });
-  assert.throws(() => h.sandbox.doGet({}), /Akses ditolak/);
+  const out = h.sandbox.doGet({});
+  // Bukan exception mentah: pengunjung melihat halaman "Akses Ditolak".
+  assert.equal(typeof out, "object", "doGet harus mengembalikan HtmlOutput");
+  const html = out.getContent();
+  assert.match(html, /Akses Ditolak/);
+  assert.match(html, /intruder@example\.com/);
+  assert.match(html, /PENGATURAN/);
+  // Halaman penolakan tidak boleh membocorkan isi aplikasi.
+  assert.doesNotMatch(html, /hero-balance|appState/);
 });
 
 test("R-02: apiDispatcher menolak aksi saat email tidak terdaftar", () => {
@@ -72,6 +80,7 @@ test("R-02: apiDispatcher menolak aksi saat email tidak terdaftar", () => {
   });
   const res = h.sandbox.apiDispatcher("getDashboard", {});
   assert.equal(res.success, false);
+  assert.equal(res.accessDenied, true, "respons wajib bertanda accessDenied");
   assert.match(res.error, /Akses ditolak/);
   assert.equal(h.sheetsObj.TRANSAKSI.rows.length, 1);
 });
@@ -88,7 +97,50 @@ test("R-02: allowlist menerima email terdaftar dan mode ALLOWED_EMAIL_OWNER", ()
   assert.doesNotThrow(() => byOwner.sandbox.doGet({}));
 });
 
-test("R-02: pemilik spreadsheet (effective user) otomatis diizinkan tanpa menyetel Script Properties", () => {
+test("R-02: email izin bisa didaftarkan langsung di sheet PENGATURAN", () => {
+  const h = createHarness({
+    sheets: baseSheets({
+      PENGATURAN: [
+        ["Email Pemilik", "budi@example.com", "pemilik"],
+        ["Email Tambahan", "siti@example.com, andi@example.com", "boleh koma"],
+      ],
+    }),
+    email: "siti@example.com",
+    ownerEmail: "budi@example.com",
+    properties: {}, // tanpa Script Properties sama sekali
+  });
+  assert.doesNotThrow(() => h.sandbox.doGet({}));
+
+  const res = h.sandbox.apiDispatcher("getDashboard", {});
+  assert.equal(res.success, true);
+
+  // Email yang tidak terdaftar tetap ditolak.
+  const outsider = createHarness({
+    sheets: baseSheets({
+      PENGATURAN: [["Email Pemilik", "budi@example.com", "pemilik"]],
+    }),
+    email: "colokan@example.com",
+    ownerEmail: "budi@example.com",
+    properties: {},
+  });
+  const denied = outsider.sandbox.apiDispatcher("getDashboard", {});
+  assert.equal(denied.accessDenied, true);
+});
+
+test("R-02: email kosong (deploy salah) ditolak tertutup (fail-closed)", () => {
+  const h = createHarness({
+    sheets: baseSheets(),
+    email: "",
+    ownerEmail: "owner@example.com",
+    properties: ALLOW,
+  });
+  const out = h.sandbox.doGet({});
+  assert.match(out.getContent(), /Akses Ditolak/);
+  const res = h.sandbox.apiDispatcher("getDashboard", {});
+  assert.equal(res.accessDenied, true);
+});
+
+test("R-02: pemilik spreadsheet (ss.getOwner) otomatis diizinkan tanpa Script Properties", () => {
   const h = createHarness({
     sheets: baseSheets(),
     email: "mafaa.fikri7@gmail.com",
@@ -107,7 +159,8 @@ test("R-02: pemilik spreadsheet bisa dibatasi bila ALLOWED_EMAIL_OWNER=false", (
     ownerEmail: "mafaa.fikri7@gmail.com",
     properties: { ALLOWED_EMAIL_OWNER: "false" },
   });
-  assert.throws(() => h.sandbox.doGet({}), /Akses ditolak/);
+  const out = h.sandbox.doGet({});
+  assert.match(out.getContent(), /Akses Ditolak/);
 });
 
 test("R-21/R-02: manifest menyatu USER_ACCESSING + scope terbatas", () => {

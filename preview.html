@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Finance Tracker - Interactive Product Preview & Showcase</title>
+  <title>Finance Tracker - Interactive Product Preview</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -61,13 +61,17 @@
 <body class="bg-slate-100 min-h-screen text-slate-800 p-4 lg:p-6">
 
   <!-- D-05: penanda eksplisit bahwa halaman ini adalah demo, bukan produk live. -->
-  <div class="mx-auto max-w-6xl mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 shadow-xs">
-    <div class="flex items-start gap-2 text-[11.5px] font-semibold leading-relaxed text-amber-900">
-      <svg class="w-4 h-4 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M12 9v4"></path><path d="M12 17h.01"></path>
+  <div role="alert" class="mx-auto max-w-6xl mb-4 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 shadow-sm">
+    <div class="flex items-start gap-3">
+      <svg class="w-4 h-4 text-amber-700 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
       </svg>
-      <span><strong>MODE DEMO:</strong> seluruh data di simulator ini adalah data contoh yang tersimpan di browser Anda. Tidak ada koneksi ke Google Sheets dan tidak ada data pembeli yang dikirim ke mana pun.</span>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-amber-900">Mode Demo</p>
+        <p class="mt-0.5 text-xs leading-relaxed text-amber-800">Seluruh data di simulator ini adalah contoh yang tersimpan di browser Anda. Tidak ada koneksi ke Google Sheets dan tidak ada data pembeli yang dikirim ke mana pun.</p>
+      </div>
     </div>
   </div>
 
@@ -88,9 +92,9 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-base font-bold text-slate-900">Finance Tracker</h1>
-            <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-200">Live Interactive Showcase</span>
+            <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-200">Interactive Preview</span>
           </div>
-          <p class="text-xs text-slate-500 mt-0.5">Template Kas Keuangan Pribadi & Usaha Terpadu (Google Sheets + Web App Container-Bound)</p>
+          <p class="text-xs text-slate-500 mt-0.5">Template Kas Keuangan Pribadi Terpadu (Google Sheets + Web App Container-Bound)</p>
         </div>
       </div>
 
@@ -103,13 +107,13 @@
             <polyline points="15 3 21 3 21 9"></polyline>
             <line x1="10" y1="14" x2="21" y2="3"></line>
           </svg>
-          <span>Buka Demo Layar Penuh / Mode Aplikasi</span>
+          <span>Buka Demo Layar Penuh</span>
         </a>
 
         <!-- Viewport Switcher -->
         <div class="flex items-center rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-semibold">
           <button id="btnViewMobile" onclick="setViewMode('mobile')" class="touch-btn px-3 py-1.5 rounded-lg bg-slate-800 text-white transition-all">
-            Mobile View
+            Mobile (iPhone)
           </button>
           <button id="btnViewDesktop" onclick="setViewMode('desktop')" class="touch-btn px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition-all">
             Desktop View
@@ -133,9 +137,16 @@
   <main class="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
     <!-- Left / Center: Interactive Application Frame -->
-    <div id="frameContainerCol" class="lg:col-span-7 flex justify-center">
+    <div id="frameContainerCol" class="lg:col-span-7 flex flex-col items-center">
       <div id="deviceContainer" class="device-mobile bg-white transition-all duration-300">
         <iframe id="appFrame" src="WebApp.html" title="Simulasi aplikasi Finance Tracker (mode demo)" class="w-full h-full border-0"></iframe>
+      </div>
+      <div class="mt-3 flex items-center justify-between gap-2 text-xs w-full max-w-[400px] px-3 py-2 rounded-xl bg-white border border-slate-200 shadow-2xs">
+        <span class="text-slate-500 font-medium">Mau coba langsung di layar penuh?</span>
+        <a href="WebApp.html" target="_blank" class="touch-btn inline-flex items-center gap-1 font-bold text-[#1b4332] hover:text-[#2d6a4f] transition-colors">
+          <span>Mode Aplikasi Penuh</span>
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        </a>
       </div>
     </div>
 
@@ -148,7 +159,7 @@
           <span class="text-[10px] font-bold tracking-wider uppercase bg-emerald-800/80 px-2 py-0.5 rounded-md border border-emerald-700/60">Produk Siap Pakai</span>
           <span class="text-xs font-semibold text-emerald-200">100% Milik Anda</span>
         </div>
-        <h2 class="text-sm font-bold text-white mb-1.5">Solusi Finansial Pribadi & Usaha Modern</h2>
+        <h2 class="text-sm font-bold text-white mb-1.5">Solusi Finansial Pribadi Modern</h2>
         <p class="text-xs text-emerald-100/90 leading-relaxed mb-3">
           Satu-satunya template kas keuangan terpadu berbasis Google Sheets & Web App mandiri. Tanpa biaya langganan bulanan, bebas maintenance server, dan data 100% aman di akun Google Drive pribadi Anda.
         </p>

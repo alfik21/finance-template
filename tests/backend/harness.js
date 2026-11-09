@@ -144,6 +144,9 @@ function createHarness(options = {}) {
       sheetsObj[n] = makeSheet(n, []);
       return sheetsObj[n];
     },
+    // Pemilik SPREADSHEET (bukan effective user - pada USER_ACCESSING
+    // effective user selalu sama dengan pengunjung).
+    getOwner: () => ({ getEmail: () => ownerEmail }),
     toast: () => {},
   };
 
@@ -259,6 +262,21 @@ function createHarness(options = {}) {
         }
         return { getContent: () => `<!-- ${name} -->` };
       },
+      // Dipakai halaman penolakan akses (buildAccessDeniedOutput_).
+      createHtmlOutput: (html) => {
+        const output = {
+          __kind: "html",
+          _html: html,
+          _title: null,
+          setTitle(t) { output._title = t; return output; },
+          setWidth() { return output; },
+          setHeight() { return output; },
+          setXFrameOptionsMode() { return output; },
+          addMetaTag() { return output; },
+          getContent: () => html,
+        };
+        return output;
+      },
     },
     JSON,
     Math,
@@ -291,6 +309,7 @@ const HEADERS = {
   DOMPET: ["ID", "Nama_Dompet", "Tipe", "Saldo_Awal", "Ikon", "Aktif"],
   KATEGORI: ["ID", "Nama_Kategori", "Tipe", "Ikon"],
   ANGGARAN: ["ID", "Kategori_ID", "Periode", "Limit_Nominal"],
+  PENGATURAN: ["PENGATURAN", "NILAI", "KETERANGAN"],
 };
 
 /** Set sheet standar lengkap dengan header (opsional baris data). */
@@ -301,6 +320,7 @@ function baseSheets(extra = {}) {
     DOMPET: [HEADERS.DOMPET],
     KATEGORI: [HEADERS.KATEGORI],
     ANGGARAN: [HEADERS.ANGGARAN],
+    PENGATURAN: [HEADERS.PENGATURAN],
   };
   Object.keys(extra).forEach((k) => {
     out[k] = [out[k][0], ...extra[k]];

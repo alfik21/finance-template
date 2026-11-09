@@ -64,55 +64,210 @@ function resolveIndexTemplateFile_() {
 }
 
 /**
- * R-02: Whitelist email pemilik. Web app deploy dengan executeAs USER_ACCESSING
- * tetap hanya boleh diakses akun yang terdaftar.
- * - Secara bawaan (default), akun pemilik sah spreadsheet (Session.getEffectiveUser())
- *   selalu diizinkan agar pembeli tidak terblokir di workbook mereka sendiri.
- * - Akun tambahan dapat didaftarkan via Script Properties: ALLOWED_EMAILS (dipisah koma).
- * - Mode pemilik bawaan dapat dimatikan dengan menyetel ALLOWED_EMAIL_OWNER=false.
+ * R-02 (diperbarui): Whitelist email pembuka Web App.
+ *
+ * Setting deployment Apps Script TIDAK bisa membatasi akses per-email
+ * (Who has access hanya menyediakan "Anyone with Google account" / "Anyone"),
+ * sehingga penyaringan dilakukan di sisi server. Sumber daftar izin:
+ *
+ *   1. Sheet PENGATURAN (baris berlabel mengandung "EMAIL"):
+ *      - "Email Pemilik"    -> kolom B
+ *      - "Email Tambahan"   -> kolom B, dipisah koma / titik koma / baris baru
+ *      (dibuat otomatis oleh ensureDatabaseStructure)
+ *   2. Pemilik spreadsheet (ss.getOwner()) - selalu diizinkan kecuali
+ *      ALLOWED_EMAIL_OWNER=false. CATATAN: dipakai ss.getOwner(), BUKAN
+ *      Session.getEffectiveUser(), karena pada deployment USER_ACCESSING
+ *      effective user SELALU sama dengan pengunjung sehingga akan membocorkan
+ *      akses ke semua orang.
+ *   3. Cadangan: Script Properties ALLOWED_EMAILS (dipisah koma).
+ *
+ * Fail-closed: email kosong (deploy salah / anonim) = ditolak.
+ */
+function getActiveEmail_() {
+  let email = "";
+  try { email = Session.getActiveUser().getEmail(); } catch (e) {}
+  return String(email || "").trim().toLowerCase();
+}
+
+function getSpreadsheetOwnerEmail_(ss) {
+  try {
+    return String(ss && ss.getOwner ? (ss.getOwner().getEmail() || "") : "").trim().toLowerCase();
+  } catch (e) {
+    return "";
+  }
+}
+
+/** Daftar email izin dari sheet PENGATURAN (baris berlabel EMAIL). */
+function getAllowedEmailsFromSheet_(ss) {
+  const out = {};
+  try {
+    const sh = ss ? ss.getSheetByName("PENGATURAN") : null;
+    if (!sh) return out;
+    const rows = sh.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+      const label = String(rows[i][0] || "").toUpperCase();
+      if (label.indexOf("EMAIL") === -1) continue;
+      String(rows[i][1] || "")
+        .split(/[,;\n]/g)
+        .forEach(function (v) {
+          const e = v.trim().toLowerCase();
+          if (e) out[e] = true;
+        });
+    }
+  } catch (e) {}
+  return out;
+}
+
+/**
+ * Inti whitelist: apakah `email` terdaftar? (fail-closed)
+ * Dipakai oleh getWebAppAccess_() dan isEmailAllowed_().
  */
 function isEmailAllowed_(email) {
   if (!email) return false;
   const user = String(email).trim().toLowerCase();
+
+  let ss = null;
+  try {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+  } catch (e) {
+    return false;
+  }
+  if (!ss) return false;
+
+  const allowed = getAllowedEmailsFromSheet_(ss);
+  let allowOwner = "true";
   try {
     const props = PropertiesService.getScriptProperties();
-    const allowOwner = props ? String(props.getProperty("ALLOWED_EMAIL_OWNER") || "true").toLowerCase() : "true";
-
-    // 1. Pemilik spreadsheet (effective user) selalu diizinkan secara default.
-    if (allowOwner !== "false") {
-      try {
-        const ownerEmail = Session.getEffectiveUser().getEmail();
-        if (ownerEmail && ownerEmail.trim().toLowerCase() === user) return true;
-      } catch (eOwner) {}
-    }
-
-    // 2. Daftar email tambahan di Script Properties (ALLOWED_EMAILS).
     if (props) {
-      const ownerList = String(props.getProperty("ALLOWED_EMAILS") || "")
+      allowOwner = String(props.getProperty("ALLOWED_EMAIL_OWNER") || "true").toLowerCase();
+      String(props.getProperty("ALLOWED_EMAILS") || "")
         .split(",")
-        .map(function (s) { return s.trim().toLowerCase(); })
-        .filter(Boolean);
-      if (ownerList.indexOf(user) !== -1) return true;
+        .forEach(function (s) {
+          const e = s.trim().toLowerCase();
+          if (e) allowed[e] = true;
+        });
     }
   } catch (e) {}
-  return false;
+
+  // Pemilik spreadsheet (bukan effective user) diizinkan secara bawaan.
+  const owner = getSpreadsheetOwnerEmail_(ss);
+  if (allowOwner !== "false" && owner && owner === user) return true;
+
+  return !!allowed[user];
+}
+
+/**
+ * Pemeriksaan akses Web App.
+ * @return {{allowed:boolean, email:string, code:string, message:string}}
+ *   code: 'no-identity' | 'no-sheet-access' | 'not-registered'
+ */
+function getWebAppAccess_() {
+  const email = getActiveEmail_();
+  if (!email) {
+    return {
+      allowed: false,
+      email: "",
+      code: "no-identity",
+      message:
+        "Email Google Anda tidak terdeteksi. Web App harus dideploy dengan " +
+        "Execute as: User accessing the web app agar identitas pengunjung bisa dibaca."
+    };
+  }
+
+  let ss = null;
+  try {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+  } catch (err) {
+    ss = null;
+  }
+  if (!ss) {
+    return {
+      allowed: false,
+      email: email,
+      code: "no-sheet-access",
+      message: "Spreadsheet tidak dapat diakses oleh akun " + email + "."
+    };
+  }
+
+  if (!isEmailAllowed_(email)) {
+    return {
+      allowed: false,
+      email: email,
+      code: "not-registered",
+      message: "Email " + email + " belum terdaftar sebagai pengguna yang diizinkan."
+    };
+  }
+
+  return { allowed: true, email: email, code: "", message: "" };
 }
 
 /**
  * R-02: Penjaga akses untuk seluruh entry point web app (doGet, apiDispatcher).
+ * Melempar Error bertanda accessDenied agar dispatcher bisa menandai responsnya.
  */
 function assertWebAccessAllowed_() {
-  let email = "";
-  try { email = Session.getActiveUser().getEmail(); } catch (e) {}
-  if (!email) {
-    try { email = Session.getEffectiveUser().getEmail(); } catch (eEff) {}
+  const access = getWebAppAccess_();
+  if (!access.allowed) {
+    const err = new Error("Akses ditolak: " + access.message);
+    err.accessDenied = true;
+    throw err;
   }
-  if (!isEmailAllowed_(email)) {
-    throw new Error(
-      "Akses ditolak: email '" + (email || "tanpa identitas") +
-      "' tidak terdaftar sebagai pemilik. Daftarkan di Script Properties -> ALLOWED_EMAILS."
-    );
+  return access;
+}
+
+/**
+ * Halaman penolakan akses yang ramah (tanpa data aplikasi apa pun).
+ */
+function buildAccessDeniedOutput_(access) {
+  let tips;
+  if (access.code === "no-identity") {
+    tips =
+      "Buka <b>Deploy &gt; Manage deployments &gt; Edit</b>, ubah <b>Execute as</b> menjadi " +
+      "<b>User accessing the web app</b>, lalu Deploy ulang sebagai <b>New version</b>.";
+  } else if (access.code === "no-sheet-access") {
+    tips =
+      "Bagikan spreadsheet ini sebagai <b>Editor</b> kepada akun Anda melalui tombol " +
+      "<b>Bagikan (Share)</b> di Google Sheets.";
+  } else {
+    tips =
+      "Daftarkan email tersebut pada sheet <b>PENGATURAN</b> (baris <b>Email Pemilik</b> atau " +
+      "<b>Email Tambahan</b>, dipisah koma), atau tambahkan properti <b>ALLOWED_EMAILS</b> " +
+      "di <b>Project Settings &gt; Script Properties</b>. Perubahan langsung berlaku - " +
+      "tidak perlu deploy ulang.";
   }
+
+  const html = [
+    "<!DOCTYPE html>",
+    '<html lang="id"><head><base target="_top"><meta charset="utf-8">',
+    '<meta name="viewport" content="width=device-width, initial-scale=1">',
+    "<title>Akses Ditolak - Finance Tracker</title>",
+    "<style>",
+    "body{margin:0;background:#f6f8f7;font-family:'Plus Jakarta Sans',Arial,sans-serif;color:#1c1e21;",
+    "display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;}",
+    ".card{max-width:520px;background:#fff;border:1px solid #e1e5ea;border-radius:16px;",
+    "padding:28px;box-shadow:0 10px 30px rgba(28,30,33,.08);}",
+    ".badge{display:inline-block;font-size:11px;font-weight:bold;letter-spacing:.08em;",
+    "text-transform:uppercase;color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;",
+    "border-radius:999px;padding:4px 10px;margin-bottom:14px;}",
+    "h1{font-size:20px;margin:0 0 10px;}",
+    "p{font-size:14px;line-height:1.6;color:#656b73;margin:0 0 12px;}",
+    ".box{background:#f4f7f5;border:1px solid #e1e5ea;border-radius:10px;padding:12px 14px;",
+    "font-size:13px;color:#1c1e21;margin-bottom:14px;word-break:break-word;}",
+    ".foot{font-size:12px;color:#94a3b8;}",
+    "</style></head><body><div class=\"card\">",
+    '<span class="badge">Akses Ditolak</span>',
+    "<h1>Anda tidak memiliki akses ke Finance Tracker</h1>",
+    '<div class="box"><b>Email terdeteksi:</b><br>' + (access.email || "(tidak terdeteksi)") + "</div>",
+    "<p>" + access.message + "</p>",
+    "<p><b>Solusi:</b> " + tips + "</p>",
+    '<p class="foot">Link Web App ini hanya dapat dibuka oleh akun Google yang terdaftar ' +
+      "sebagai pemilik atau pengguna izin spreadsheet.</p>",
+    "</div></body></html>"
+  ].join("");
+
+  return HtmlService.createHtmlOutput(html)
+    .setTitle("Akses Ditolak - Finance Tracker")
+    .addMetaTag("viewport", "width=device-width, initial-scale=1");
 }
 
 function openAppDialog() {
@@ -157,7 +312,9 @@ function openAppSidebar() {
 
 function doGet(e) {
   // R-02: batasi akses web app pada email yang terdaftar.
-  assertWebAccessAllowed_();
+  // Bila ditolak, sajikan halaman "Akses Ditolak" yang ramah (bukan exception).
+  const access = getWebAppAccess_();
+  if (!access.allowed) return buildAccessDeniedOutput_(access);
   ensureDatabaseStructure();
   const template = resolveIndexTemplateFile_().template;
   template.userEmail = maskEmailForDisplay_(getUserEmailSafe());
@@ -310,6 +467,11 @@ function apiDispatcher(action, payload) {
         throw new Error("Aksi API '" + action + "' tidak dikenali.");
     }
   } catch (err) {
+    // R-02: beri penanda akses ditolak agar frontend bisa menampilkan
+    // layar penolakan, bukan sekadar pesan error generik.
+    if (err && err.accessDenied) {
+      return { success: false, accessDenied: true, error: err.message };
+    }
     return { success: false, error: err.message };
   }
 }
