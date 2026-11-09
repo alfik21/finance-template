@@ -38,6 +38,10 @@ function makeSheet(name, rows) {
     deleteRow(idx1) {
       sheet.rows.splice(idx1 - 1, 1);
     },
+    deleteRows(fromRow1, count) {
+      sheet.rows.splice(fromRow1 - 1, count);
+      return sheet;
+    },
     insertRowAfter(idx1) {
       sheet.rows.splice(idx1, 0, []);
     },
@@ -111,6 +115,8 @@ function makeSheet(name, rows) {
  *   options.templateFiles: daftar nama file template HTML yang "terpasang"
  *                          (mis. ['Index','Styles','App'] atau ['frontend/Index', ...])
  *   options.lockMode     : 'ok' | 'busy' | 'missing' (default 'ok')
+ *   options.promptResponse: { button: 'ok' | 'cancel', text: string } untuk
+ *                          mock ui.prompt (default: 'cancel')
  */
 function createHarness(options = {}) {
   const {
@@ -120,6 +126,7 @@ function createHarness(options = {}) {
     properties = {},
     templateFiles = ["Index", "Styles", "App"],
     lockMode = "ok",
+    promptResponse = { button: "cancel", text: "" },
   } = options;
 
   const sheetsObj = {};
@@ -129,7 +136,7 @@ function createHarness(options = {}) {
 
   const warnings = [];
   const lockLog = { acquired: 0, released: 0 };
-  const uiLog = { alerts: [], modals: [], sidebars: [], menus: [] };
+  const uiLog = { alerts: [], modals: [], sidebars: [], menus: [], prompts: [] };
 
   const ss = {
     getSheetByName: (n) => sheetsObj[n] || null,
@@ -152,19 +159,34 @@ function createHarness(options = {}) {
   };
 
   const ui = {
-    alert: (msg) => uiLog.alerts.push(String(msg)),
+    // alert() bisa dipanggil sebagai alert(msg) atau alert(title, body, buttons);
+    // keduanya dicatat sebagai satu string agar mudah di-assert.
+    alert: (a, b) => uiLog.alerts.push(b !== undefined ? String(a) + ": " + String(b) : String(a)),
     showModalDialog: (html, title) => uiLog.modals.push({ html, title }),
     showSidebar: (html) => uiLog.sidebars.push(html),
+    prompt: (title, message) => {
+      uiLog.prompts.push({ title, message });
+      return {
+        getSelectedButton: () => promptResponse.button,
+        getResponseText: () => promptResponse.text,
+      };
+    },
+    Button: { OK: "ok", CANCEL: "cancel", CLOSE: "close" },
+    ButtonSet: { OK: "ok", OK_CANCEL: "ok_cancel" },
     createMenu: (caption) => {
       const items = [];
+      let separators = 0;
       const menu = {
         addItem: (itemCaption, funcName) => {
           items.push({ caption: itemCaption, functionName: funcName });
           return menu;
         },
-        addSeparator: () => menu,
+        addSeparator: () => {
+          separators++;
+          return menu;
+        },
         addToUi: () => {
-          uiLog.menus.push({ caption, items: items.slice() });
+          uiLog.menus.push({ caption, items: items.slice(), separators });
           return menu;
         },
       };

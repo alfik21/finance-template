@@ -1,9 +1,9 @@
-# Surat Perjanjian Lisensi & Ketentuan Penggunaan
-## Finance Tracker — Personal & Business Edition
+﻿# Surat Perjanjian Lisensi & Ketentuan Penggunaan
+## Finance Tracker â€” Personal & Business Edition
 
 **Tipe Dokumen**: Perjanjian Lisensi Produk Digital & Syarat Layanan Hukum  
 **Format Target**: PDF (Dokumen Hukum Formal 2 Halaman Siap Cetak / Legal PDF)  
-**Nomor Registrasi Lisensi**: LIC-OPS-FIN-2026-FT-V175  
+**Nomor Registrasi Lisensi**: LIC-OPS-FIN-2026-FT-V190  
 **Divisi Penanggung Jawab (PIC)**: Operations + Finance  
 **Tanggal Berlaku Efektif**: 5 November 2026  
 
@@ -43,7 +43,7 @@ Pembeli dilarang keras untuk melakukan hal-hal berikut tanpa persetujuan tertuli
 3.2. **Larangan Distribusi Massal (*No Redistribution*)**: Dilarang membagikan tautan duplikasi (*copy link*), mengunggah berkas template atau kode sumber ke forum publik, repositori publik (seperti GitHub/GitLab tanpa perlindungan privasi), grup percakapan massal (WhatsApp, Telegram, Discord), atau situs unduhan gratis pihak ketiga.  
 3.3. **Perlindungan Hak Cipta**: Seluruh kode sumber, arsitektur basis data, desain tampilan antarmuka, dan dokumentasi terkait merupakan hak kekayaan intelektual Pemilik Hak Cipta yang dilindungi oleh Undang-Undang Republik Indonesia Nomor 28 Tahun 2014 tentang Hak Cipta. Pelanggaran terhadap klausul ini akan ditindaklanjuti secara hukum perdata maupun pidana.
 
---- [BATAS HALAMAN / PAGE BREAK — HALAMAN 1 SELESAI] ---
+--- [BATAS HALAMAN / PAGE BREAK â€” HALAMAN 1 SELESAI] ---
 
 <!-- ======================================================================= -->
 <!-- HALAMAN 2 DARI 2                                                        -->
@@ -87,4 +87,4 @@ Perjanjian ini berlaku mengikat sejak detik pertama Pembeli menerima tautan akse
 | Manajer Operasional Produk | Operations Team | Disahkan Sah (Legally Validated) |
 | Manajer Kepatuhan & Keuangan | Finance Team | Disahkan Sah (Financially Approved) |
 
-*Dokumen Resmi Diterbitkan oleh Divisi Operations & Finance — Finance Tracker 2026.*
+*Dokumen Resmi Diterbitkan oleh Divisi Operations & Finance â€” Finance Tracker 2026.*

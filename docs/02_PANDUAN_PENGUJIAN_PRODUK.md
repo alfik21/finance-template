@@ -1,11 +1,11 @@
-# Panduan & Prosedur Pengujian Produk (Product Testing Guide)
-## Finance Tracker — Personal & Business Edition
+﻿# Panduan & Prosedur Pengujian Produk (Product Testing Guide)
+## Finance Tracker â€” Personal & Business Edition
 
 **Tipe Dokumen**: Standar Operasional Prosedur (SOP) Pengujian Mutu  
 **Format Target**: Google Docs / PDF  
 **Divisi Penanggung Jawab (PIC)**: Finance + Operations  
-**Konteks Produk**: Produk Baru Selesai Dikembangkan (Fresh Development) — Belum Diuji oleh Pengguna Asli  
-**Versi Berkas**: 1.8.7  
+**Konteks Produk**: Produk Baru Selesai Dikembangkan (Fresh Development) â€” Belum Diuji oleh Pengguna Asli  
+**Versi Berkas**: 1.9.0  
 **Tanggal Berlaku**: 5 November 2026  
 **Berkas Lembar Uji Terkait**:
 - Workbook Template Kosong (.xlsx): [`docs/02_PRODUCT_TESTING_CHECKLIST.xlsx`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx)
@@ -19,7 +19,7 @@ Produk Finance Tracker ini **baru saja selesai dibangun dan selesai dikembangkan
 
 Oleh karena itu, dokumen ini menetapkan kerangka kerja pengujian bertahap:
 1. **Fase 1: Verifikasi Fungsional Internal (Internal QA)**: Dilakukan oleh tim internal **Finance** dan **Operations** untuk memverifikasi 32 kasus uji teknis.
-2. **Fase 2: Pengujian Penerimaan Pengguna Asli (User Acceptance Testing / UAT)**: Dilakukan bersama 3–5 orang perwakilan pengguna nyata (pekerja lepas / pemilik UMKM) untuk mengamati kendala navigasi, kebingungan bahasa, atau hambatan saat pertama kali membuka template.
+2. **Fase 2: Pengujian Penerimaan Pengguna Asli (User Acceptance Testing / UAT)**: Dilakukan bersama 3â€“5 orang perwakilan pengguna nyata (pekerja lepas / pemilik UMKM) untuk mengamati kendala navigasi, kebingungan bahasa, atau hambatan saat pertama kali membuka template.
 
 ---
 
@@ -129,12 +129,12 @@ Sebelum Fase 1 dinyatakan PASS, jalankan dari root repositori:
 
 | Perintah | Cakupan | Kebutuhan |
 |---|---|---|
-| `npm run test:backend` | 38 tes produk asli (`node:test` + tiruan `SpreadsheetApp`): validasi transaksi, saldo dompet, lock, allowlist email, migrasi sheet, DASHBOARD, AUDIT, resolusi template | Node 20+ saja |
+| `npm run test:backend` | 50 tes produk asli (`node:test` + tiruan `SpreadsheetApp`): validasi transaksi, saldo dompet, lock, allowlist email, migrasi sheet, DASHBOARD, AUDIT, resolusi template, menu spreadsheet, serta tutup buku/arsip tahunan | Node 20+ saja |
 | `npm run test:syntax` | Parse seluruh script inline pada artefak hasil generate; gagal bila ada script rusak | Node 20+ saja |
 | `npm run verify` | `test:backend` + regenerasi fixture + `test:syntax` (gerbang cepat sebelum commit) | Node 20+ saja |
 | `npm test` | Regenerate fixture (`scripts/prepare-test-app.js`) lalu seluruh skrip Playwright UI/akuntansi/demo | `npx playwright install chromium` |
 
-Hasil regresi terakhir: **38/38 tes lulus, 0 galat sintaks, `npm audit` 0 kerentanan**. Pemeriksaan yang sama dijalankan otomatis oleh CI (`.github/workflows/ci.yml`) setiap push/PR.
+Hasil regresi terakhir: **50/50 tes lulus, 0 galat sintaks, `npm audit` 0 kerentanan**. Pemeriksaan yang sama dijalankan otomatis oleh CI (`.github/workflows/ci.yml`) setiap push/PR.
 
 Temuan QC lengkap dan pemetaan perbaikannya ada di [`docs/05_LAPORAN_QC_PRODUCT_TESTING.md`](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) dan [`docs/06_DOKUMENTASI_PERBAIKAN.md`](file:///J:/Aplikasi/finance-template/docs/06_DOKUMENTASI_PERBAIKAN.md).
 
@@ -145,8 +145,8 @@ Temuan QC lengkap dan pemetaan perbaikannya ada di [`docs/05_LAPORAN_QC_PRODUCT_
 Setelah seluruh 32 butir Fase 1 bertanda **PASS**, lanjutkan ke pengujian dengan pengguna nyata:
 
 ### A. Kriteria Pemilihan Partisipan Uji Coba:
-- 1–2 orang pekerja lepas / profesional mandiri.
-- 1–2 orang pemilik usaha mikro / gerai dagang kecil.
+- 1â€“2 orang pekerja lepas / profesional mandiri.
+- 1â€“2 orang pemilik usaha mikro / gerai dagang kecil.
 - 1 orang pengguna awam yang belum pernah menggunakan Google Apps Script.
 
 ### B. Skenario Tugas Pengguna Asli (Tanpa Bantuan Panduan Lisan):
@@ -158,7 +158,7 @@ Setelah seluruh 32 butir Fase 1 bertanda **PASS**, lanjutkan ke pengujian dengan
 
 ### C. Formulir Rekapitulasi Umpan Balik Pengguna Asli (UAT Feedback Form):
 
-| Partisipan | Latar Belakang | Kendala yang Dihadapi | Kemudahan Otorisasi (1–5) | Kemudahan Input di HP (1–5) | Keputusan Pengguna |
+| Partisipan | Latar Belakang | Kendala yang Dihadapi | Kemudahan Otorisasi (1â€“5) | Kemudahan Input di HP (1â€“5) | Keputusan Pengguna |
 |---|---|---|---|---|---|
 | Tester 1 | Freelancer | [Catat kendala riil] | [Skor 1-5] | [Skor 1-5] | [Puas / Butuh Perbaikan] |
 | Tester 2 | Pemilik Toko | [Catat kendala riil] | [Skor 1-5] | [Skor 1-5] | [Puas / Butuh Perbaikan] |

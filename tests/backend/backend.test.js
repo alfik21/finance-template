@@ -741,13 +741,21 @@ test("UI: onOpen mendaftarkan menu spreadsheet Finance Tracker dengan item lengk
   assert.equal(h.uiLog.menus.length, 1);
   const menu = h.uiLog.menus[0];
   assert.equal(menu.caption, "Finance Tracker");
-  assert.equal(menu.items.length, 3);
-  assert.equal(menu.items[0].caption, "Buka Finance Tracker (Jendela Pop-up)");
+  assert.equal(menu.items.length, 4);
+  assert.equal(menu.separators, 1, "ada satu pemisah setelah item utama");
+  assert.equal(menu.items[0].caption, "Buka Aplikasi (Modal)");
   assert.equal(menu.items[0].functionName, "openAppDialog");
-  assert.equal(menu.items[1].caption, "Buka Finance Tracker (Sidebar Kanan)");
-  assert.equal(menu.items[1].functionName, "openAppSidebar");
-  assert.equal(menu.items[2].caption, "Periksa / Inisialisasi Database");
-  assert.equal(menu.items[2].functionName, "runManualSetup");
+  assert.equal(menu.items[1].caption, "Jalankan Setup / Resei Template");
+  assert.equal(menu.items[1].functionName, "runManualSetup");
+  assert.equal(menu.items[2].caption, "Tutup Buku & Arsipkan Tahun Lalu");
+  assert.equal(menu.items[2].functionName, "menuCloseYearArchive");
+  assert.equal(menu.items[3].caption, "Petunjuk Pasang di HP (Pintasan)");
+  assert.equal(menu.items[3].functionName, "menuShowMobileGuide");
+  // Item Sidebar sengaja tidak ada lagi (pintasan utama hanya modal).
+  assert.equal(
+    menu.items.some((i) => i.functionName === "openAppSidebar"),
+    false
+  );
 });
 
 test("UI: openAppDialog membuka dialog berukuran 1080x720 dengan judul Finance Tracker", () => {
@@ -773,4 +781,150 @@ test("Setup: ensureDatabaseStructure bersifat idempoten dan tidak menduplikasi d
 
   assert.equal(h.sheetsObj.DOMPET.rows.length, walletsCount1);
   assert.equal(h.sheetsObj.KATEGORI.rows.length, catsCount1);
+});
+
+/* ========================================================================== *
+ * Menu baru v1.9.0: petunjuk pemasangan HP & tutup buku tahunan
+ * ========================================================================== */
+
+test("UI: menuShowMobileGuide memberi petunjuk Add to Home Screen tanpa klaim PWA penuh", () => {
+  const h = createHarness({ sheets: baseSheets(), properties: ALLOW });
+  h.sandbox.menuShowMobileGuide();
+
+  assert.equal(h.uiLog.alerts.length, 1);
+  const text = h.uiLog.alerts[0];
+  assert.match(text, /Petunjuk Menggunakan Aplikasi di Smartphone/);
+  assert.match(text, /Add to Home Screen/);
+  assert.match(text, /ALLOWED_EMAILS/);
+  assert.match(text, /bukan PWA penuh/, "klaim PWA tetap diluruskan (R-20)");
+  assert.match(text, /Buka Aplikasi \(Modal\)/);
+});
+
+test("UI: menuCloseYearArchive membatalkan proses saat pengguna menekan Batal", () => {
+  const lastYear = new Date().getFullYear() - 1;
+  const h = createHarness({
+    sheets: baseSheets({
+      TRANSAKSI: [["TX-C1", new Date(lastYear + "-05-05"), "Expense", "W-1", "", "C-EX-1", 10000, "data utuh", new Date()]],
+    }),
+    properties: ALLOW,
+    promptResponse: { button: "cancel", text: "" },
+  });
+
+  h.sandbox.menuCloseYearArchive();
+
+  assert.equal(h.uiLog.prompts.length, 1, "prompt tahun muncul lebih dulu");
+  assert.equal(h.uiLog.alerts.length, 0, "tidak ada pesan hasil karena dibatalkan");
+  assert.equal(h.sheetsObj.TRANSAKSI.rows.length, 2, "data tidak tersentuh");
+  assert.equal(h.sheetsObj["ARSIP_" + lastYear], undefined, "tab arsip tidak dibuat");
+});
+
+test("UI: menuCloseYearArchive menolak input tahun yang bukan 4 digit", () => {
+  const h = createHarness({
+    sheets: baseSheets(),
+    properties: ALLOW,
+    promptResponse: { button: "ok", text: "tahun kemarin" },
+  });
+
+  h.sandbox.menuCloseYearArchive();
+
+  assert.equal(h.uiLog.alerts.length, 1);
+  assert.match(h.uiLog.alerts[0], /Tahun tidak valid/);
+});
+
+test("Arsip: checkPendingArchive_ melaporkan tahun lampau yang belum diarsipkan", () => {
+  const lastYear = new Date().getFullYear() - 1;
+  const prevYear = lastYear - 1;
+  const h = createHarness({
+    sheets: baseSheets({
+      TRANSAKSI: [
+        ["TX-A", new Date(prevYear + "-01-02"), "Expense", "W-1", "", "C-EX-1", 1, "a", new Date()],
+        ["TX-B", new Date(lastYear + "-02-03"), "Income", "W-1", "", "C-IN-1", 2, "b", new Date()],
+        ["TX-C", new Date(new Date().getFullYear() + "-03-04"), "Income", "W-1", "", "C-IN-1", 3, "c", new Date()],
+      ],
+    }),
+    properties: ALLOW,
+  });
+
+  const pending = h.sandbox.checkPendingArchive_();
+  assert.equal(pending.hasPending, true);
+  assert.deepEqual(pending.pendingYears, [prevYear, lastYear]);
+});
+
+test("Arsip: closeAndArchiveYear memindahkan transaksi ke ARSIP_<tahun> dan saldo tidak berubah", () => {
+  const lastYear = new Date().getFullYear() - 1;
+  const h = createHarness({
+    sheets: baseSheets({
+      TRANSAKSI: [
+        ["TX-1", new Date(lastYear + "-03-10"), "Expense", "W-1", "", "C-EX-1", 100000, "belanja tahun lalu", new Date()],
+        ["TX-2", new Date(new Date().getFullYear() + "-01-05"), "Income", "W-1", "", "C-IN-1", 500000, "gaji tahun ini", new Date()],
+        ["TX-3", new Date(lastYear + "-07-01"), "Transfer", "W-1", "W-2", "", 50000, "pindah dana", new Date()],
+      ],
+      DOMPET: [
+        ["W-1", "Dompet Tunai", "Cash", 1000000, "Wallet", true],
+        ["W-2", "BCA Tabungan", "Bank", 0, "Bank", true],
+      ],
+    }),
+    properties: ALLOW,
+  });
+
+  const balanceBefore = {
+    w1: h.sandbox.computeAnyWalletBalance_("W-1", h.sheetsObj.DOMPET, h.sheetsObj.TRANSAKSI),
+    w2: h.sandbox.computeAnyWalletBalance_("W-2", h.sheetsObj.DOMPET, h.sheetsObj.TRANSAKSI),
+  };
+
+  const res = h.sandbox.closeAndArchiveYear(lastYear);
+  assert.equal(res.success, true, res.message);
+  assert.equal(res.archivedCount, 2);
+  assert.equal(res.archiveName, "ARSIP_" + lastYear);
+
+  // Tab arsip berisi header + 2 baris tahun terakhir.
+  const arc = h.sheetsObj["ARSIP_" + lastYear];
+  assert.ok(arc, "tab arsip dibuat");
+  assert.equal(arc.rows.length, 3);
+  assert.equal(arc.rows[1][0], "TX-1");
+  assert.equal(arc.rows[2][0], "TX-3");
+
+  // TRANSAKSI menyisakan transaksi tahun berjalan saja.
+  const remaining = h.sheetsObj.TRANSAKSI.rows.slice(1);
+  assert.equal(remaining.length, 1);
+  assert.equal(remaining[0][0], "TX-2");
+
+  // Saldo akhir tiap dompet tetap sama (Saldo_Awal digeser sebesar net tahun yang diarsipkan).
+  assert.equal(
+    h.sandbox.computeAnyWalletBalance_("W-1", h.sheetsObj.DOMPET, h.sheetsObj.TRANSAKSI),
+    balanceBefore.w1
+  );
+  assert.equal(
+    h.sandbox.computeAnyWalletBalance_("W-2", h.sheetsObj.DOMPET, h.sheetsObj.TRANSAKSI),
+    balanceBefore.w2
+  );
+  assert.equal(h.sheetsObj.DOMPET.rows.find((r) => r[0] === "W-1")[3], 1000000 - 100000 - 50000);
+  assert.equal(h.sheetsObj.DOMPET.rows.find((r) => r[0] === "W-2")[3], 50000);
+
+  // Ringkasan DASHBOARD diperbarui dan jejak audit tertulis.
+  assert.equal(h.sheetsObj.DASHBOARD.rows[1][1], balanceBefore.w1 + balanceBefore.w2);
+  const audit = h.sheetsObj.AUDIT;
+  assert.ok(audit, "tab AUDIT dibuat");
+  assert.equal(audit.rows[1][1], "TUTUP_BUKU");
+  assert.match(String(audit.rows[1][2]), new RegExp("ARSIP_" + lastYear));
+});
+
+test("Arsip: closeAndArchiveYear menolak tahun berjalan, tahun ngawur, dan tahun tanpa data", () => {
+  const currentYear = new Date().getFullYear();
+  const h = createHarness({
+    sheets: baseSheets({
+      TRANSAKSI: [
+        ["TX-1", new Date(currentYear + "-01-01"), "Income", "W-1", "", "C-IN-1", 1000, "tahun ini", new Date()],
+      ],
+    }),
+    properties: ALLOW,
+  });
+
+  assert.equal(h.sandbox.closeAndArchiveYear(currentYear).success, false, "tahun berjalan ditolak");
+  assert.equal(h.sandbox.closeAndArchiveYear(1234).success, false, "tahun di luar rentang ditolak");
+  assert.equal(h.sandbox.closeAndArchiveYear("bukan-angka").success, false);
+  const noData = h.sandbox.closeAndArchiveYear(currentYear - 1);
+  assert.equal(noData.success, false);
+  assert.match(noData.message, /Tidak ditemukan transaksi/);
+  assert.equal(h.sheetsObj.TRANSAKSI.rows.length, 2, "data tetap utuh");
 });

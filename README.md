@@ -1,4 +1,4 @@
-# Finance Tracker (Personal & Business Edition)
+﻿# Finance Tracker (Personal & Business Edition)
 
 Sistem pencatatan dan manajemen kas keuangan pribadi terpadu berbasis **Google Sheets** dan **Google Apps Script Web App (Container-Bound)**.
 
@@ -19,7 +19,7 @@ Bebas biaya langganan bulanan (*Zero-Subscription*), 100% data tersimpan aman di
 - **Tombol Cepat Cerdas 1-Ketuk (*Smart Habit Chips*)**: Mengisi nominal, catatan, dan kategori belanja rutin (bensin, makan siang, kopi) secara instan hanya dengan 1 ketukan.
 - **Fitur Koreksi Transaksi (Edit & Hapus)**: Edit dan perbarui mutasi transaksi yang salah input secara langsung dari smartphone.
 - **Format Rupiah Otomatis Realtime**: Input nominal otomatis memformat pemisah ribuan titik (`.`) saat mengetik angka nominal.
-- **Dual Mode Akses Spreadsheet**: Buka antarmuka aplikasi langsung dari menu toolbar Google Sheets sebagai **Sidebar Kanan** (380px) atau **Jendela Penuh (Dialog)** (1080x720px).
+- **Akses Langsung dari Menu Spreadsheet**: Buka antarmuka aplikasi lewat menu toolbar Google Sheets **`Finance Tracker` > `Buka Aplikasi (Modal)`** (jendela 1080x720px); menu juga memuat perintah **Jalankan Setup / Resei Template**, **Tutup Buku & Arsipkan Tahun Lalu**, dan **Petunjuk Pasang di HP (Pintasan)**.
 - **Validasi & Keamanan Data**: Nominal, tanggal, tipe, kategori, dan dompet divalidasi di backend; operasi tulis memakai `LockService`; penghapusan tercatat di tab `AUDIT`; akses Web App dibatasi allowlist email pemilik.
 
 ---
@@ -27,37 +27,37 @@ Bebas biaya langganan bulanan (*Zero-Subscription*), 100% data tersimpan aman di
 ## Struktur File & Folder
 
 ```text
-├── src/
-│   ├── appsscript.json            # Manifest izin Apps Script (Container-Bound)
-│   ├── backend/
-│   │   ├── Code.js                # Handler onOpen(), doGet(), dan API dispatcher
-│   │   ├── SetupService.js        # Inisialisasi otomatis tab sheet & styling tema
-│   │   └── TransactionService.js  # Mesin kalkulasi saldo, mutasi, anggaran, & dompet
-│   └── frontend/
-│       ├── Index.html             # Shell struktur aplikasi & navigasi bawah HP
-│       ├── Styles.html            # Desain CSS sistem Sage Green utilitarian
-│       └── App.html               # Logika antarmuka klien & interaksi reaktif
-├── docs/
-│   ├── 01_PRODUCT_BRIEF_AND_REQUIREMENTS.md  # Product Brief, target market, & model harga
-│   ├── 02_PRODUCT_TESTING_CHECKLIST.md       # Matriks pengujian QA sebelum rilis penjualan
-│   ├── 03_USER_GUIDE.md                      # Panduan lengkap pembeli (salin, input, dashboard, & HP)
-│   └── 04_LICENSE_AND_TERMS_OF_USE.md        # Perjanjian lisensi, hak modifikasi, & ketentuan refund
-├── demo/
-│   ├── index.html                 # Interactive Product Preview (Showcase simulator untuk calon pembeli)
-│   ├── assets/tailwindcss.js      # Tailwind lokal agar demo tidak bergantung CDN
-│   └── WebApp.html                # Standalone Web App client untuk frame preview demo
-├── tests/
-│   ├── e2e/                       # Pengujian otomatis Playwright (transaksi & demo)
-│   ├── backend/                   # Regresi backend GAS (node:test + fake SpreadsheetApp)
-│   ├── fixtures/                  # Fixture pengujian lokal (hasil generate)
-│   └── mocks/                     # Google Apps Script API mock engine
-├── scripts/
-│   ├── prepare-test-app.js        # Compiler fixture pengujian & sinkronisasi file demo
-│   └── clasp-version.js           # Menyamakan versi Apps Script dengan package.json
-├── preview.html                   # Pratinjau aplikasi offline untuk komputer lokal
-├── setup_guide.md                 # Panduan lengkap penjual: Master sheet, trik URL /copy, & hosting demo
-├── package.json                   # Metadata proyek & version tracking
-└── README.md                      # Dokumentasi pengenalan dan instalasi
+â”œâ”€â”€ src/
+â”‚   â”œâ”€â”€ appsscript.json            # Manifest izin Apps Script (Container-Bound)
+â”‚   â”œâ”€â”€ backend/
+â”‚   â”‚   â”œâ”€â”€ Code.js                # Handler onOpen(), doGet(), dan API dispatcher
+â”‚   â”‚   â”œâ”€â”€ SetupService.js        # Inisialisasi otomatis tab sheet & styling tema
+â”‚   â”‚   â””â”€â”€ TransactionService.js  # Mesin kalkulasi saldo, mutasi, anggaran, & dompet
+â”‚   â””â”€â”€ frontend/
+â”‚       â”œâ”€â”€ Index.html             # Shell struktur aplikasi & navigasi bawah HP
+â”‚       â”œâ”€â”€ Styles.html            # Desain CSS sistem Sage Green utilitarian
+â”‚       â””â”€â”€ App.html               # Logika antarmuka klien & interaksi reaktif
+â”œâ”€â”€ docs/
+â”‚   â”œâ”€â”€ 01_PRODUCT_BRIEF_AND_REQUIREMENTS.md  # Product Brief, target market, & model harga
+â”‚   â”œâ”€â”€ 02_PRODUCT_TESTING_CHECKLIST.md       # Matriks pengujian QA sebelum rilis penjualan
+â”‚   â”œâ”€â”€ 03_USER_GUIDE.md                      # Panduan lengkap pembeli (salin, input, dashboard, & HP)
+â”‚   â””â”€â”€ 04_LICENSE_AND_TERMS_OF_USE.md        # Perjanjian lisensi, hak modifikasi, & ketentuan refund
+â”œâ”€â”€ demo/
+â”‚   â”œâ”€â”€ index.html                 # Interactive Product Preview (Showcase simulator untuk calon pembeli)
+â”‚   â”œâ”€â”€ assets/tailwindcss.js      # Tailwind lokal agar demo tidak bergantung CDN
+â”‚   â””â”€â”€ WebApp.html                # Standalone Web App client untuk frame preview demo
+â”œâ”€â”€ tests/
+â”‚   â”œâ”€â”€ e2e/                       # Pengujian otomatis Playwright (transaksi & demo)
+â”‚   â”œâ”€â”€ backend/                   # Regresi backend GAS (node:test + fake SpreadsheetApp)
+â”‚   â”œâ”€â”€ fixtures/                  # Fixture pengujian lokal (hasil generate)
+â”‚   â””â”€â”€ mocks/                     # Google Apps Script API mock engine
+â”œâ”€â”€ scripts/
+â”‚   â”œâ”€â”€ prepare-test-app.js        # Compiler fixture pengujian & sinkronisasi file demo
+â”‚   â””â”€â”€ clasp-version.js           # Menyamakan versi Apps Script dengan package.json
+â”œâ”€â”€ preview.html                   # Pratinjau aplikasi offline untuk komputer lokal
+â”œâ”€â”€ setup_guide.md                 # Panduan lengkap penjual: Master sheet, trik URL /copy, & hosting demo
+â”œâ”€â”€ package.json                   # Metadata proyek & version tracking
+â””â”€â”€ README.md                      # Dokumentasi pengenalan dan instalasi
 ```
 
 ---
@@ -93,13 +93,13 @@ Anda dapat menguji antarmuka dan alur kerja aplikasi secara langsung di browser 
 
 > **Penting (R-01)**: nama file HTML harus persis `Index`, `Styles`, dan `App` pada instalasi manual (tanpa folder `frontend/`). Sejak v1.8.0 backend mendukung dua mode sekaligus: file datar seperti di atas **atau** struktur `frontend/Index.html` bila Anda memakai `clasp push` dengan `rootDir: "./src"` (lihat `.clasp.json`). Tidak perlu mengubah `include()` secara manual.
 
-> **Alternatif untuk pengguna teknis**: gunakan [`@google/clasp`](https://github.com/google/clasp) — `npm install`, lalu `npm run login` dan `npm run push`. Perintah `npm run deploy` juga membuat versi Apps Script otomatis dari nomor versi `package.json`.
+> **Alternatif untuk pengguna teknis**: gunakan [`@google/clasp`](https://github.com/google/clasp) â€” `npm install`, lalu `npm run login` dan `npm run push`. Perintah `npm run deploy` juga membuat versi Apps Script otomatis dari nomor versi `package.json`.
 
 ### Langkah 3: Inisialisasi Otomatis Spreadsheet
 1. Kembali ke tab Google Sheets Anda, lalu lakukan **Refresh / Muat Ulang Halaman (F5)**.
 2. Tunggu beberapa detik hingga menu kustom baru muncul di menu bar atas:  
    **`[ Finance Tracker ]`**
-3. Klik menu tersebut > pilih **Buka di Panel Samping (Sidebar)** atau **Buka Aplikasi (Jendela Penuh)**.
+3. Klik menu tersebut > pilih **Buka Aplikasi (Modal)**. (Menu juga memuat **Jalankan Setup / Resei Template**, **Tutup Buku & Arsipkan Tahun Lalu**, dan **Petunjuk Pasang di HP (Pintasan)**.)
 4. Saat pertama kali dijalankan, Google akan memunculkan konfirmasi izin (*Authorization Required*):
    - Klik **Lanjutkan / Review Permissions** > pilih akun Google Anda.
    - Klik **Advanced (Lanjutan)** > klik **Go to Finance Tracker (unsafe)**.
@@ -132,7 +132,7 @@ Kini aplikasi dapat dibuka dalam 1 detik langsung dari pintasan layar HP tanpa p
 
 | Perintah | Cakupan |
 |---|---|
-| `npm run test:backend` | Regresi backend produk asli (38 tes `node:test` dengan tiruan `SpreadsheetApp`): validasi transaksi, saldo, lock, allowlist email, DASHBOARD, AUDIT, dan resolusi template. Tidak memerlukan browser. |
+| `npm run test:backend` | Regresi backend produk asli (50 tes `node:test` dengan tiruan `SpreadsheetApp`): validasi transaksi, saldo, lock, allowlist email, DASHBOARD, AUDIT, resolusi template, serta menu dan tutup buku/arsip tahunan. Tidak memerlukan browser. |
 | `npm run test:syntax` | Parse seluruh `<script>` inline pada artefak hasil generate (`WebApp.html`, `preview.html`, `demo/index.html`, `demo/WebApp.html`, `tests/fixtures/app-test.html`); gagal bila ada script rusak. |
 | `npm run verify` | `test:backend` + regenerasi fixture + `test:syntax`. Gerbang cepat sebelum commit. |
 | `npm test` | Regenerate fixture lalu menjalankan seluruh tes Playwright (UI, akuntansi, demo). Memerlukan `npx playwright install chromium` dan lingkungan yang dapat menjalankan browser. |
@@ -156,4 +156,4 @@ Seluruh dokumen pelengkap komersial dan acuan operasional tersedia di folder [`d
 | 3 | [**User Guide**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.md) | Panduan penggunaan untuk pembeli | PDF | Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.docx) |
 | 4 | [**License & Terms of Use**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.md) | Mengatur hak penggunaan, distribusi, dan ketentuan pembelian | PDF | Operations + Finance | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.docx) |
 | 5 | [**Laporan QC & Product Testing**](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) | Hasil audit 67 temuan (produk asli, demo, dan frontend bersama) | Markdown | QA | - |
-| 6 | [**Dokumentasi Perbaikan v1.8.7**](file:///J:/Aplikasi/finance-template/docs/06_DOKUMENTASI_PERBAIKAN.md) | Pemetaan setiap temuan ke perbaikan kode + bukti pengujian | Markdown | Engineering | - |
+| 6 | [**Dokumentasi Perbaikan v1.9.0**](file:///J:/Aplikasi/finance-template/docs/06_DOKUMENTASI_PERBAIKAN.md) | Pemetaan setiap temuan ke perbaikan kode + bukti pengujian | Markdown | Engineering | - |

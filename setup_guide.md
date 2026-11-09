@@ -22,7 +22,7 @@ Mengapa template ini sangat diminati oleh target pasar pencatat keuangan pribadi
 4. **Fleksibilitas Spreadsheet Asli**:
    - Pembeli tetap memiliki fleksibilitas rumus Google Sheets jika ingin membuat laporan pajak, pivot chart, atau ekspor data ke Excel / PDF.
 5. **Akses Toolbar Langsung di Google Sheets**:
-   - Pembeli dapat memunculkan aplikasi antarmuka di panel samping kanan (*Sidebar*) sambil mengamati tabel data.
+   - Pembeli dapat membuka aplikasi langsung dari menu **Finance Tracker > Buka Aplikasi (Modal)** sambil tetap mengamati tabel data.
 
 ---
 
@@ -55,7 +55,7 @@ Sebagai penjual, Anda cukup membuat **1 Master Spreadsheet** sekali saja. Pembel
 1. Kembali ke tab Google Sheets, lalu lakukan **Refresh halaman (F5)**.
 2. Tunggu beberapa detik hingga muncul menu baru di toolbar atas:  
    **`[ Finance Tracker ]`**
-3. Klik menu **Finance Tracker** > pilih **Buka di Panel Samping (Sidebar)** atau **Buka Aplikasi (Jendela Penuh)**.
+3. Klik menu **Finance Tracker** > pilih **Buka Aplikasi (Modal)**.
 4. Saat pertama kali dijalankan, Google akan memunculkan popup *"Authorization Required"* (Izin Diperlukan):
    - Klik **Lanjutkan / Continue**.
    - Pilih akun Google Anda.
@@ -169,7 +169,7 @@ Anda dapat menyalin teks promosi ini untuk deskripsi produk di Lynk.id, Mayar, S
 > - **Fitur Edit & Hapus Transaksi**: Koreksi transaksi salah input langsung dari HP tanpa perlu mencari baris di spreadsheet.  
 > - **Format Rupiah Otomatis Realtime**: Input nominal otomatis memformat pemisah ribuan titik saat mengetik.  
 > - **Akses Cepat di Smartphone**: Pasang langsung di layar utama HP (*Add to Home Screen*) layaknya aplikasi native tanpa install dari App Store / Play Store.  
-> - **Dukungan Menu Toolbar Spreadsheet**: Buka antarmuka sebagai panel samping (*Sidebar*) atau jendela pop-up dialog langsung dari Google Sheets.  
+> - **Dukungan Menu Toolbar Spreadsheet**: Buka aplikasi sebagai jendela dialog (modal) langsung dari Google Sheets, lengkap dengan perintah setup/reseti template, tutup buku & arsip tahun lalu, dan petunjuk pasang di HP.  
 >
 > **Yang Anda Dapatkan:**  
 > - Link Akses Google Sheets Master Siap Duplikasi Instan (1 Klik)  

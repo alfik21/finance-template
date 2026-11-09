@@ -4,12 +4,15 @@
  */
 
 function onOpen() {
+  // Struktur menu mengikuti pola menu pada family-finance-template:
+  // satu pintasan utama, pemisah, lalu tiga perintah operasional.
   SpreadsheetApp.getUi()
     .createMenu("Finance Tracker")
-    .addItem("Buka Finance Tracker (Jendela Pop-up)", "openAppDialog")
-    .addItem("Buka Finance Tracker (Sidebar Kanan)", "openAppSidebar")
+    .addItem("Buka Aplikasi (Modal)", "openAppDialog")
     .addSeparator()
-    .addItem("Periksa / Inisialisasi Database", "runManualSetup")
+    .addItem("Jalankan Setup / Resei Template", "runManualSetup")
+    .addItem("Tutup Buku & Arsipkan Tahun Lalu", "menuCloseYearArchive")
+    .addItem("Petunjuk Pasang di HP (Pintasan)", "menuShowMobileGuide")
     .addToUi();
 }
 
@@ -174,11 +177,11 @@ function runManualSetup() {
     refreshDashboardSummary_();
     SpreadsheetApp.getActiveSpreadsheet().toast(
       "Database siap: struktur tab terverifikasi dan ringkasan DASHBOARD diperbarui.",
-      "Finance Tracker - Periksa / Inisialisasi Database",
+      "Finance Tracker - Setup / Resei Template",
       5
     );
   } catch (err) {
-    const msg = "Pemeriksaan database GAGAL: " + (err && err.message ? err.message : err);
+    const msg = "Setup / resei template GAGAL: " + (err && err.message ? err.message : err);
     try {
       SpreadsheetApp.getActiveSpreadsheet().toast(msg, "Finance Tracker", 8);
     } catch (e2) {
@@ -186,6 +189,77 @@ function runManualSetup() {
     }
     throw err;
   }
+}
+
+/**
+ * Item menu "Tutup Buku & Arsipkan Tahun Lalu".
+ * Pengguna mengetik tahun yang akan ditutup (konfirmasi eksplisit), lalu
+ * closeAndArchiveYear() memindahkan transaksi tahun itu ke tab ARSIP_<tahun>.
+ */
+function menuCloseYearArchive() {
+  const ui = SpreadsheetApp.getUi();
+  const pending = checkPendingArchive_();
+  const defaultYear = pending.pendingYears.length > 0
+    ? pending.pendingYears[0]
+    : new Date().getFullYear() - 1;
+
+  let response;
+  try {
+    response = ui.prompt(
+      "Tutup Buku & Arsip Tahunan",
+      "Masukkan tahun yang ingin ditutup dan diarsipkan (contoh: " + defaultYear + "):\n\n" +
+        "Seluruh transaksi tahun tersebut akan disalin ke tab ARSIP_<tahun> lalu dihapus dari TRANSAKSI. " +
+        "Saldo awal tiap dompet otomatis disesuaikan agar total saldo tidak berubah, dan proses tercatat di tab AUDIT. " +
+        "Tabel ANGGARAN, DOMPET, KATEGORI, dan DASHBOARD tidak dihapus.",
+      ui.ButtonSet.OK_CANCEL
+    );
+  } catch (e) {
+    ui.alert("Prompt tidak tersedia di konteks ini. Buka menu langsung dari spreadsheet Google Sheets.");
+    return;
+  }
+
+  if (response.getSelectedButton() !== ui.Button.OK) return; // dibatalkan pengguna
+
+  const input = String(response.getResponseText() || "").trim();
+  if (!/^\d{4}$/.test(input)) {
+    ui.alert("Tahun tidak valid. Proses dibatalkan.");
+    return;
+  }
+
+  try {
+    const res = closeAndArchiveYear(Number(input));
+    ui.alert(res.success ? "Tutup Buku Selesai" : "Tutup Buku Gagal", res.message, ui.ButtonSet.OK);
+  } catch (err) {
+    ui.alert(
+      "Tutup Buku Gagal",
+      "Terjadi galat: " + (err && err.message ? err.message : err),
+      ui.ButtonSet.OK
+    );
+  }
+}
+
+/**
+ * Item menu "Petunjuk Pasang di HP (Pintasan)".
+ * Label memakai "pintasan" alih-alih "PWA" sesuai temuan R-20: produk tidak
+ * memiliki manifest/service worker sehingga Add to Home Screen hanyalah
+ * bookmark browser yang tetap membutuhkan koneksi internet.
+ */
+function menuShowMobileGuide() {
+  const ui = SpreadsheetApp.getUi();
+  const body =
+    "Untuk membuka Finance Tracker di smartphone Anda:\n\n" +
+    "1. Di komputer, buka menu Ekstensi > Apps Script.\n" +
+    "2. Klik Deploy (Terapkan) > New deployment (Penerapan baru), pilih tipe Web app.\n" +
+    "3. Isi Execute as: User accessing the web app dan Who has access: Anyone with Google account " +
+      "(akun yang terdaftar di Script Properties ALLOWED_EMAILS).\n" +
+    "4. Klik Deploy lalu salin URL Web App yang dihasilkan, kirimkan ke ponsel Anda.\n" +
+    "5. Buka URL tersebut di Safari (iOS) atau Chrome (Android).\n" +
+    "6. Tambahkan ke Layar Utama (Add to Home Screen) agar tampil seperti aplikasi tanpa instalasi " +
+      "Play Store / App Store.\n\n" +
+    "Catatan: ini pintasan browser (bookmark), bukan PWA penuh karena tidak memiliki manifest/service worker, " +
+      "sehingga tetap memerlukan koneksi internet.\n" +
+    "Di dalam spreadsheet, aplikasi tetap dapat dibuka lewat menu Finance Tracker > Buka Aplikasi (Modal).";
+  ui.alert("Petunjuk Menggunakan Aplikasi di Smartphone", body, ui.ButtonSet.OK);
 }
 
 function include(filename) {

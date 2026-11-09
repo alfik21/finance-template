@@ -1,10 +1,10 @@
-# Panduan Pengguna (User Guide)
-## Finance Tracker — Personal & Business Edition
+﻿# Panduan Pengguna (User Guide)
+## Finance Tracker â€” Personal & Business Edition
 
 **Tipe Dokumen**: Panduan Pengguna & Serah Terima Pembeli (Edisi Rilis Perdana)  
 **Format Target**: PDF (Tata Letak Standar 4 Halaman Siap Cetak / Print-Ready)  
 **Divisi Penanggung Jawab (PIC)**: Operations  
-**Versi Berkas**: 1.8.7  
+**Versi Berkas**: 1.9.0  
 
 ---
 
@@ -34,7 +34,7 @@ Untuk menggunakan template, Anda cukup menduplikasi berkas Master Template ke ak
 2. Buka tautan akses template resmi yang Anda terima saat pembelian:  
    `https://docs.google.com/spreadsheets/d/.../copy`
 3. Peramban akan secara otomatis membuka jendela konfirmasi resmi dari Google:  
-   **"Salin dokumen — Apakah Anda ingin membuat salinan dari Finance Tracker?"**
+   **"Salin dokumen â€” Apakah Anda ingin membuat salinan dari Finance Tracker?"**
 4. Klik tombol biru besar bertuliskan **"Buat salinan"** (*Make a copy*).
 5. Google Spreadsheet beserta seluruh sistem skrip aplikasinya akan diduplikasi secara utuh ke Google Drive Anda.
 6. Berkas baru ini sekarang sepenuhnya menjadi milik pribadi Anda. Anda dapat mengubah nama berkas sesuai preferensi (misal: *Keuangan Keluarga 2026*).
@@ -53,7 +53,7 @@ Untuk menggunakan template, Anda cukup menduplikasi berkas Master Template ke ak
 +-----------------------------------------------------------------------------------+
 ```
 
---- [BATAS HALAMAN / PAGE BREAK — HALAMAN 1 SELESAI] ---
+--- [BATAS HALAMAN / PAGE BREAK â€” HALAMAN 1 SELESAI] ---
 
 <!-- ======================================================================= -->
 <!-- HALAMAN 2 DARI 4                                                        -->
@@ -68,7 +68,7 @@ Saat pertama kali membuka menu aplikasi di Google Sheets, Google mewajibkan konf
 ### Panduan Otorisasi Langkah demi Langkah:
 1. Di tab Google Sheets Anda, segarkan halaman (*refresh* / F5).
 2. Tunggu 5 detik hingga muncul menu baru di bilah menu atas: **`[ Finance Tracker ]`**.
-3. Klik menu **`[ Finance Tracker ]`** > pilih **"Buka di Panel Samping (Sidebar)"**.
+3. Klik menu **`[ Finance Tracker ]`** > pilih **"Buka Aplikasi (Modal)"**.
 4. Muncul kotak dialog bertuliskan *"Authorization Required"*, klik **"Continue"** (*Lanjutkan*).
 5. Pilih akun Google Anda.
 6. Saat muncul peringatan *"Google hasn't verified this app"*, klik tautan kecil di kiri bawah: **"Advanced"** (*Lanjutan*).
@@ -83,6 +83,17 @@ Saat pertama kali membuka menu aplikasi di Google Sheets, Google mewajibkan konf
 | Dimensi Rekomendasi: 16:9 | Fokus: Klik 'Advanced' lalu 'Go to Finance Tracker'  |
 +-----------------------------------------------------------------------------------+
 ```
+
+---
+
+### Daftar Menu `Finance Tracker`
+
+| Item Menu | Fungsi |
+|---|---|
+| **Buka Aplikasi (Modal)** | Membuka Web App pada jendela dialog 1080x720px di dalam spreadsheet. |
+| **Jalankan Setup / Resei Template** | Memeriksa struktur seluruh tab, membuat kembali tab yang hilang, dan menyegarkan ringkasan DASHBOARD. Tidak menghapus data Anda. |
+| **Tutup Buku & Arsipkan Tahun Lalu** | Menyalin seluruh transaksi tahun yang Anda ketik ke tab `ARSIP_<tahun>`, menghapusnya dari tab `TRANSAKSI`, lalu menyesuaikan saldo awal dompet agar total saldo tetap sama. Selalu periksa kembali tahun yang diketik; proses tercatat di tab `AUDIT`. |
+| **Petunjuk Pasang di HP (Pintasan)** | Menampilkan langkah pemasangan pintasan (*Add to Home Screen*) di ponsel. |
 
 ---
 
@@ -109,7 +120,7 @@ Buka tab **Dompet** pada antarmuka aplikasi:
 +-----------------------------------------------------------------------------------+
 ```
 
---- [BATAS HALAMAN / PAGE BREAK — HALAMAN 2 SELESAI] ---
+--- [BATAS HALAMAN / PAGE BREAK â€” HALAMAN 2 SELESAI] ---
 
 <!-- ======================================================================= -->
 <!-- HALAMAN 3 DARI 4                                                        -->
@@ -166,7 +177,7 @@ Formulir transaksi dirancang sederhana dengan tiga tab utama:
 ### C. Koreksi Transaksi (Edit & Hapus)
 Salah memasukkan nominal atau salah memilih rekening? Cari transaksi di Buku Kas, lalu klik tombol **Edit** (ubah data) atau tombol **Hapus** (batalkan transaksi). Saldo dompet akan dihitung ulang secara otomatis.
 
---- [BATAS HALAMAN / PAGE BREAK — HALAMAN 3 SELESAI] ---
+--- [BATAS HALAMAN / PAGE BREAK â€” HALAMAN 3 SELESAI] ---
 
 <!-- ======================================================================= -->
 <!-- HALAMAN 4 DARI 4                                                        -->
@@ -215,7 +226,7 @@ Sebagai produk edisi rilis perdana yang baru selesai dikembangkan, tim Operation
 - **Surel Bantuan**: `support@financetracker.local` (atau surel resmi toko penyedia)
 - **Layanan Pesan Instan**: WhatsApp Layanan Pelanggan (tertera di bukti pembayaran Lynk.id / Mayar)
 - **Kanal Masukan & Saran Fitur**: Tautan formulir evaluasi pengguna (*User Feedback Form*)
-- **Jam Layanan Operasional**: Senin – Jumat, pukul 09:00 – 17:00 WIB
+- **Jam Layanan Operasional**: Senin â€“ Jumat, pukul 09:00 â€“ 17:00 WIB
 - **Komitmen Waktu Tanggap**: Maksimal 1 x 24 jam kerja
 
 *Hak Cipta 2026 Finance Tracker Operations Team. Seluruh hak dilindungi undang-undang.*

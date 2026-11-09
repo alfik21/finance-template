@@ -1,9 +1,9 @@
-# Product Brief & Requirements: Finance Tracker (Container-Bound Edition)
+﻿# Product Brief & Requirements: Finance Tracker (Container-Bound Edition)
 
 **Tipe Dokumen**: Dokumen Spesifikasi Produk & Perencanaan Pengembangan  
 **Format Target**: Google Docs  
 **Divisi Penanggung Jawab (PIC)**: Operations  
-**Fase Siklus Produk**: Baru Selesai Pengembangan (Fresh Build) — Menuju Tahap Pengujian Internal & Pengguna Asli  
+**Fase Siklus Produk**: Baru Selesai Pengembangan (Fresh Build) â€” Menuju Tahap Pengujian Internal & Pengguna Asli  
 
 ---
 
@@ -12,14 +12,14 @@
 | Parameter | Keterangan |
 |---|---|
 | ID Dokumen | DOC-OPS-PBR-2026-001 |
-| Judul Dokumen | Product Brief & Functional Requirements — Finance Tracker |
+| Judul Dokumen | Product Brief & Functional Requirements â€” Finance Tracker |
 | Edisi Produk | Container-Bound Web App & Spreadsheet Edition |
-| Versi Rilis | 1.8.7 (Build Perdana Pasca-Pengembangan) |
+| Versi Rilis | 1.9.0 (Build Perdana Pasca-Pengembangan) |
 | Tanggal Efektif | 5 November 2026 |
-| Klasifikasi Akses | Internal — Terbatas (Internal Confidential) |
+| Klasifikasi Akses | Internal â€” Terbatas (Internal Confidential) |
 | Penanggung Jawab (PIC) | Operations Team |
 | Tim Peninjau (Reviewer) | Finance Team, Product Lead |
-| Status Dokumen | Selesai Pengembangan — Menunggu Pengujian QA & Pengguna Asli (Awaiting QA & UAT) |
+| Status Dokumen | Selesai Pengembangan â€” Menunggu Pengujian QA & Pengguna Asli (Awaiting QA & UAT) |
 
 ---
 
@@ -42,7 +42,7 @@ Sistem ini **baru saja selesai dibangun dan dikembangkan (*freshly developed*)**
 ### 1.2. Deskripsi Konseptual
 Aplikasi web pencatatan keuangan berbasis peramban yang tertanam di dalam spreadsheet pengguna. Menghilangkan kebutuhan instalasi aplikasi dari Play Store/App Store dengan 3 mode akses:
 1. **Mode Smartphone (Web App + pintasan)**: Berjalan di peramban ponsel dan dapat ditambahkan sebagai pintasan layar utama (*Add to Home Screen*) melalui Safari (iOS) atau Chrome (Android). Bukan PWA penuh: tidak memiliki `manifest.json`/service worker dan tetap memerlukan koneksi internet.
-2. **Mode Panel Samping (Sidebar)**: Panel antarmuka selebar 380px di sisi kanan Google Sheets untuk pencatatan sambil memantau baris data.
+2. **Mode Panel Samping (Sidebar)**: Panel antarmuka selebar 380px di sisi kanan Google Sheets untuk pencatatan sambil memantau baris data. Sejak v1.9.0 mode ini tidak lagi mempunyai item menu; pintasan utama di menu adalah **Buka Aplikasi (Modal)** (fungsi `openAppSidebar()` tetap tersedia bila dipanggil manual dari Apps Script).
 3. **Mode Jendela Dialog (Modal Dialog)**: Antarmuka terpusat berukuran 1080x720px di Google Sheets untuk evaluasi bulanan yang leluasa.
 
 ---
@@ -73,7 +73,7 @@ Profil pengguna yang ditargetkan untuk pengujian awal dan penjualan komersial:
 
 | Masalah Pengguna Saat Ini | Solusi yang Selesai Dikembangkan |
 |---|---|
-| **Subscription Fatigue**: Beban biaya langganan bulanan software keuangan (Rp 30.000 – Rp 99.000/bulan). | Skema sekali beli untuk penggunaan seumur hidup (*zero-subscription*) tanpa biaya server bulanan. |
+| **Subscription Fatigue**: Beban biaya langganan bulanan software keuangan (Rp 30.000 â€“ Rp 99.000/bulan). | Skema sekali beli untuk penggunaan seumur hidup (*zero-subscription*) tanpa biaya server bulanan. |
 | **Privasi Terancam**: Kekhawatiran data keuangan diunggah ke server startup asing yang rawan kebocoran. | 100% kepemilikan data berada di Google Drive pribadi pengguna. |
 | **Entri Ponsel Lambat**: Mengetik baris sel di aplikasi Google Sheets mobile memakan waktu dan rawan merusak rumus. | Antarmuka Web App mobile yang cepat dengan format ribuan otomatis dan tombol cepat 1-ketuk (*Habit Chips*). |
 | **Kekacauan Saldo Akibat Transfer**: Pindah dana antar rekening sering salah tercatat sebagai belanja/pengeluaran baru. | Modul transfer kas khusus yang memotong rekening asal dan menambah rekening tujuan tanpa mempengaruhi laporan belanja bulanan. |

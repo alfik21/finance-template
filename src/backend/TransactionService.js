@@ -815,3 +815,175 @@ function formatAngka_(n) {
     return String(n);
   }
 }
+
+/* ============================================================================
+ * Tutup buku tahunan (item menu Finance Tracker)
+ * ==========================================================================*/
+
+/** Tahun lampau yang masih tersimpan di TRANSAKSI (menunggu diarsipkan). */
+function checkPendingArchive_() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const txSheet = ss.getSheetByName("TRANSAKSI");
+    if (!txSheet) return { hasPending: false, pendingYears: [] };
+    const lastRow = txSheet.getLastRow();
+    if (lastRow <= 1) return { hasPending: false, pendingYears: [] };
+
+    const currentYear = new Date().getFullYear();
+    const rawDates = txSheet.getRange(2, 2, lastRow - 1, 1).getValues();
+    const years = {};
+    for (let i = 0; i < rawDates.length; i++) {
+      const y = yearOfCell_(rawDates[i][0]);
+      if (y && y < currentYear) years[y] = true;
+    }
+    const pendingYears = Object.keys(years).map(Number).sort((a, b) => a - b);
+    return { hasPending: pendingYears.length > 0, pendingYears };
+  } catch (e) {
+    return { hasPending: false, pendingYears: [], error: e && e.message ? e.message : String(e) };
+  }
+}
+
+/** Tahun dari sel tanggal (Date maupun teks); 0 bila tidak terbaca. */
+function yearOfCell_(val) {
+  if (val === null || val === undefined || val === "") return 0;
+  const d = val instanceof Date ? val : new Date(String(val).trim());
+  const y = d.getFullYear();
+  return isNaN(y) ? 0 : y;
+}
+
+/**
+ * Tutup buku satu tahun: salin seluruh transaksi tahun `targetYear` ke tab
+ * ARSIP_<tahun>, hapus barisnya dari TRANSAKSI, lalu geser Saldo_Awal tiap
+ * dompet sebesar net efek tahun tersebut sehingga total saldo tidak berubah.
+ * Kembalian { success, message, ... } agar bisa langsung ditampilkan ke UI.
+ */
+function closeAndArchiveYear(targetYear) {
+  const year = Number(targetYear);
+  const currentYear = new Date().getFullYear();
+  if (!year || isNaN(year) || year < 2000 || year >= currentYear) {
+    return {
+      success: false,
+      message: "Tahun tidak valid. Masukkan tahun antara 2000 dan " + (currentYear - 1) + "."
+    };
+  }
+
+  return withWriteLock_(function () {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const txSheet = ss.getSheetByName("TRANSAKSI");
+    if (!txSheet) return { success: false, message: "Sheet TRANSAKSI tidak ditemukan." };
+
+    const lastRow = txSheet.getLastRow();
+    if (lastRow <= 1) return { success: false, message: "Tidak ada data transaksi di sheet TRANSAKSI." };
+
+    const headers = txSheet.getRange(1, 1, 1, 9).getValues()[0];
+    const allRows = txSheet.getRange(2, 1, lastRow - 1, 9).getValues();
+
+    const archiveRows = [];
+    const remainingRows = [];
+    const netPerWallet = {};
+    let totalIncome = 0;
+    let totalExpense = 0;
+
+    for (let i = 0; i < allRows.length; i++) {
+      const row = allRows[i];
+      if (yearOfCell_(row[1]) !== year) {
+        remainingRows.push(row);
+        continue;
+      }
+      archiveRows.push(row);
+
+      const amount = parseNumber_(row[6]) || 0;
+      const type = String(row[2] || "");
+      const src = String(row[3] || "");
+      const dest = String(row[4] || "");
+      if (type === "Income") {
+        totalIncome += amount;
+        if (src) netPerWallet[src] = (netPerWallet[src] || 0) + amount;
+      } else if (type === "Expense") {
+        totalExpense += amount;
+        if (src) netPerWallet[src] = (netPerWallet[src] || 0) - amount;
+      } else if (type === "Transfer") {
+        if (src) netPerWallet[src] = (netPerWallet[src] || 0) - amount;
+        if (dest) netPerWallet[dest] = (netPerWallet[dest] || 0) + amount;
+      }
+    }
+
+    if (archiveRows.length === 0) {
+      return {
+        success: false,
+        message: "Tidak ditemukan transaksi tahun " + year + ". Tidak ada data yang diarsipkan."
+      };
+    }
+
+    // 1. Salin ke ARSIP_<tahun>; bila tab sudah ada, baris lama tidak ditimpa.
+    const archiveName = "ARSIP_" + year;
+    let archiveSheet = ss.getSheetByName(archiveName);
+    if (!archiveSheet) {
+      archiveSheet = ss.insertSheet(archiveName);
+      archiveSheet.appendRow(headers);
+      archiveSheet
+        .getRange(1, 1, 1, headers.length)
+        .setFontWeight("bold")
+        .setBackground("#F1F5F9")
+        .setFontColor("#0F172A");
+      archiveSheet.setFrozenRows(1);
+      archiveSheet.setTabColor("#64748B");
+    }
+    const archiveStart = archiveSheet.getLastRow() + 1;
+    archiveSheet.getRange(archiveStart, 1, archiveRows.length, headers.length).setValues(archiveRows);
+
+    // 2. Tulis ulang TRANSAKSI tanpa baris tahun tersebut lalu buang sisa barisnya.
+    if (remainingRows.length > 0) {
+      txSheet.getRange(2, 1, remainingRows.length, headers.length).setValues(remainingRows);
+    }
+    const deleteCount = allRows.length - remainingRows.length;
+    if (deleteCount > 0) txSheet.deleteRows(2 + remainingRows.length, deleteCount);
+
+    // 3. Geser Saldo_Awal dompet terdampak agar saldo akhir tetap sama.
+    let adjustedWallets = 0;
+    const walletSheet = ss.getSheetByName("DOMPET");
+    if (walletSheet) {
+      const wLastRow = walletSheet.getLastRow();
+      if (wLastRow > 1) {
+        const walletRows = walletSheet.getRange(2, 1, wLastRow - 1, 6).getValues();
+        let changed = false;
+        for (let i = 0; i < walletRows.length; i++) {
+          const walletId = String(walletRows[i][0] || "");
+          if (walletId && netPerWallet[walletId]) {
+            walletRows[i][3] = (parseNumber_(walletRows[i][3]) || 0) + netPerWallet[walletId];
+            delete netPerWallet[walletId];
+            changed = true;
+            adjustedWallets++;
+          }
+        }
+        if (changed) walletSheet.getRange(2, 1, walletRows.length, 6).setValues(walletRows);
+      }
+    }
+
+    refreshDashboardSummary_();
+
+    const netFlow = Math.round((totalIncome - totalExpense) * 100) / 100;
+    const message =
+      "Tahun " + year + " ditutup: " + archiveRows.length + " transaksi dipindahkan ke tab " + archiveName +
+      " (pemasukan " + formatAngka_(totalIncome) + ", pengeluaran " + formatAngka_(totalExpense) +
+      ", net " + formatAngka_(netFlow) + "). Saldo awal " + adjustedWallets +
+      " dompet disesuaikan agar total saldo tidak berubah; ringkasan DASHBOARD diperbarui.";
+
+    appendAuditLog_(
+      "TUTUP_BUKU",
+      "Tahun " + year + ": " + archiveRows.length + " transaksi -> " + archiveName +
+      ", pemasukan " + totalIncome + ", pengeluaran " + totalExpense +
+      ", dompet disesuaikan " + adjustedWallets
+    );
+
+    return {
+      success: true,
+      message: message,
+      archiveName: archiveName,
+      archivedCount: archiveRows.length,
+      totalIncome: totalIncome,
+      totalExpense: totalExpense,
+      adjustedWallets: adjustedWallets
+    };
+  });
+}

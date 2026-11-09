@@ -1,10 +1,10 @@
-# Lembar Kerja Pengujian Produk (Product Testing Checklist - Blank Template)
+﻿# Lembar Kerja Pengujian Produk (Product Testing Checklist - Blank Template)
 
 **Tipe Dokumen**: Lembar Kendali Mutu Pra-Peluncuran (Pre-Launch QA & UAT Checklist)  
 **Format Target**: Google Sheets (Struktur 2 Tab: `DASHBOARD_UJI` dan `MATRIKS_UJI`)  
 **Divisi Penanggung Jawab (PIC)**: Finance + Operations  
-**Versi Berkas**: 1.8.7  
-**Status Produk**: Baru Selesai Dikembangkan (Fresh Build) — Belum Diuji oleh Pengguna Asli  
+**Versi Berkas**: 1.9.0  
+**Status Produk**: Baru Selesai Dikembangkan (Fresh Build) â€” Belum Diuji oleh Pengguna Asli  
 **Dokumen Panduan & SOP Uji**: [`docs/02_PANDUAN_PENGUJIAN_PRODUK.md`](file:///J:/Aplikasi/finance-template/docs/02_PANDUAN_PENGUJIAN_PRODUK.md)  
 **Berkas Spreadsheet Multi-Sheet Kosong (.xlsx)**: [`docs/02_PRODUCT_TESTING_CHECKLIST.xlsx`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx)  
 
@@ -111,5 +111,5 @@
 1. Unduh berkas [`02_PRODUCT_TESTING_CHECKLIST.xlsx`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx).
 2. Unggah ke Google Sheets (`File > Open > Upload`).
 3. Jalankan pengujian Fase 1 (Internal QA) sesuai SOP di [`02_PANDUAN_PENGUJIAN_PRODUK.md`](file:///J:/Aplikasi/finance-template/docs/02_PANDUAN_PENGUJIAN_PRODUK.md).
-4. Setelah seluruh 32 butir lulus (**PASS**), lakukan pengujian Fase 2 bersama 3–5 orang perwakilan pengguna nyata (*pilot users*).
+4. Setelah seluruh 32 butir lulus (**PASS**), lakukan pengujian Fase 2 bersama 3â€“5 orang perwakilan pengguna nyata (*pilot users*).
 5. Isi tanggal verifikasi dan tanda tangani lembar persetujuan sign-off sebelum produk dipublikasikan untuk penjualan komersial.
