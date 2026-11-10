@@ -1,0 +1,47 @@
+name: Deploy Apps Script (manual)
+
+# Deploy ke Google Apps Script dijalankan MANUAL lewat tombol
+# "Run workflow" di tab Actions — tidak otomatis saat push,
+# agar tidak ada deploy tak sengaja ke app pembeli.
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Verifikasi lalu push ke script
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instal dependensi
+        run: npm ci
+
+      # Gerbang kualitas: 52 tes backend + regenerasi artefak + cek sintaks
+      - name: Regresi sebelum deploy
+        run: npm run verify
+
+      # Kredensial clasp (hasil `npx clasp login`) disimpan sebagai
+      # GitHub Secrets > Actions > New repository secret
+      #   CLASPRC_JSON = isi berkas ~/.clasprc.json
+      - name: Siapkan kredensial clasp
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+        run: |
+          if [ -z "$CLASPRC_JSON" ]; then
+            echo "Secret CLASPRC_JSON belum diisi di Settings > Secrets and variables > Actions"
+            exit 1
+          fi
+          printf '%s' "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+          npx clasp whoami
+
+      - name: Push kode ke Apps Script
+        run: npx clasp push --force
+
+      # Samakan label versi deployment dengan versi package.json (R-19)
+      - name: Beri label versi deployment
+        run: npx clasp version "v$(node -p "require('./package.json').version")"
