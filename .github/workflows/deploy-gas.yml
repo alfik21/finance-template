@@ -37,7 +37,8 @@ jobs:
             exit 1
           fi
           printf '%s' "$CLASPRC_JSON" > "$HOME/.clasprc.json"
-          npx clasp whoami
+          # `whoami` tidak ada di clasp 3.4.1; `list` membuktikan login berhasil
+          npx clasp list
 
       - name: Push kode ke Apps Script
         run: npx clasp push --force
