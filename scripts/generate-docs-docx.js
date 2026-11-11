@@ -190,7 +190,7 @@ function createDivider() {
 async function buildDoc1() {
   const children = [
     createTitle('Product Brief & Requirements: Finance Tracker'),
-    createSubtitle('Container-Bound Edition — Dokumen Spesifikasi Produk & Perencanaan Pengembangan'),
+    createSubtitle('Finance Tracker — Personal Edition — Dokumen Spesifikasi Produk & Perencanaan Pengembangan'),
     createCallout('Fase Siklus Produk', 'Baru Selesai Pengembangan (Fresh Build) — Menuju Tahap Pengujian Internal & Pengguna Asli.'),
     createDivider(),
     createH1('Tabel Kontrol Dokumen'),
@@ -212,11 +212,11 @@ async function buildDoc1() {
     createH1('Ringkasan Eksekutif (Executive Summary)'),
     createP('Finance Tracker adalah produk pencatatan keuangan pribadi dan rumah tangga berbasis Google Apps Script Web App yang terikat langsung di dalam Google Sheets (container-bound).'),
     createP('Sistem ini baru saja selesai dibangun dan dikembangkan (freshly developed) oleh tim pengembang. Sebelum produk dibuka untuk penjualan komersial publik, produk wajib melalui dua tahapan verifikasi kritis:'),
-    createBullet('Memastikan tidak ada galat rumus, rekonsiliasi saldo akurat, dan validasi data berfungsi normal.', '1. Pengujian Kendali Mutu Internal (Internal QA)'),
+    createBullet('Memastikan tidak ada galat rumus, rekonsiliasi saldo akurat, dan validasi data berfungsi normal.', '1. Pengujian Kendali Mutu (QA)'),
     createBullet('Menguji antarmuka, pemahaman instruksi, dan kemudahan pengoperasian oleh calon pengguna riil pertama kali.', '2. Pengujian Pengguna Asli (Pilot User Testing / UAT)'),
     createH1('1. Identitas dan Deskripsi Produk'),
     createH2('1.1. Nama Produk'),
-    createBullet('Finance Tracker (Personal Edition)', 'Nama Komersial'),
+    createBullet('Finance Tracker — Personal Edition', 'Nama Komersial'),
     createBullet('finance-template (Container-Bound Edition)', 'Nama Teknis Repositori'),
     createH2('1.2. Deskripsi Konseptual'),
     createP('Aplikasi web pencatatan keuangan berbasis peramban (Web App container-bound) yang tertanam di dalam spreadsheet pengguna. Menghilangkan kebutuhan instalasi aplikasi dari Play Store/App Store dengan 3 mode akses:'),
@@ -261,7 +261,7 @@ async function buildDoc1() {
     createBullet('Menggunakan pencatatan kas nyata (single-entry cash basis), bukan sistem akuntansi berpasangan murni (double-entry accrual).', '4. Metode Kas Tunggal'),
     createH1('6. Rencana Tahapan Rilis (Product Release Roadmap)'),
     createBullet('Koding Backend, Frontend Web App, dan test otomatis E2E.', 'Tahap 1: PENGEMBANGAN [STATUS: SELESAI]'),
-    createBullet('Pengujian internal QA (Finance/Ops), UAT bersama calon pengguna riil, dan evaluasi masukan.', 'Tahap 2: PENGUJIAN [STATUS: SEDANG BERJALAN]'),
+    createBullet('Pengujian QA oleh tim produk, UAT bersama calon pengguna riil, dan evaluasi masukan.', 'Tahap 2: PENGUJIAN [STATUS: SEDANG BERJALAN]'),
     createBullet('Pembukaan toko digital, distribusi tautan /copy, dan kampanye promosi peluncuran.', 'Tahap 3: PELUNCURAN [STATUS: MENDATANG]'),
     createH1('7. Model Penetapan Harga Target Sementara (Provisional Pricing)'),
     createTable(
@@ -290,8 +290,8 @@ async function buildDoc1() {
   });
 
   const buffer = await Packer.toBuffer(doc);
-  fs.writeFileSync(path.join(__dirname, '..', 'docs', '01_PRODUCT_BRIEF_AND_REQUIREMENTS.docx'), buffer);
-  console.log('01_PRODUCT_BRIEF_AND_REQUIREMENTS.docx berhasil dibuat.');
+  fs.writeFileSync(path.join(__dirname, '..', 'internal', 'BRIEF_PRODUK.docx'), buffer);
+  console.log('internal/BRIEF_PRODUK.docx berhasil dibuat.');
 }
 
 // =========================================================================
@@ -300,7 +300,7 @@ async function buildDoc1() {
 async function buildDoc2() {
   const children = [
     createTitle('Panduan & SOP Pengujian Produk: Finance Tracker'),
-    createSubtitle('Standard Operating Procedure (SOP) Pengujian Mutu 2 Fase: Internal QA & UAT Pengguna Asli'),
+    createSubtitle('Standard Operating Procedure (SOP) Pengujian Mutu 2 Fase: QA & UAT Pengguna Asli'),
     createCallout('Konteks Produk', 'Produk Baru Selesai Dikembangkan (Fresh Development) — Belum Diuji oleh Pengguna Asli.'),
     createDivider(),
     createH1('Tabel Informasi Dokumen SOP'),
@@ -309,7 +309,7 @@ async function buildDoc2() {
       [
         ['ID Dokumen', 'SOP-QA-2026-002'],
         ['Versi Dokumen', RELEASE_VERSION],
-        ['Divisi Penanggung Jawab', 'Finance + Operations Team'],
+        ['Divisi Penanggung Jawab', 'Tim Produk Finance Tracker'],
         ['Tanggal Berlaku', EFFECTIVE_DATE],
         ['Berkas Terkait', 'docs/02_PRODUCT_TESTING_CHECKLIST.xlsx (Template Kosong 2 Tab)']
       ]
@@ -317,7 +317,7 @@ async function buildDoc2() {
     createH1('1. Latar Belakang dan Tujuan Pengujian'),
     createP('Produk Finance Tracker ini baru saja selesai dibangun dan selesai dikembangkan pada tingkat kode (code freeze). Seluruh fitur utama (Web App, perhitungan multi-dompet, mutasi transfer, anggaran berulang, dan tombol cepat habit chip) telah selesai dikoding, namun belum pernah diuji coba oleh pengguna nyata (real end-users).'),
     createP('Oleh karena itu, dokumen ini menetapkan kerangka kerja pengujian bertahap:'),
-    createBullet('Dilakukan oleh tim internal Finance dan Operations untuk memverifikasi 32 kasus uji teknis pada lembar kerja kosong.', 'Fase 1: Verifikasi Fungsional Internal (Internal QA)'),
+    createBullet('Dilakukan oleh tim produk untuk memverifikasi 32 kasus uji teknis pada lembar kerja kosong.', 'Fase 1: Verifikasi Fungsional (QA)'),
     createBullet('Dilakukan bersama 3-5 orang perwakilan pengguna nyata (pekerja lepas / pencatat keuangan rumah tangga) untuk mengamati kendala navigasi dan pemahaman awal.', 'Fase 2: Pengujian Penerimaan Pengguna Asli (User Acceptance Testing / UAT)'),
     createH1('2. Persiapan Lingkungan Uji Bersih (Clean Test Environment)'),
     createBullet('Jangan gunakan akun Google yang memiliki hak developer. Gunakan akun Gmail biasa yang belum pernah memberi izin pada skrip ini.', '1. Gunakan Akun Google Uji Baru'),
@@ -390,7 +390,7 @@ async function buildDoc2() {
     ),
     createH1('6. Syarat Ambang Batas Kelulusan (Release Gate Criteria)'),
     createP('Produk Finance Tracker baru dinyatakan SELESAI DIUJI & LAYAK JUAL (READY TO SELL) apabila:'),
-    createBullet('32 dari 32 skenario fungsional berstatus PASS (100%).', '1. Fase 1 (Internal QA)'),
+    createBullet('32 dari 32 skenario fungsional berstatus PASS (100%).', '1. Fase 1 (QA)'),
     createBullet('Minimal 80% partisipan pengguna asli menyatakan dapat mengoperasikan aplikasi secara mandiri.', '2. Fase 2 (User Testing)'),
     createBullet('Tidak ada bug berkategori Critical atau High yang belum terselesaikan.', '3. Nol Temuan Blocker'),
     createBullet('Lembar sign-off ditandatangani oleh PIC Operations, PIC Finance, dan Product Lead.', '4. Persetujuan Lengkap')
@@ -401,8 +401,8 @@ async function buildDoc2() {
   });
 
   const buffer = await Packer.toBuffer(doc);
-  fs.writeFileSync(path.join(__dirname, '..', 'docs', '02_PANDUAN_PENGUJIAN_PRODUK.docx'), buffer);
-  console.log('02_PANDUAN_PENGUJIAN_PRODUK.docx berhasil dibuat.');
+  fs.writeFileSync(path.join(__dirname, '..', 'docs', '01_PANDUAN_PENGUJIAN_PRODUK.docx'), buffer);
+  console.log('01_PANDUAN_PENGUJIAN_PRODUK.docx berhasil dibuat.');
 }
 
 // =========================================================================
@@ -437,7 +437,7 @@ async function buildDoc3() {
     createBullet('Gulir ke bawah lalu klik tombol Allow (Izinkan). Seluruh tab sheet otomatis terbentuk.', 'Langkah 7'),
     createH2('Daftar Menu Finance Tracker'),
     createBullet('Membuka Web App pada jendela dialog 1080x720px di dalam spreadsheet.', 'Buka Aplikasi (Modal)'),
-    createBullet('Memeriksa struktur seluruh tab, membuat kembali tab yang hilang, dan menyegarkan ringkasan DASHBOARD; tidak menghapus data.', 'Jalankan Setup / Resei Template'),
+    createBullet('Memeriksa struktur seluruh tab, membuat kembali tab yang hilang, dan menyegarkan ringkasan DASHBOARD; tidak menghapus data.', 'Jalankan Setup / Reset Template'),
     createBullet('Menyalin seluruh transaksi tahun yang diketik ke tab ARSIP_<tahun>, menghapusnya dari tab TRANSAKSI, lalu menyesuaikan saldo awal dompet agar total saldo tetap sama; proses tercatat di tab AUDIT.', 'Tutup Buku & Arsipkan Tahun Lalu'),
     createBullet('Menampilkan langkah pemasangan pintasan (Add to Home Screen) di ponsel.', 'Petunjuk Pasang di HP (Pintasan)'),
     createH1('4. Pengaturan Awal (Setup 5 Menit)'),
@@ -495,7 +495,7 @@ async function buildDoc3() {
 async function buildDoc4() {
   const children = [
     createTitle('Surat Perjanjian Lisensi & Ketentuan Penggunaan'),
-    createSubtitle('Finance Tracker - Personal Edition (Edisi Rilis Perdana)'),
+    createSubtitle('Finance Tracker — Personal Edition (Edisi Rilis Perdana)'),
     createCallout('Nomor Registrasi Lisensi', `${LICENSE_TAG} | Tanggal Berlaku Efektif: ${EFFECTIVE_DATE}.`),
     createDivider(),
     createP('PEMBERITAHUAN HUKUM: DENGAN MEMBELI, MENYALIN, MENGUNDUH, MENGAKSES, ATAU MENGGUNAKAN TEMPLATE FINANCE TRACKER, ANDA SECARA SADAR DAN SUKARELA MENYATAKAN TELAH MEMBACA, MEMAHAMI, DAN SETUJU UNTUK TERIKAT OLEH SELURUH SYARAT DAN KETENTUAN DALAM PERJANJIAN INI.'),

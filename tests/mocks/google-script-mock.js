@@ -1,7 +1,7 @@
 // tests/mocks/google-script-mock.js
 // Mock database awal yang realistis sesuai format TransactionService.js
 //
-// Perbaikan fidelitas (lihat docs/06_DOKUMENTASI_PERBAIKAN.md):
+// Perbaikan fidelitas (lihat internal/DOKUMENTASI_PERBAIKAN.md):
 // - D-08: setiap pemanggilan google.script.run memakai runner sendiri.
 // - D-09: updateTransaction memvalidasi dulu, baru membalik/menerapkan saldo.
 // - D-10: hapus dompet mengikuti aturan produk (blokir saldo != 0, soft delete

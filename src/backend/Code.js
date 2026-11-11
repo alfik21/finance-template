@@ -10,7 +10,7 @@ function onOpen() {
     .createMenu("Finance Tracker")
     .addItem("Buka Aplikasi (Modal)", "openAppDialog")
     .addSeparator()
-    .addItem("Jalankan Setup / Resei Template", "runManualSetup")
+    .addItem("Jalankan Setup / Reset Template", "runManualSetup")
     .addItem("Tutup Buku & Arsipkan Tahun Lalu", "menuCloseYearArchive")
     .addItem("Petunjuk Pasang di HP (Pintasan)", "menuShowMobileGuide")
     .addToUi();
@@ -240,7 +240,7 @@ function buildAccessDeniedOutput_(access) {
     "<!DOCTYPE html>",
     '<html lang="id"><head><base target="_top"><meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    "<title>Akses Ditolak - Finance Tracker</title>",
+    "<title>Akses Ditolak — Finance Tracker</title>",
     "<style>",
     "body{margin:0;background:#f6f8f7;font-family:'Plus Jakarta Sans',Arial,sans-serif;color:#1c1e21;",
     "display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;}",
@@ -266,7 +266,7 @@ function buildAccessDeniedOutput_(access) {
   ].join("");
 
   return HtmlService.createHtmlOutput(html)
-    .setTitle("Akses Ditolak - Finance Tracker")
+    .setTitle("Akses Ditolak — Finance Tracker")
     .addMetaTag("viewport", "width=device-width, initial-scale=1");
 }
 
@@ -334,11 +334,11 @@ function runManualSetup() {
     refreshDashboardSummary_();
     SpreadsheetApp.getActiveSpreadsheet().toast(
       "Database siap: struktur tab terverifikasi dan ringkasan DASHBOARD diperbarui.",
-      "Finance Tracker - Setup / Resei Template",
+      "Finance Tracker — Setup / Reset Template",
       5
     );
   } catch (err) {
-    const msg = "Setup / resei template GAGAL: " + (err && err.message ? err.message : err);
+    const msg = "Setup / reset template GAGAL: " + (err && err.message ? err.message : err);
     try {
       SpreadsheetApp.getActiveSpreadsheet().toast(msg, "Finance Tracker", 8);
     } catch (e2) {

@@ -4,15 +4,15 @@
 **Format Target**: Google Sheets (Struktur 2 Tab: `DASHBOARD_UJI` dan `MATRIKS_UJI`)  
 **Divisi Penanggung Jawab (PIC)**: Finance + Operations  
 **Versi Berkas**: 1.9.0  
-**Status Produk**: Baru Selesai Dikembangkan (Fresh Build) â€” Belum Diuji oleh Pengguna Asli  
-**Dokumen Panduan & SOP Uji**: [`docs/02_PANDUAN_PENGUJIAN_PRODUK.md`](file:///J:/Aplikasi/finance-template/docs/02_PANDUAN_PENGUJIAN_PRODUK.md)  
+**Status Produk**: Baru Selesai Dikembangkan (Fresh Build) — Belum Diuji oleh Pengguna Asli  
+**Dokumen Panduan & SOP Uji**: [`docs/01_PANDUAN_PENGUJIAN_PRODUK.md`](file:///J:/Aplikasi/finance-template/docs/01_PANDUAN_PENGUJIAN_PRODUK.md)  
 **Berkas Spreadsheet Multi-Sheet Kosong (.xlsx)**: [`docs/02_PRODUCT_TESTING_CHECKLIST.xlsx`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx)  
 
 ---
 
 > [!IMPORTANT]
 > **Kondisi Berkas Pengujian**:  
-> Produk ini berada pada fase **baru selesai dikembangkan pada level koding**. Seluruh formulir pengujian berikut sengaja berstatus **PENDING** dan dikosongkan pada kolom hasil observasi (`Actual Result`) serta tanggal verifikasi agar tim internal (**Finance** dan **Operations**) bersama partisipan pengguna asli (*pilot users*) dapat menguji dan mengisi data secara objektif.
+> Produk ini berada pada fase **baru selesai dikembangkan pada level koding**. Seluruh formulir pengujian berikut sengaja berstatus **PENDING** dan dikosongkan pada kolom hasil observasi (`Actual Result`) serta tanggal verifikasi agar tim produk bersama partisipan pengguna asli (*pilot users*) dapat menguji dan mengisi data secara objektif.
 
 ---
 
@@ -110,6 +110,6 @@
 
 1. Unduh berkas [`02_PRODUCT_TESTING_CHECKLIST.xlsx`](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx).
 2. Unggah ke Google Sheets (`File > Open > Upload`).
-3. Jalankan pengujian Fase 1 (Internal QA) sesuai SOP di [`02_PANDUAN_PENGUJIAN_PRODUK.md`](file:///J:/Aplikasi/finance-template/docs/02_PANDUAN_PENGUJIAN_PRODUK.md).
-4. Setelah seluruh 32 butir lulus (**PASS**), lakukan pengujian Fase 2 bersama 3â€“5 orang perwakilan pengguna nyata (*pilot users*).
+3. Jalankan pengujian Fase 1 (Verifikasi Fungsional / QA) sesuai SOP di [`01_PANDUAN_PENGUJIAN_PRODUK.md`](file:///J:/Aplikasi/finance-template/docs/01_PANDUAN_PENGUJIAN_PRODUK.md).
+4. Setelah seluruh 32 butir lulus (**PASS**), lakukan pengujian Fase 2 bersama 3–5 orang perwakilan pengguna nyata (*pilot users*).
 5. Isi tanggal verifikasi dan tanda tangani lembar persetujuan sign-off sebelum produk dipublikasikan untuk penjualan komersial.

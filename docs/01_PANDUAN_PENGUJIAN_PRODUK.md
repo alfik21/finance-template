@@ -1,10 +1,10 @@
 ﻿# Panduan & Prosedur Pengujian Produk (Product Testing Guide)
-## Finance Tracker â€” Personal Edition
+## Finance Tracker — Personal Edition
 
 **Tipe Dokumen**: Standar Operasional Prosedur (SOP) Pengujian Mutu  
 **Format Target**: Google Docs / PDF  
 **Divisi Penanggung Jawab (PIC)**: Finance + Operations  
-**Konteks Produk**: Produk Baru Selesai Dikembangkan (Fresh Development) â€” Belum Diuji oleh Pengguna Asli  
+**Konteks Produk**: Produk Baru Selesai Dikembangkan (Fresh Development) — Belum Diuji oleh Pengguna Asli  
 **Versi Berkas**: 1.9.0  
 **Tanggal Berlaku**: 5 November 2026  
 **Berkas Lembar Uji Terkait**:
@@ -18,8 +18,8 @@
 Produk Finance Tracker ini **baru saja selesai dibangun dan selesai dikembangkan pada tingkat kode (*code freeze*)**. Seluruh fitur utama (Web App, perhitungan multi-dompet, mutasi transfer, anggaran berulang, dan tombol cepat habit chip) telah selesai dikoding, **namun belum pernah diuji coba oleh pengguna nyata (*real end-users*)**.
 
 Oleh karena itu, dokumen ini menetapkan kerangka kerja pengujian bertahap:
-1. **Fase 1: Verifikasi Fungsional Internal (Internal QA)**: Dilakukan oleh tim internal **Finance** dan **Operations** untuk memverifikasi 32 kasus uji teknis.
-2. **Fase 2: Pengujian Penerimaan Pengguna Asli (User Acceptance Testing / UAT)**: Dilakukan bersama 3â€“5 orang perwakilan pengguna nyata (pekerja lepas / pencatat keuangan rumah tangga) untuk mengamati kendala navigasi, kebingungan bahasa, atau hambatan saat pertama kali membuka template.
+1. **Fase 1: Verifikasi Fungsional (QA)**: Dilakukan oleh tim produk untuk memverifikasi 32 kasus uji teknis.
+2. **Fase 2: Pengujian Penerimaan Pengguna Asli (User Acceptance Testing / UAT)**: Dilakukan bersama 3–5 orang perwakilan pengguna nyata (pekerja lepas / pencatat keuangan rumah tangga) untuk mengamati kendala navigasi, kebingungan bahasa, atau hambatan saat pertama kali membuka template.
 
 ---
 
@@ -27,7 +27,7 @@ Oleh karena itu, dokumen ini menetapkan kerangka kerja pengujian bertahap:
 
 ```text
 +---------------------------------------------------------------------------------+
-| TAHAP 1: PENGUJIAN INTERNAL QA (FINANCE + OPERATIONS)                           |
+| TAHAP 1: VERIFIKASI FUNGSIONAL / QA                                             |
 | - Verifikasi 32 Butir Matriks Uji Fungsional                                   |
 | - Uji Stabilitas Rumus & Saldo di Google Sheets                                |
 | - Uji Alur Otorisasi Script & Error Handling                                   |
@@ -136,7 +136,7 @@ Sebelum Fase 1 dinyatakan PASS, jalankan dari root repositori:
 
 Hasil regresi terakhir: **52/52 tes lulus, 0 galat sintaks, `npm audit` 0 kerentanan**. Pemeriksaan yang sama dijalankan otomatis oleh CI (`.github/workflows/ci.yml`) setiap push/PR.
 
-Temuan QC lengkap dan pemetaan perbaikannya ada di [`docs/05_LAPORAN_QC_PRODUCT_TESTING.md`](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) dan [`docs/06_DOKUMENTASI_PERBAIKAN.md`](file:///J:/Aplikasi/finance-template/docs/06_DOKUMENTASI_PERBAIKAN.md).
+Temuan QC lengkap dan pemetaan perbaikannya merupakan catatan internal penjual dan tidak termasuk dalam paket dokumentasi pembeli.
 
 ---
 
@@ -145,8 +145,8 @@ Temuan QC lengkap dan pemetaan perbaikannya ada di [`docs/05_LAPORAN_QC_PRODUCT_
 Setelah seluruh 32 butir Fase 1 bertanda **PASS**, lanjutkan ke pengujian dengan pengguna nyata:
 
 ### A. Kriteria Pemilihan Partisipan Uji Coba:
-- 1â€“2 orang pekerja lepas / profesional mandiri.
-- 1â€“2 orang pencatat keuangan pribadi / rumah tangga.
+- 1–2 orang pekerja lepas / profesional mandiri.
+- 1–2 orang pencatat keuangan pribadi / rumah tangga.
 - 1 orang pengguna awam yang belum pernah menggunakan Google Apps Script.
 
 ### B. Skenario Tugas Pengguna Asli (Tanpa Bantuan Panduan Lisan):
@@ -158,7 +158,7 @@ Setelah seluruh 32 butir Fase 1 bertanda **PASS**, lanjutkan ke pengujian dengan
 
 ### C. Formulir Rekapitulasi Umpan Balik Pengguna Asli (UAT Feedback Form):
 
-| Partisipan | Latar Belakang | Kendala yang Dihadapi | Kemudahan Otorisasi (1â€“5) | Kemudahan Input di HP (1â€“5) | Keputusan Pengguna |
+| Partisipan | Latar Belakang | Kendala yang Dihadapi | Kemudahan Otorisasi (1–5) | Kemudahan Input di HP (1–5) | Keputusan Pengguna |
 |---|---|---|---|---|---|
 | Tester 1 | Freelancer | [Catat kendala riil] | [Skor 1-5] | [Skor 1-5] | [Puas / Butuh Perbaikan] |
 | Tester 2 | Pemilik Toko | [Catat kendala riil] | [Skor 1-5] | [Skor 1-5] | [Puas / Butuh Perbaikan] |
@@ -169,7 +169,7 @@ Setelah seluruh 32 butir Fase 1 bertanda **PASS**, lanjutkan ke pengujian dengan
 ## 7. Syarat Ambang Batas Kelulusan Menuju Penjualan Komersial (Release Gate)
 
 Produk Finance Tracker baru dinyatakan **SELESAI DIUJI & LAYAK JUAL (*READY TO SELL*)** apabila:
-1. **Fase 1 (Internal QA)**: 32 dari 32 skenario fungsional berstatus **PASS** (100%).
+1. **Fase 1 (QA)**: 32 dari 32 skenario fungsional berstatus **PASS** (100%).
 2. **Fase 2 (User Testing)**: Minimal 80% partisipan pengguna asli menyatakan dapat mengoperasikan aplikasi secara mandiri tanpa bantuan teknis langsung.
 3. **Nol Temuan Blocker**: Tidak ada bug berkategori *Critical* atau *High* yang belum terselesaikan.
 4. **Persetujuan Akhir**: Lembar persetujuan (*Sign-Off*) ditandatangani oleh **PIC Operations**, **PIC Finance**, dan **Product Lead**.

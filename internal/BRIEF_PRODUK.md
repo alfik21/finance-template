@@ -1,9 +1,9 @@
-﻿# Product Brief & Requirements: Finance Tracker (Container-Bound Edition)
+﻿# Product Brief & Requirements: Finance Tracker — Personal Edition
 
 **Tipe Dokumen**: Dokumen Spesifikasi Produk & Perencanaan Pengembangan  
 **Format Target**: Google Docs  
 **Divisi Penanggung Jawab (PIC)**: Operations  
-**Fase Siklus Produk**: Baru Selesai Pengembangan (Fresh Build) â€” Menuju Tahap Pengujian Internal & Pengguna Asli  
+**Fase Siklus Produk**: Baru Selesai Pengembangan (Fresh Build) — Menuju Tahap Pengujian Internal & Pengguna Asli  
 
 ---
 
@@ -12,14 +12,14 @@
 | Parameter | Keterangan |
 |---|---|
 | ID Dokumen | DOC-OPS-PBR-2026-001 |
-| Judul Dokumen | Product Brief & Functional Requirements â€” Finance Tracker |
-| Edisi Produk | Container-Bound Web App & Spreadsheet Edition |
+| Judul Dokumen | Product Brief & Functional Requirements — Finance Tracker |
+| Edisi Produk | Personal Edition (Web App Container-Bound & Spreadsheet) |
 | Versi Rilis | 1.9.0 (Build Perdana Pasca-Pengembangan) |
 | Tanggal Efektif | 5 November 2026 |
-| Klasifikasi Akses | Internal â€” Terbatas (Internal Confidential) |
+| Klasifikasi Akses | Internal — Terbatas (Internal Confidential) |
 | Penanggung Jawab (PIC) | Operations Team |
 | Tim Peninjau (Reviewer) | Finance Team, Product Lead |
-| Status Dokumen | Selesai Pengembangan â€” Menunggu Pengujian QA & Pengguna Asli (Awaiting QA & UAT) |
+| Status Dokumen | Selesai Pengembangan — Menunggu Pengujian QA & Pengguna Asli (Awaiting QA & UAT) |
 
 ---
 
@@ -36,7 +36,7 @@ Sistem ini **baru saja selesai dibangun dan dikembangkan (*freshly developed*)**
 ## 1. Identitas dan Deskripsi Produk
 
 ### 1.1. Nama Produk
-- **Nama Komersial**: Finance Tracker (Personal Edition)
+- **Nama Komersial**: Finance Tracker — Personal Edition
 - **Nama Teknis Repositori**: `finance-template`
 
 ### 1.2. Deskripsi Konseptual
@@ -73,7 +73,7 @@ Profil pengguna yang ditargetkan untuk pengujian awal dan penjualan komersial:
 
 | Masalah Pengguna Saat Ini | Solusi yang Selesai Dikembangkan |
 |---|---|
-| **Subscription Fatigue**: Beban biaya langganan bulanan software keuangan (Rp 30.000 â€“ Rp 99.000/bulan). | Skema sekali beli untuk penggunaan seumur hidup (*zero-subscription*) tanpa biaya server bulanan. |
+| **Subscription Fatigue**: Beban biaya langganan bulanan software keuangan (Rp 30.000 – Rp 99.000/bulan). | Skema sekali beli untuk penggunaan seumur hidup (*zero-subscription*) tanpa biaya server bulanan. |
 | **Privasi Terancam**: Kekhawatiran data keuangan diunggah ke server startup asing yang rawan kebocoran. | 100% kepemilikan data berada di Google Drive pribadi pengguna. |
 | **Entri Ponsel Lambat**: Mengetik baris sel di aplikasi Google Sheets mobile memakan waktu dan rawan merusak rumus. | Antarmuka Web App mobile yang cepat dengan format ribuan otomatis dan tombol cepat 1-ketuk (*Habit Chips*). |
 | **Kekacauan Saldo Akibat Transfer**: Pindah dana antar rekening sering salah tercatat sebagai belanja/pengeluaran baru. | Modul transfer kas khusus yang memotong rekening asal dan menambah rekening tujuan tanpa mempengaruhi laporan belanja bulanan. |

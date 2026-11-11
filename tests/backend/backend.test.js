@@ -1,7 +1,7 @@
 /**
  * tests/backend/backend.test.js
  * Regresi backend produk ASLI (D-21) - dijalankan dengan `npm run test:backend`.
- * Setiap tes meniru skenario temuan di docs/05_LAPORAN_QC_PRODUCT_TESTING.md
+ * Setiap tes meniru skenario temuan di internal/LAPORAN_QC.md
  * dan memverifikasi perbaikannya pada src/backend/*.js (bukan pada mock demo).
  */
 "use strict";
@@ -798,7 +798,7 @@ test("UI: onOpen mendaftarkan menu spreadsheet Finance Tracker dengan item lengk
   assert.equal(menu.separators, 1, "ada satu pemisah setelah item utama");
   assert.equal(menu.items[0].caption, "Buka Aplikasi (Modal)");
   assert.equal(menu.items[0].functionName, "openAppDialog");
-  assert.equal(menu.items[1].caption, "Jalankan Setup / Resei Template");
+  assert.equal(menu.items[1].caption, "Jalankan Setup / Reset Template");
   assert.equal(menu.items[1].functionName, "runManualSetup");
   assert.equal(menu.items[2].caption, "Tutup Buku & Arsipkan Tahun Lalu");
   assert.equal(menu.items[2].functionName, "menuCloseYearArchive");

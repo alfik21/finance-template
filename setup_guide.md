@@ -33,7 +33,7 @@ Sebagai penjual, Anda cukup membuat **1 Master Spreadsheet** sekali saja. Pembel
 ### A. Buat Spreadsheet Baru
 1. Buka browser dan kunjungi [sheets.new](https://sheets.new).
 2. Beri nama file:  
-   `Finance Tracker - Master Template`
+   `Finance Tracker — Master Template`
 
 ### B. Pasang Kode Skrip Google Apps Script
 1. Di menu atas Google Sheets, klik menu **Ekstensi** (*Extensions*) > **Apps Script**.
@@ -130,7 +130,7 @@ Folder `demo/` telah dirancang khusus agar dapat dihosting secara gratis di berb
 Sertakan teks ini pada halaman *Thank You Page*, email otomatis pembeli, atau pesan WhatsApp:
 
 ```text
-Halo Kak! Terima kasih banyak telah membeli "Finance Tracker (Personal Edition)".
+Halo Kak! Terima kasih banyak telah membeli "Finance Tracker — Personal Edition".
 
 Berikut adalah akses file template Google Spreadsheet milik Kakak:
 Link Akses: https://docs.google.com/spreadsheets/d/1jXZXm9cc1LVcyfx-YRqXAKXySK6da_T6ni5z3yuw1u_gZfHmb56kJ9OH/copy
@@ -184,7 +184,7 @@ Anda dapat menyalin teks promosi ini untuk deskripsi produk di Lynk.id, Mayar, S
 > - **Fitur Edit & Hapus Transaksi**: Koreksi transaksi salah input langsung dari HP tanpa perlu mencari baris di spreadsheet.  
 > - **Format Rupiah Otomatis Realtime**: Input nominal otomatis memformat pemisah ribuan titik saat mengetik.  
 > - **Akses Cepat di Smartphone**: Pasang langsung di layar utama HP (*Add to Home Screen*) layaknya aplikasi native tanpa install dari App Store / Play Store.  
-> - **Dukungan Menu Toolbar Spreadsheet**: Buka aplikasi sebagai jendela dialog (modal) langsung dari Google Sheets, lengkap dengan perintah setup/reseti template, tutup buku & arsip tahun lalu, dan petunjuk pasang di HP.  
+> - **Dukungan Menu Toolbar Spreadsheet**: Buka aplikasi sebagai jendela dialog (modal) langsung dari Google Sheets, lengkap dengan perintah setup/reset template, tutup buku & arsip tahun lalu, dan petunjuk pasang di HP.  
 >
 > **Yang Anda Dapatkan:**  
 > - Link Akses Google Sheets Master Siap Duplikasi Instan (1 Klik)  
@@ -199,8 +199,8 @@ Paket template ini telah dilengkapi 4 berkas dokumentasi resmi di folder [`docs/
 
 | No. | Dokumen | Fungsi | Format | PIC | Berkas Siap Baca (DOCX / XLSX) |
 |---|---|---|---|---|---|
-| 1 | [**Product Brief & Requirements**](file:///J:/Aplikasi/finance-template/docs/01_PRODUCT_BRIEF_AND_REQUIREMENTS.md) | Menjelaskan target pengguna, tujuan produk, fitur, dan batasannya | Google Docs | Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/01_PRODUCT_BRIEF_AND_REQUIREMENTS.docx) |
-| 2a | [**Panduan & SOP Pengujian Produk**](file:///J:/Aplikasi/finance-template/docs/02_PANDUAN_PENGUJIAN_PRODUK.md) | Petunjuk teknis prosedur pengujian langkah demi langkah | Google Docs / PDF | Finance + Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/02_PANDUAN_PENGUJIAN_PRODUK.docx) |
+| 1 | [**Product Brief & Requirements**](file:///J:/Aplikasi/finance-template/internal/BRIEF_PRODUK.md) | Menjelaskan target pengguna, tujuan produk, fitur, dan batasannya | Google Docs | Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/internal/BRIEF_PRODUK.docx) |
+| 2a | [**Panduan & SOP Pengujian Produk**](file:///J:/Aplikasi/finance-template/docs/01_PANDUAN_PENGUJIAN_PRODUK.md) | Petunjuk teknis prosedur pengujian langkah demi langkah | Google Docs / PDF | Finance + Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/01_PANDUAN_PENGUJIAN_PRODUK.docx) |
 | 2b | [**Product Testing Checklist (Blank Template)**](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.md) | Lembar kerja kosong verifikasi rumus & fungsi fitur | Google Sheets | Finance + Operations | [**Workbook XLSX 2 Tab**](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx) |
 | 3 | [**User Guide**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.md) | Panduan penggunaan untuk pembeli | PDF | Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.docx) |
 | 4 | [**License & Terms of Use**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.md) | Mengatur hak penggunaan, distribusi, dan ketentuan pembelian | PDF | Operations + Finance | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.docx) |

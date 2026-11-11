@@ -38,9 +38,9 @@ async function createBlankTestingWorkbook() {
   // Metadata
   dashSheet.addRow([]);
   dashSheet.addRow(['Status Siklus Produk', 'Baru Selesai Koding (Menunggu Uji Internal & Pengguna Asli)']);
-  dashSheet.addRow(['Versi Target Rilis', `${RELEASE_VERSION} (Container-Bound Edition)`]);
+  dashSheet.addRow(['Versi Target Rilis', `${RELEASE_VERSION} (Personal Edition)`]);
   dashSheet.addRow(['Divisi Penguji (PIC)', 'Finance + Operations + Pilot Users']);
-  dashSheet.addRow(['Dokumen Panduan SOP', 'docs/02_PANDUAN_PENGUJIAN_PRODUK.md']);
+  dashSheet.addRow(['Dokumen Panduan SOP', 'docs/01_PANDUAN_PENGUJIAN_PRODUK.md']);
 
   for (let r = 3; r <= 6; r++) {
     dashSheet.getCell(`A${r}`).font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF475569' } };

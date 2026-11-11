@@ -2,7 +2,7 @@
  * TransactionService.js (Container-Bound Edition)
  * Mengelola data mutasi kas, saldo dompet, anggaran, dan ringkasan siklus harian/bulanan.
  *
- * Perbaikan QC (lihat docs/06_DOKUMENTASI_PERBAIKAN.md):
+ * Perbaikan QC (lihat internal/DOKUMENTASI_PERBAIKAN.md):
  * - R-03: jalur baca tidak lagi menulis baris (tidak ada dompet default saat render).
  * - R-04/R-23: satu modul validasi untuk transaksi, dompet, kategori, anggaran.
  * - R-05: duplikasi kategori dinilai per (nama, tipe).

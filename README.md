@@ -1,4 +1,4 @@
-﻿# Finance Tracker (Personal Edition)
+﻿# Finance Tracker — Personal Edition
 
 Sistem pencatatan dan manajemen kas keuangan pribadi terpadu berbasis **Google Sheets** dan **Google Apps Script Web App (Container-Bound)**.
 
@@ -19,7 +19,7 @@ Bebas biaya langganan bulanan (*Zero-Subscription*), 100% data tersimpan aman di
 - **Tombol Cepat Cerdas 1-Ketuk (*Smart Habit Chips*)**: Mengisi nominal, catatan, dan kategori belanja rutin (bensin, makan siang, kopi) secara instan hanya dengan 1 ketukan.
 - **Fitur Koreksi Transaksi (Edit & Hapus)**: Edit dan perbarui mutasi transaksi yang salah input secara langsung dari smartphone.
 - **Format Rupiah Otomatis Realtime**: Input nominal otomatis memformat pemisah ribuan titik (`.`) saat mengetik angka nominal.
-- **Akses Langsung dari Menu Spreadsheet**: Buka antarmuka aplikasi lewat menu toolbar Google Sheets **`Finance Tracker` > `Buka Aplikasi (Modal)`** (jendela 1080x720px); menu juga memuat perintah **Jalankan Setup / Resei Template**, **Tutup Buku & Arsipkan Tahun Lalu**, dan **Petunjuk Pasang di HP (Pintasan)**.
+- **Akses Langsung dari Menu Spreadsheet**: Buka antarmuka aplikasi lewat menu toolbar Google Sheets **`Finance Tracker` > `Buka Aplikasi (Modal)`** (jendela 1080x720px); menu juga memuat perintah **Jalankan Setup / Reset Template**, **Tutup Buku & Arsipkan Tahun Lalu**, dan **Petunjuk Pasang di HP (Pintasan)**.
 - **Validasi & Keamanan Data**: Nominal, tanggal, tipe, kategori, dan dompet divalidasi di backend; operasi tulis memakai `LockService`; penghapusan tercatat di tab `AUDIT`; akses Web App dibatasi daftar email di sheet `PENGATURAN` (email lain melihat halaman **Akses Ditolak**).
 
 ---
@@ -27,37 +27,45 @@ Bebas biaya langganan bulanan (*Zero-Subscription*), 100% data tersimpan aman di
 ## Struktur File & Folder
 
 ```text
-â”œâ”€â”€ src/
-â”‚   â”œâ”€â”€ appsscript.json            # Manifest izin Apps Script (Container-Bound)
-â”‚   â”œâ”€â”€ backend/
-â”‚   â”‚   â”œâ”€â”€ Code.js                # Handler onOpen(), doGet(), dan API dispatcher
-â”‚   â”‚   â”œâ”€â”€ SetupService.js        # Inisialisasi otomatis tab sheet & styling tema
-â”‚   â”‚   â””â”€â”€ TransactionService.js  # Mesin kalkulasi saldo, mutasi, anggaran, & dompet
-â”‚   â””â”€â”€ frontend/
-â”‚       â”œâ”€â”€ Index.html             # Shell struktur aplikasi & navigasi bawah HP
-â”‚       â”œâ”€â”€ Styles.html            # Desain CSS sistem Sage Green utilitarian
-â”‚       â””â”€â”€ App.html               # Logika antarmuka klien & interaksi reaktif
-â”œâ”€â”€ docs/
-â”‚   â”œâ”€â”€ 01_PRODUCT_BRIEF_AND_REQUIREMENTS.md  # Product Brief, target market, & model harga
-â”‚   â”œâ”€â”€ 02_PRODUCT_TESTING_CHECKLIST.md       # Matriks pengujian QA sebelum rilis penjualan
-â”‚   â”œâ”€â”€ 03_USER_GUIDE.md                      # Panduan lengkap pembeli (salin, input, dashboard, & HP)
-â”‚   â””â”€â”€ 04_LICENSE_AND_TERMS_OF_USE.md        # Perjanjian lisensi, hak modifikasi, & ketentuan refund
-â”œâ”€â”€ demo/
-â”‚   â”œâ”€â”€ index.html                 # Interactive Product Preview (Showcase simulator untuk calon pembeli)
-â”‚   â”œâ”€â”€ assets/tailwindcss.js      # Tailwind lokal agar demo tidak bergantung CDN
-â”‚   â””â”€â”€ WebApp.html                # Standalone Web App client untuk frame preview demo
-â”œâ”€â”€ tests/
-â”‚   â”œâ”€â”€ e2e/                       # Pengujian otomatis Playwright (transaksi & demo)
-â”‚   â”œâ”€â”€ backend/                   # Regresi backend GAS (node:test + fake SpreadsheetApp)
-â”‚   â”œâ”€â”€ fixtures/                  # Fixture pengujian lokal (hasil generate)
-â”‚   â””â”€â”€ mocks/                     # Google Apps Script API mock engine
-â”œâ”€â”€ scripts/
-â”‚   â”œâ”€â”€ prepare-test-app.js        # Compiler fixture pengujian & sinkronisasi file demo
-â”‚   â””â”€â”€ clasp-version.js           # Menyamakan versi Apps Script dengan package.json
-â”œâ”€â”€ preview.html                   # Pratinjau aplikasi offline untuk komputer lokal
-â”œâ”€â”€ setup_guide.md                 # Panduan lengkap penjual: Master sheet, trik URL /copy, & hosting demo
-â”œâ”€â”€ package.json                   # Metadata proyek & version tracking
-â””â”€â”€ README.md                      # Dokumentasi pengenalan dan instalasi
+├── src/
+│   ├── appsscript.json            # Manifest izin Apps Script (Container-Bound)
+│   ├── backend/
+│   │   ├── Code.js                # Handler onOpen(), doGet(), dan API dispatcher
+│   │   ├── SetupService.js        # Inisialisasi otomatis tab sheet & styling tema
+│   │   └── TransactionService.js  # Mesin kalkulasi saldo, mutasi, anggaran, & dompet
+│   └── frontend/
+│       ├── Index.html             # Shell struktur aplikasi & navigasi bawah HP
+│       ├── Styles.html            # Desain CSS sistem Sage Green utilitarian
+│       └── App.html               # Logika antarmuka klien & interaksi reaktif
+├── docs/                         # Paket dokumentasi PEMBELI (dibagikan saat penjualan)
+│   ├── README.md                              # Indeks dokumen pembeli
+│   ├── 01_PANDUAN_PENGUJIAN_PRODUK.md         # Panduan & SOP pengujian produk + UAT
+│   ├── 02_PRODUCT_TESTING_CHECKLIST.md        # Lembar kerja kosong untuk mencatat hasil uji
+│   ├── 03_USER_GUIDE.md                       # Panduan lengkap pembeli (salin, input, dashboard, & HP)
+│   └── 04_LICENSE_AND_TERMS_OF_USE.md         # Perjanjian lisensi, hak modifikasi, & ketentuan refund
+├── internal/                     # Dokumen INTERNAL PENJUAL (tidak dibagikan ke pembeli)
+│   ├── README.md                              # Indeks dokumen internal
+│   ├── BRIEF_PRODUK.md                        # Product brief, target market, & model harga
+│   ├── LAPORAN_QC.md                          # Laporan QC & temuan pengujian produk
+│   ├── DOKUMENTASI_PERBAIKAN.md               # Riwayat temuan → perbaikan → tes
+│   ├── RENCANA_RILIS.md                       # Rencana aksi peluncuran per fase (P0/P1/P2)
+│   └── DESIGN_SYSTEM.md                       # Sistem desain bersama payung Finance Tracker
+├── demo/
+│   ├── index.html                 # Interactive Product Preview (Showcase simulator untuk calon pembeli)
+│   ├── assets/tailwindcss.js      # Tailwind lokal agar demo tidak bergantung CDN
+│   └── WebApp.html                # Standalone Web App client untuk frame preview demo
+├── tests/
+│   ├── e2e/                       # Pengujian otomatis Playwright (transaksi & demo)
+│   ├── backend/                   # Regresi backend GAS (node:test + fake SpreadsheetApp)
+│   ├── fixtures/                  # Fixture pengujian lokal (hasil generate)
+│   └── mocks/                     # Google Apps Script API mock engine
+├── scripts/
+│   ├── prepare-test-app.js        # Compiler fixture pengujian & sinkronisasi file demo
+│   └── clasp-version.js           # Menyamakan versi Apps Script dengan package.json
+├── preview.html                   # Pratinjau aplikasi offline untuk komputer lokal
+├── setup_guide.md                 # Panduan lengkap penjual: Master sheet, trik URL /copy, & hosting demo
+├── package.json                   # Metadata proyek & version tracking
+└── README.md                      # Dokumentasi pengenalan dan instalasi
 ```
 
 ---
@@ -93,13 +101,13 @@ Anda dapat menguji antarmuka dan alur kerja aplikasi secara langsung di browser 
 
 > **Penting (R-01)**: nama file HTML harus persis `Index`, `Styles`, dan `App` pada instalasi manual (tanpa folder `frontend/`). Sejak v1.8.0 backend mendukung dua mode sekaligus: file datar seperti di atas **atau** struktur `frontend/Index.html` bila Anda memakai `clasp push` dengan `rootDir: "./src"` (lihat `.clasp.json`). Tidak perlu mengubah `include()` secara manual.
 
-> **Alternatif untuk pengguna teknis**: gunakan [`@google/clasp`](https://github.com/google/clasp) â€” `npm install`, lalu `npm run login` dan `npm run push`. Perintah `npm run deploy` juga membuat versi Apps Script otomatis dari nomor versi `package.json`.
+> **Alternatif untuk pengguna teknis**: gunakan [`@google/clasp`](https://github.com/google/clasp) — `npm install`, lalu `npm run login` dan `npm run push`. Perintah `npm run deploy` juga membuat versi Apps Script otomatis dari nomor versi `package.json`.
 
 ### Langkah 3: Inisialisasi Otomatis Spreadsheet
 1. Kembali ke tab Google Sheets Anda, lalu lakukan **Refresh / Muat Ulang Halaman (F5)**.
 2. Tunggu beberapa detik hingga menu kustom baru muncul di menu bar atas:  
    **`[ Finance Tracker ]`**
-3. Klik menu tersebut > pilih **Buka Aplikasi (Modal)**. (Menu juga memuat **Jalankan Setup / Resei Template**, **Tutup Buku & Arsipkan Tahun Lalu**, dan **Petunjuk Pasang di HP (Pintasan)**.)
+3. Klik menu tersebut > pilih **Buka Aplikasi (Modal)**. (Menu juga memuat **Jalankan Setup / Reset Template**, **Tutup Buku & Arsipkan Tahun Lalu**, dan **Petunjuk Pasang di HP (Pintasan)**.)
 4. Saat pertama kali dijalankan, Google akan memunculkan konfirmasi izin (*Authorization Required*):
    - Klik **Lanjutkan / Review Permissions** > pilih akun Google Anda.
    - Klik **Advanced (Lanjutan)** > klik **Go to Finance Tracker (unsafe)**.
@@ -151,14 +159,13 @@ Artefak `WebApp.html`, `demo/WebApp.html`, `preview.html`, dan `tests/fixtures/a
 
 ## Dokumentasi Resmi & Berkas Penjualan
 
-Seluruh dokumen pelengkap komersial dan acuan operasional tersedia di folder [`docs/`](file:///J:/Aplikasi/finance-template/docs):
+Seluruh dokumen pelengkap komersial tersedia di folder [`docs/`](file:///J:/Aplikasi/finance-template/docs) — **paket dokumentasi pembeli** yang dibagikan saat penjualan:
 
-| No. | Dokumen | Fungsi | Format | PIC | Berkas Siap Baca (DOCX / XLSX) |
-|---|---|---|---|---|---|
-| 1 | [**Product Brief & Requirements**](file:///J:/Aplikasi/finance-template/docs/01_PRODUCT_BRIEF_AND_REQUIREMENTS.md) | Menjelaskan target pengguna, tujuan produk, fitur, dan batasannya | Google Docs | Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/01_PRODUCT_BRIEF_AND_REQUIREMENTS.docx) |
-| 2a | [**Panduan & SOP Pengujian Produk**](file:///J:/Aplikasi/finance-template/docs/02_PANDUAN_PENGUJIAN_PRODUK.md) | Petunjuk teknis prosedur pengujian langkah demi langkah | Google Docs / PDF | Finance + Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/02_PANDUAN_PENGUJIAN_PRODUK.docx) |
-| 2b | [**Product Testing Checklist (Blank Template)**](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.md) | Lembar kerja kosong verifikasi rumus & fungsi fitur | Google Sheets | Finance + Operations | [**Workbook XLSX 2 Tab**](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx) |
-| 3 | [**User Guide**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.md) | Panduan penggunaan untuk pembeli | PDF | Operations | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.docx) |
-| 4 | [**License & Terms of Use**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.md) | Mengatur hak penggunaan, distribusi, dan ketentuan pembelian | PDF | Operations + Finance | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.docx) |
-| 5 | [**Laporan QC & Product Testing**](file:///J:/Aplikasi/finance-template/docs/05_LAPORAN_QC_PRODUCT_TESTING.md) | Hasil audit 67 temuan (produk asli, demo, dan frontend bersama) | Markdown | QA | - |
-| 6 | [**Dokumentasi Perbaikan v1.9.0**](file:///J:/Aplikasi/finance-template/docs/06_DOKUMENTASI_PERBAIKAN.md) | Pemetaan setiap temuan ke perbaikan kode + bukti pengujian | Markdown | Engineering | - |
+| No. | Dokumen | Fungsi | Format | Berkas Siap Baca (DOCX / XLSX) |
+|---|---|---|---|---|
+| 1 | [**Panduan & SOP Pengujian Produk**](file:///J:/Aplikasi/finance-template/docs/01_PANDUAN_PENGUJIAN_PRODUK.md) | Petunjuk teknis prosedur pengujian langkah demi langkah + skenario UAT | Google Docs / PDF | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/01_PANDUAN_PENGUJIAN_PRODUK.docx) |
+| 2 | [**Product Testing Checklist (Blank Template)**](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.md) | Lembar kerja kosong verifikasi rumus & fungsi fitur | Google Sheets | [**Workbook XLSX 2 Tab**](file:///J:/Aplikasi/finance-template/docs/02_PRODUCT_TESTING_CHECKLIST.xlsx) |
+| 3 | [**User Guide**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.md) | Panduan penggunaan untuk pembeli | PDF | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/03_USER_GUIDE.docx) |
+| 4 | [**License & Terms of Use**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.md) | Mengatur hak penggunaan, distribusi, dan ketentuan pembelian | PDF | [**Unduh DOCX**](file:///J:/Aplikasi/finance-template/docs/04_LICENSE_AND_TERMS_OF_USE.docx) |
+
+Dokumen internal penjual (product brief, laporan QC, riwayat perbaikan, rencana rilis, design system) berada di folder [`internal/`](file:///J:/Aplikasi/finance-template/internal/README.md) dan **tidak** disertakan ke pembeli.

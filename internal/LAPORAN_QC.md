@@ -100,7 +100,7 @@ Hanya ada di produk asli: backend GAS, manifest, deployment, mode Sidebar/Dialog
 | R-17 | M | Privasi | `Code.js:16-26`; `Index.html:48,63` | Email pengguna/efektif ditampilkan di UI. Pada mode deployment tertentu ini bisa menampilkan email pemilik ke pengunjung. | Code review |
 | R-18 | M | Manifest/UI | `Code.js:53-63`; `Index.html:5` | `doGet(e)` mengabaikan parameter dan menambahkan meta viewport kedua yang bertentangan dengan meta di template. | Code review |
 | R-19 | M | Build/deploy | `package.json:11-20`; `GEMINI.md:3-8` | `clasp` dipakai di script tetapi tidak ada di `devDependencies`. `npm run deploy` hanya `test && clasp push --force` tanpa `clasp version`, sehingga nomor versi Apps Script tidak pernah selaras dengan `package.json`. `main: index.js` menunjuk file yang tidak ada. | Code review |
-| R-20 | M | Dokumen/klaim | `README.md:22,3`; `Code.js:35-36`; `demo/index.html:144`; `docs/02_PANDUAN_PENGUJIAN_PRODUK.md:100,104` | Dialog diklaim 980x680, kode 1080x720. Klaim "PWA" tanpa `manifest.json`/service worker (Add to Home Screen hanya bookmark). TC-SUM-04 menjanjikan subtotal masuk dan keluar per hari, UI hanya menampilkan net. TC-DSH-02 menjanjikan donut per dompet, implementasi berupa bar horizontal. | Code review |
+| R-20 | M | Dokumen/klaim | `README.md:22,3`; `Code.js:35-36`; `demo/index.html:144`; `docs/01_PANDUAN_PENGUJIAN_PRODUK.md:100,104` | Dialog diklaim 980x680, kode 1080x720. Klaim "PWA" tanpa `manifest.json`/service worker (Add to Home Screen hanya bookmark). TC-SUM-04 menjanjikan subtotal masuk dan keluar per hari, UI hanya menampilkan net. TC-DSH-02 menjanjikan donut per dompet, implementasi berupa bar horizontal. | Code review |
 | R-21 | L | Manifest | `appsscript.json:10-15` | Scope `spreadsheets.currentonly` dan `spreadsheets` diminta bersamaan (redundan/tidak konsisten). | Code review |
 | R-22 | L | Menu | `Code.js:12,65-68` | Menu "Periksa / Inisialisasi Database" tidak memeriksa apa pun, hanya memastikan struktur; toast selalu sukses tanpa penanganan error. | Code review |
 | R-23 | L | Validasi | `TransactionService.js:298-307,347-364` | `saveWallet` menerima nama berisi spasi dan tipe sembarang; `saveBudget` menerima limit 0/negatif dan kategori yang tidak ada. Frontend mencegah, API langsung tidak. | Terverifikasi (S10) |
@@ -282,7 +282,7 @@ Bagian ini menjawab pertanyaan "kalau demo lulus, apakah produk lulus?" — jawa
 
 - Semua blocker dan high tertutup, dengan tes regresi yang gagal sebelum perbaikan dan lulus sesudahnya.
 - Tes backend nyata (bukan mock) berjalan di CI.
-- 26 TC di `docs/02_PANDUAN_PENGUJIAN_PRODUK.md` dieksekusi ulang pada akun Google baru lewat tautan `/copy`.
+- 26 TC di `docs/01_PANDUAN_PENGUJIAN_PRODUK.md` dieksekusi ulang pada akun Google baru lewat tautan `/copy`.
 - UAT mobile nyata (Safari iOS + Chrome Android) untuk alur: buka Sidebar, catat pemasukan, transfer, edit, hapus, atur anggaran, cek laporan bulan lalu.
 - Demo diperbarui dari sumber yang sama dan diverifikasi ulang setelah setiap perubahan frontend.
 
