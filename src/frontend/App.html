@@ -1749,12 +1749,12 @@
           </div>
         `}
       `;
-    } else if (appState.activeTab === 'settings') {
+    } else if (appState.activeTab === 'manage') {
       const inactiveWallets = d.inactiveWallets || [];
       const incomeCats = d.categories.filter(c => c.type === 'Income');
       const expenseCats = d.categories.filter(c => c.type === 'Expense');
       contentHtml = `
-        <!-- Tab Pengaturan: kelola dompet, kategori, anggaran -->
+        <!-- Tab Kelola: dompet, kategori, anggaran (data master) -->
         <div class="section-header">
           <div>
             <div class="section-title">Kantong Saldo</div>
@@ -1873,6 +1873,70 @@
                 </div>
               </div>`;
             }).join('')}
+        </div>
+
+        <!-- Catatan tab Kelola -->
+        <div class="overview-panel" style="padding: 14px;">
+          <div class="section-title" style="margin-bottom: 6px;">Tentang Tab Kelola</div>
+          <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+            Dompet, kategori, dan batas anggaran adalah <b>data master</b> yang dipakai formulir pencatatan.
+            Perubahan di sini langsung berlaku pada transaksi berikutnya; transaksi lama tetap tersimpan di Buku Kas.
+          </div>
+        </div>
+      `;
+    } else if (appState.activeTab === 'settings') {
+      contentHtml = `
+        <!-- Tab Akun: identitas, pintasan, pemeliharaan data -->
+        <div class="section-header">
+          <div>
+            <div class="section-title">Akun &amp; Akses</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">Aplikasi pribadi · data milik Anda</div>
+          </div>
+          <span class="user-badge">Master</span>
+        </div>
+        <div class="overview-panel" style="padding: 14px; margin-bottom: 24px;">
+          <div class="mini-bar-item" style="margin-bottom: 10px;">
+            <div class="mini-bar-header">
+              <span style="font-weight: 600;">Email aktif</span>
+              <span style="font-size: 12px; color: var(--text-muted); word-break: break-all; text-align: right; margin-left: 12px;">${esc(typeof userEmail !== 'undefined' ? userEmail : 'Pengguna')}</span>
+            </div>
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+            Seluruh data tersimpan di Google Sheets pribadi Anda. Tidak ada server pihak ketiga yang menyimpan salinan data.
+          </div>
+        </div>
+
+        <!-- Pintasan layar utama -->
+        <div class="section-header">
+          <div>
+            <div class="section-title">Pintasan Layar Utama</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">Buka aplikasi lebih cepat dari HP</div>
+          </div>
+        </div>
+        <div class="overview-panel" style="padding: 14px; margin-bottom: 24px;">
+          <ol style="margin: 0; padding-left: 18px; font-size: 12.5px; line-height: 1.8; color: var(--text-main);">
+            <li>Buka aplikasi di <b>Chrome</b> (Android) atau <b>Safari</b> (iPhone).</li>
+            <li>Ketuk menu browser, lalu pilih <b>Add to Home Screen</b>.</li>
+            <li>Ikon <b>FT</b> muncul di layar utama seperti pintasan biasa.</li>
+          </ol>
+          <div style="margin-top: 10px; font-size: 11.5px; color: var(--text-subtle); line-height: 1.6;">
+            Ini pintasan browser, bukan aplikasi yang diinstal dari Play Store/App Store.
+          </div>
+        </div>
+
+        <!-- Data & pemeliharaan -->
+        <div class="section-header">
+          <div>
+            <div class="section-title">Data &amp; Pemeliharaan</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">Segarkan data dari Google Sheets</div>
+          </div>
+          <button class="btn btn-sm" onclick="loadDashboardData()">Muat Ulang Data</button>
+        </div>
+        <div class="overview-panel" style="padding: 14px; margin-bottom: 24px;">
+          <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+            Gunakan <b>Muat Ulang Data</b> bila tampilan belum sama dengan isi spreadsheet
+            (misalnya setelah ada pengeditan manual di Google Sheets).
+          </div>
         </div>
 
         <!-- Tentang aplikasi -->

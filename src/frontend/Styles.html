@@ -1011,11 +1011,11 @@
   }
   .mobile-nav-inner {
     display: grid;
-    /* 4 kolom: Ringkasan | Aksi (FAB) | Buku Kas | Pengaturan */
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    align-items: center;
-    gap: 8px;
-    max-width: 480px;
+    /* 5 slot: Ringkasan | Buku Kas | Catat (tengah) | Kelola | Akun */
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    align-items: end;
+    gap: 2px;
+    max-width: 520px;
     margin: 0 auto;
     width: 100%;
   }
@@ -1028,14 +1028,16 @@
     background: transparent;
     border: none;
     color: var(--text-muted);
-    padding: 6px 4px;
+    padding: 6px 2px;
     border-radius: 12px;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
     transition: all 120ms ease;
     font-family: inherit;
     -webkit-tap-highlight-color: transparent;
+    min-width: 0;
+    text-align: center;
   }
   .mobile-nav-item:hover, .mobile-nav-item:focus {
     color: var(--text-main);
@@ -1071,6 +1073,22 @@
   .mobile-nav-item.action:active .action-fab {
     transform: scale(0.92);
     background: var(--sage-700);
+  }
+  /* Tombol Catat di tengah: terangkat seperti FAB agar seimbang 2 kiri - 2 kanan */
+  .mobile-nav-item.action.center {
+    margin-top: -18px;
+    gap: 2px;
+  }
+  .mobile-nav-item.action.center .action-fab {
+    width: 48px;
+    height: 48px;
+    border: 3px solid #ffffff;
+    box-shadow: 0 8px 18px rgba(27, 67, 50, 0.32);
+  }
+  .mobile-nav-item.action.center span {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--sage-800);
   }
 
   /* Responsive Rules (Mobile Optimization & Visual Balance) */

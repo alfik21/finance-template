@@ -102,20 +102,20 @@ Saat pertama kali membuka menu aplikasi di Google Sheets, Google mewajibkan konf
 Sebelum mulai mencatat, lakukan penyesuaian awal pada dompet dan anggaran Anda:
 
 ### A. Mengatur Kantong Dompet & Saldo Awal
-Buka tab **Dompet** pada antarmuka aplikasi:
+Buka tab **Kelola** pada navigasi bawah:
 1. Telah tersedia dompet standar: *Dompet Tunai*, *BCA Tabungan*, dan *GoPay*.
 2. Tekan **"Tambah Dompet"** untuk menambah rekening lain (misal: *Mandiri*, *OVO*, atau *ShopeePay*).
 3. Masukkan **Saldo Awal**: Jumlah riil uang di rekening tersebut saat ini. Saldo awal ini otomatis menjadi modal awal di Kekayaan Bersih (*Net Worth*) tanpa mengotori laporan pemasukan bulanan berjalan.
 
 ### B. Menetapkan Batas Anggaran Berulang (Recurring Budgets)
-1. Buka tab **Anggaran**.
+1. Di tab **Kelola**, cari bagian **Batas Anggaran Bulanan** lalu tekan tombol **+ Atur Anggaran**.
 2. Tentukan kategori belanja (misal: *Makan & Minum*) dan tetapkan batas maksimal nominal bulanan (misal: *Rp 1.500.000*).
 3. Anggaran ini bersifat **Recurring** (berulang otomatis setiap awal bulan baru tanpa perlu diatur ulang).
 
 ```text
 +-----------------------------------------------------------------------------------+
 | TANGKAPAN LAYAR 03: PENGATURAN DOMPET & ANGGARAN                                  |
-| Lokasi: Tab Dompet & Anggaran pada antarmuka aplikasi                             |
+| Lokasi: Tab Kelola (Dompet & Anggaran) pada antarmuka aplikasi                    |
 | Menampilkan: Form Saldo Awal Dompet dan Batang Batas Anggaran Kategori            |
 +-----------------------------------------------------------------------------------+
 ```
