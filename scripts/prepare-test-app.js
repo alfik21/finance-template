@@ -65,6 +65,12 @@ if (fs.existsSync(demoIndexPath)) {
     /(<script src=")assets\/tailwindcss\.js("><\/script>)/g,
     '$1demo/assets/tailwindcss.js$2'
   );
+  // FASE 3: og:image/twitter:image ikut dialihkan ke paket demo (pola yang sama
+  // dengan tailwindcss.js) agar preview.html di root tidak 404.
+  showcaseContent = showcaseContent.replace(
+    /(content=")assets\/og-cover\.png(")/g,
+    '$1demo/assets/og-cover.png$2'
+  );
   const previewPath = path.join(rootDir, 'preview.html');
   fs.writeFileSync(previewPath, GENERATED_HEADER + showcaseContent, 'utf-8');
   console.log('Showcase preview.html berhasil diperbarui di: ' + previewPath);

@@ -965,6 +965,37 @@
     box-shadow: 0 1px 3px rgba(27, 67, 50, 0.25);
   }
 
+  /* Toast notifikasi non-blocking (pengganti alert) */
+  .toast-stack {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: min(92vw, 420px);
+    pointer-events: none;
+  }
+  .toast {
+    padding: 11px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.45;
+    color: #ffffff;
+    background: var(--sage-800);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+  }
+  .toast-show { opacity: 1; transform: translateY(0); }
+  .toast-error { background: #b91c1c; }
+  .toast-success { background: var(--sage-700); }
+  .toast-info { background: #2563eb; }
+
   /* Floating Mobile Bottom Navigation (Ergonomic 3-Column Touch Bar) */
   .mobile-nav {
     display: none;
@@ -980,10 +1011,11 @@
   }
   .mobile-nav-inner {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    /* 4 kolom: Ringkasan | Aksi (FAB) | Buku Kas | Pengaturan */
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     align-items: center;
     gap: 8px;
-    max-width: 440px;
+    max-width: 480px;
     margin: 0 auto;
     width: 100%;
   }
@@ -1046,7 +1078,7 @@
     .sidebar { display: none; }
     .mobile-header { display: flex; }
     .mobile-nav { display: flex; }
-    .main-content { padding: 14px 14px 92px; max-width: 100%; }
+    .main-content { padding: 14px 14px calc(92px + env(safe-area-inset-bottom, 0px)); max-width: 100%; }
 
     /* Balanced Transactions Toolbar */
     .tx-toolbar-wrapper {
@@ -1288,7 +1320,7 @@
   body.SIDEBAR .sidebar { display: none; }
   body.SIDEBAR .mobile-header { display: flex; }
   body.SIDEBAR .mobile-nav { display: flex; }
-  body.SIDEBAR .main-content { padding: 14px 14px 88px; max-width: 100%; }
+  body.SIDEBAR .main-content { padding: 14px 14px calc(88px + env(safe-area-inset-bottom, 0px)); max-width: 100%; }
   body.SIDEBAR .hero-card { padding: 16px; margin-bottom: 16px; }
   body.SIDEBAR .hero-top { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
   body.SIDEBAR .hero-action-btn { display: none; }

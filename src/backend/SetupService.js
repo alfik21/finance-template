@@ -17,7 +17,7 @@ function ensureDatabaseStructure() {
       name: "DASHBOARD",
       headers: ["RINGKASAN FINANCE TRACKER", "Nilai", "Keterangan", "Diperbarui"],
       setup: (sheet) => {
-        sheet.setTabColor("#0D6858");
+        sheet.setTabColor("#1B4332");
       },
       // R-14: isi ringkasan statis agar tab tidak kosong.
       content: (sheet) => {
@@ -41,7 +41,7 @@ function ensureDatabaseStructure() {
       headers: ["ID", "Tanggal", "Tipe", "Dompet_ID", "Dompet_Tujuan_ID", "Kategori_ID", "Nominal", "Catatan", "Dibuat_Pada"],
       seeds: [],
       setup: (sheet) => {
-        sheet.setTabColor("#2563EB");
+        sheet.setTabColor("#2D6A4F");
       }
     },
     {
@@ -53,7 +53,7 @@ function ensureDatabaseStructure() {
         ["W-3", "GoPay", "E-Wallet", 0, "Smartphone", true]
       ],
       setup: (sheet) => {
-        sheet.setTabColor("#475569");
+        sheet.setTabColor("#40916C");
       }
     },
     {
@@ -70,7 +70,7 @@ function ensureDatabaseStructure() {
         ["C-EX-5", "Hiburan & Hobi", "Expense", "Smile"]
       ],
       setup: (sheet) => {
-        sheet.setTabColor("#C53030");
+        sheet.setTabColor("#40916C");
       }
     },
     {
@@ -79,7 +79,7 @@ function ensureDatabaseStructure() {
       // R-15: tidak ada seed anggaran contoh.
       seeds: [],
       setup: (sheet) => {
-        sheet.setTabColor("#D97706");
+        sheet.setTabColor("#2D6A4F");
       }
     },
     {
@@ -90,7 +90,7 @@ function ensureDatabaseStructure() {
       headers: ["PENGATURAN", "NILAI", "KETERANGAN"],
       seeds: [],
       setup: (sheet) => {
-        sheet.setTabColor("#475569");
+        sheet.setTabColor("#40916C");
       },
       content: (sheet) => {
         const rows = [
@@ -138,7 +138,47 @@ function ensureDatabaseStructure() {
     }
   });
 
+  // R-21: sheet sistem PENGATURAN diproteksi keras (aplikasi & mitra hanya baca).
+  hardenProtectPengaturan_(ss);
+
   return ss;
+}
+
+/**
+ * R-21: proteksi keras sheet PENGATURAN.
+ * Sheet ini hanya dibaca oleh aplikasi (daftar email izin). Proteksi dibuat
+ * non-warning-only, editor lain dihapus, dan pemilik proteksi adalah user
+ * efektif yang menjalankan setup. Kegagalan (mis. dijalankan oleh akun tanpa
+ * izin proteksi) tidak menjatuhkan proses setup.
+ */
+function hardenProtectPengaturan_(ss) {
+  try {
+    const sheet = ss.getSheetByName("PENGATURAN");
+    if (!sheet || typeof sheet.protect !== "function") return;
+    const type = (SpreadsheetApp.ProtectionType && SpreadsheetApp.ProtectionType.SHEET) || "SHEET";
+    let prot;
+    const existing = typeof sheet.getProtections === "function"
+      ? sheet.getProtections(type)
+      : [];
+    if (existing && existing.length > 0) {
+      prot = existing[0];
+      if (prot.isWarningOnly && prot.isWarningOnly()) prot.setWarningOnly(false);
+    } else {
+      prot = sheet.protect().setDescription(
+        "Finance Tracker — sheet sistem (dibaca aplikasi; ubah via menu Finance Tracker)"
+      );
+    }
+    const me = Session.getEffectiveUser().getEmail();
+    if (prot.getEditors) {
+      const otherEditors = (prot.getEditors() || [])
+        .map((u) => (u && u.getEmail ? u.getEmail() : ""))
+        .filter((e) => e && e !== me);
+      if (otherEditors.length && prot.removeEditors) prot.removeEditors(otherEditors);
+    }
+    if (prot.canDomainEdit && prot.canDomainEdit()) prot.setDomainEdit(false);
+  } catch (e) {
+    console.warn("Proteksi PENGATURAN dilewati: " + (e && e.message ? e.message : e));
+  }
 }
 
 /**

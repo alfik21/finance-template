@@ -24,6 +24,42 @@ function makeSheet(name, rows) {
     rows: rows.map((r) => r.slice()),
     _tabColor: null,
     _frozen: 0,
+    _protections: [],
+    _protectionEditors: ["kolaborator@lain.com"],
+    getProtections() {
+      return sheet._protections;
+    },
+    protect() {
+      const prot = {
+        _warningOnly: false,
+        _editors: (sheet._protectionEditors || []).slice(),
+        isWarningOnly() {
+          return prot._warningOnly;
+        },
+        setWarningOnly(v) {
+          prot._warningOnly = !!v;
+          return prot;
+        },
+        setDescription() {
+          return prot;
+        },
+        getEditors() {
+          return prot._editors.map((e) => ({ getEmail: () => e }));
+        },
+        removeEditors(emails) {
+          prot._editors = prot._editors.filter((e) => emails.indexOf(e) === -1);
+          return prot;
+        },
+        canDomainEdit() {
+          return false;
+        },
+        setDomainEdit() {
+          return prot;
+        },
+      };
+      sheet._protections.push(prot);
+      return prot;
+    },
     getDataRange() {
       return {
         getValues: () => sheet.rows.map((r) => r.slice()),
@@ -229,6 +265,7 @@ function createHarness(options = {}) {
     SpreadsheetApp: {
       getActiveSpreadsheet: () => ss,
       getUi: () => ui,
+      ProtectionType: { SHEET: "SHEET" },
     },
     Session: {
       getActiveUser: () => ({ getEmail: () => email }),

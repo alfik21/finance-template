@@ -67,6 +67,8 @@ Pembeli dilarang keras untuk melakukan hal-hal berikut tanpa persetujuan tertuli
 5.2. **Garansi Fungsional Kerusakan Permanen**: Pengembalian dana penuh (100%) hanya dapat diproses apabila memenuhi syarat kumulatif berikut:
 - Tautan Master Template yang diterima pembeli terbukti rusak permanen, tidak dapat dibuka, atau berkas korup sejak pertama kali diterima.
 - Tim teknis Operations + Finance tidak mampu memberikan tautan pengganti atau berkas cadangan yang berfungsi normal dalam kurun waktu 3 x 24 jam kerja sejak laporan resmi diajukan.
+5.3. **Prosedur Klaim**: Klaim diajukan melalui kanal dukungan resmi (WhatsApp/surel yang tercantum pada halaman pembelian) dengan melampirkan bukti pembelian serta tangkapan layar/rekaman kendala. Verifikasi dilakukan maksimal 3 x 24 jam kerja; keputusan pengembalian dana bersifat final dan disampaikan tertulis.
+5.4. **Pengecualian Garansi**: Pengembalian dana **tidak** berlaku untuk: (a) kendala kuota, izin, atau kebijakan akun Google milik pembeli; (b) kesalahan input, penghapusan data, atau penyalahgunaan formula oleh pengguna; (c) ketidakcocikan fitur dengan kebutuhan spesifik setelah berkas terbukti berfungsi sesuai deskripsi; dan (d) produk yang telah dimodifikasi di luar panduan resmi.
 
 ---
 

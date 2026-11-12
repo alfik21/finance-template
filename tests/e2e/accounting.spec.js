@@ -73,18 +73,19 @@ test.describe('E2E: Logika Akuntansi Saldo, Budgeting & UX Formulir', () => {
   });
 
   test('4. Integritas Hapus Dompet: cegah penghapusan jika saldo dompet > 0', async ({ page }) => {
-    let alertMsg = '';
-    page.on('dialog', async dialog => {
-      alertMsg = dialog.message();
-      await dialog.dismiss();
-    });
+    // Pesan peringatan kini lewat toast non-blocking (bukan dialog alert).
+    const toastStack = page.locator('#toast-stack');
+    const toastPromise = toastStack.locator('.toast').first().waitFor({ state: 'visible', timeout: 5000 })
+      .catch(() => null);
 
     // Coba hapus BCA Tabungan yang memiliki saldo 10.000.000
     const btnDelBCA = page.locator('.wallet-pill:has-text("BCA Tabungan") button[title="Hapus dompet"]');
     await btnDelBCA.click();
 
     // Pastikan muncul peringatan saldo
-    expect(alertMsg).toContain('masih memiliki saldo');
+    const toast = await toastPromise;
+    expect(toast, 'toast peringatan saldo harus muncul').not.toBeNull();
+    await expect(page.locator('.toast-error, .toast').first()).toContainText('masih memiliki saldo');
     // Dompet tetap ada di daftar dompet
     await expect(page.locator('.wallets-grid').locator('text=BCA Tabungan')).toBeVisible();
   });

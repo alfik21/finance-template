@@ -516,6 +516,8 @@ async function buildDoc4() {
     createH1('Pasal 5: Kebijakan Pengembalian Dana (Refund Policy)'),
     createBullet('Mengingat produk berbentuk perangkat lunak digital instan (instant digital download), seluruh transaksi bersifat final dan non-refundable.', '5.1. Sifat Barang Digital'),
     createBullet('Pengembalian dana penuh hanya diproses jika tautan master terbukti rusak permanen dan tim teknis tidak mampu memberikan tautan pengganti dalam 3 x 24 jam kerja.', '5.2. Garansi Kerusakan Permanen'),
+    createBullet('Klaim diajukan lewat kanal dukungan resmi dengan bukti pembelian dan tangkapan layar kendala; verifikasi maksimal 3 x 24 jam kerja dan keputusan disampaikan tertulis.', '5.3. Prosedur Klaim'),
+    createBullet('Pengembalian dana tidak berlaku untuk kendala kuota/izin akun Google pembeli, kesalahan input atau penyalahgunaan formula, ketidakcocikan fitur setelah berkas berfungsi sesuai deskripsi, serta produk yang dimodifikasi di luar panduan resmi.', '5.4. Pengecualian Garansi'),
     createH1('Pasal 6: Batasan Tanggung Jawab & Sanggahan Finansial (Disclaimer)'),
     createBullet('Produk berfungsi murni sebagai alat bantu administratif pencatatan kas, bukan penasihat keuangan berlisensi atau kantor akuntan publik.', '6.1. Bukan Nasihat Finansial Resmi'),
     createBullet('Akurasi angka saldo riil sepenuhnya bergantung pada ketepatan data yang diinput oleh pengguna.', '6.2. Akurasi Data Input'),

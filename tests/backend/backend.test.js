@@ -837,6 +837,38 @@ test("Setup: ensureDatabaseStructure bersifat idempoten dan tidak menduplikasi d
 });
 
 /* ========================================================================== *
+ * R-21: proteksi keras sheet PENGATURAN
+ * ========================================================================== */
+
+test("R-21: setup memasang proteksi keras (bukan warning-only) pada PENGATURAN", () => {
+  const h = createHarness({ sheets: {}, properties: ALLOW });
+  h.sandbox.ensureDatabaseStructure();
+
+  const prots = h.sheetsObj.PENGATURAN._protections;
+  assert.equal(prots.length, 1, "satu proteksi sheet dipasang");
+  assert.equal(prots[0].isWarningOnly(), false, "proteksi bukan warning-only");
+  const editors = prots[0].getEditors().map((u) => u.getEmail());
+  assert.deepEqual(editors, [], "editor lain (kolaborator) dihapus dari proteksi");
+});
+
+test("R-21: proteksi warning-only lama dipertahankan objeknya lalu diperketat", () => {
+  const sheets = baseSheets();
+  sheets.PENGATURAN = [["PENGATURAN", "NILAI", "KETERANGAN"], ["Email Pemilik", "", ""]];
+  const h = createHarness({ sheets, properties: ALLOW });
+  // Simulasi proteksi warning-only yang sudah ada dari setup sebelumnya.
+  const legacy = h.sheetsObj.PENGATURAN.protect();
+  legacy.setWarningOnly(true);
+  legacy._editors.push("owner@example.com");
+  h.sheetsObj.PENGATURAN._protectionEditors = [];
+
+  h.sandbox.ensureDatabaseStructure();
+
+  const prots = h.sheetsObj.PENGATURAN._protections;
+  assert.equal(prots.length, 1, "proteksi lama dipakai ulang, tidak duplikat");
+  assert.equal(prots[0].isWarningOnly(), false, "warning-only diperketat jadi proteksi keras");
+});
+
+/* ========================================================================== *
  * Menu baru v1.9.0: petunjuk pemasangan HP & tutup buku tahunan
  * ========================================================================== */
 

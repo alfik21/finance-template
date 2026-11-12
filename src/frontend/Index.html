@@ -4,6 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Finance Tracker</title>
+  <meta name="theme-color" content="#40916c">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2340916c'/%3E%3Ctext x='32' y='42' font-family='system-ui,sans-serif' font-size='30' font-weight='700' fill='white' text-anchor='middle'%3EFT%3C/text%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2340916c'/%3E%3Ctext x='32' y='42' font-family='system-ui,sans-serif' font-size='30' font-weight='700' fill='white' text-anchor='middle'%3EFT%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <?!= include('frontend/Styles'); ?>
@@ -13,6 +16,27 @@
 <!-- S-15: pita peringatan saat perangkat offline -->
 <div id="offline-banner" role="alert" style="display: none; background: #B45309; color: #fff; text-align: center; font-size: 12px; font-weight: 600; padding: 6px 12px;">
   Perangkat sedang offline. Perubahan tidak akan tersimpan sampai koneksi pulih.
+</div>
+
+<!-- Toast non-blocking (pengganti alert) -->
+<div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+<!-- Onboarding Pertama Kali (FASE 3): kartu panduan awal, bisa ditutup,
+     diingat via localStorage sehingga hanya muncul sekali. -->
+<div id="onboarding-card" style="display: none; margin: 12px 16px 0; border: 1px solid var(--sage-200, #d1e0d8); background: #f4f7f5; border-radius: 14px; padding: 12px 14px; max-width: 720px;">
+  <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;">
+    <div>
+      <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #1b4332;">Panduan Awal — 3 Langkah</div>
+      <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">Baru pertama kali membuka aplikasi? Ikuti urutan ini sampai data Anda tersambung.</div>
+    </div>
+    <button type="button" onclick="dismissOnboarding()" title="Tutup panduan" aria-label="Tutup panduan awal"
+      style="border: none; background: none; cursor: pointer; color: var(--text-muted); font-size: 16px; line-height: 1; padding: 2px 4px;">&times;</button>
+  </div>
+  <ol style="margin: 8px 0 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 11.5px; color: var(--text-main);">
+    <li><b>1.</b> Salin template ke Google Drive Anda dan jalankan menu <b>Finance Tracker &gt; Setup Awal</b> di spreadsheet.</li>
+    <li><b>2.</b> Otorisasi &amp; deploy: <b>Ekstensi &gt; Apps Script &gt; Deploy &gt; New deployment</b> (Execute as: <i>User accessing the web app</i>), lalu buka URL-nya di HP.</li>
+    <li><b>3.</b> Pasang pintasan (<b>Add to Home Screen</b>) dan kelola dompet/kategori/anggaran lewat tab <b>Pengaturan</b>.</li>
+  </ol>
 </div>
 
 <div id="demo-mode-banner" role="status" style="display: none; margin: 12px 16px 0; background: #FFFBEB; border: 1px solid #FCD34D; border-radius: 12px; padding: 8px 12px;">
@@ -58,6 +82,13 @@
           <path d="M7 14h5"></path>
         </svg>
         <span>Buku Kas</span>
+      </div>
+      <div class="nav-item touch-btn" data-tab="settings" role="button" tabindex="0" onclick="switchTab('settings')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab('settings');}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.08a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
+        </svg>
+        <span>Pengaturan</span>
       </div>
     </nav>
 
@@ -117,6 +148,13 @@
       </svg>
       <span>Buku Kas</span>
     </button>
+    <button type="button" class="mobile-nav-item touch-btn" data-tab="settings" onclick="switchTab('settings')" aria-label="Pengaturan" title="Pengaturan">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.08a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
+      </svg>
+      <span>Setelan</span>
+    </button>
   </div>
 </nav>
 
@@ -155,6 +193,15 @@
         <div style="position: relative; display: flex; align-items: center;">
           <span style="position: absolute; left: 14px; font-weight: 700; color: var(--text-muted); font-size: 15px;">Rp</span>
           <input type="text" inputmode="numeric" id="form-amount" class="form-input tabular" style="padding-left: 42px; font-size: 17px; font-weight: 700;" placeholder="0" required oninput="handleCurrencyInput(this)">
+        </div>
+        <div class="quick-chips-wrapper" style="margin-top: 8px; margin-bottom: 0;">
+          <div class="quick-chips-list">
+            <button type="button" class="quick-chip touch-btn" onclick="bumpTransactionAmount(10000)">+10rb</button>
+            <button type="button" class="quick-chip touch-btn" onclick="bumpTransactionAmount(20000)">+20rb</button>
+            <button type="button" class="quick-chip touch-btn" onclick="bumpTransactionAmount(50000)">+50rb</button>
+            <button type="button" class="quick-chip touch-btn" onclick="bumpTransactionAmount(100000)">+100rb</button>
+            <button type="button" class="quick-chip touch-btn" onclick="document.getElementById('form-amount').value=''">C</button>
+          </div>
         </div>
       </div>
 

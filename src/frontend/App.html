@@ -25,6 +25,30 @@
    * Utilitas dasar (S-01, S-05, S-10, S-14)
    * ========================================================================*/
 
+  /**
+   * Toast notifikasi non-blocking (mengganti showToast() yang menghentikan UI).
+   * type: 'error' (default) | 'success' | 'info'. Otomatis menghilang 3.5s.
+   */
+  function showToast(message, type) {
+    const stack = document.getElementById('toast-stack');
+    if (!stack) { alert(message); return; }
+    const kind = type || 'error';
+    const el = document.createElement('div');
+    el.className = 'toast toast-' + kind;
+    el.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+    el.textContent = message;
+    stack.appendChild(el);
+    // Paksa reflow agar animasi masuk berjalan.
+    void el.offsetWidth;
+    el.classList.add('toast-show');
+    setTimeout(() => {
+      el.classList.remove('toast-show');
+      el.addEventListener('transitionend', () => el.remove(), { once: true });
+      // Jaring pengaman bila transitionend tidak terpicu.
+      setTimeout(() => el.remove(), 400);
+    }, 3500);
+  }
+
   /** S-01: escape data dinamis sebelum masuk innerHTML/atribut. */
   function esc(value) {
     if (value === null || value === undefined) return '';
@@ -137,7 +161,7 @@
             refreshOpenTransactionModal_();
           } else {
             if (handleAccessDenied_(res)) return;
-            alert("Kendala memuat data: " + ((res && res.error) || "Gagal memuat data") +
+            showToast("Kendala memuat data: " + ((res && res.error) || "Gagal memuat data") +
               ". Periksa koneksi internet lalu muat ulang.");
           }
           renderApp();
@@ -145,7 +169,7 @@
         .withFailureHandler(err => {
           appState.isLoading = false;
           const msg = (err && err.message) ? err.message : 'Tidak terhubung ke server Apps Script.';
-          alert("Gagal terhubung: " + msg +
+          showToast("Gagal terhubung: " + msg +
             (navigator.onLine === false ? " (Perangkat sedang offline)" : "") +
             ". Klik tombol Muat Ulang bila berulang.");
           renderApp();
@@ -286,6 +310,14 @@
     try {
       el.setSelectionRange(newCursorPos, newCursorPos);
     } catch (e) {}
+  }
+
+  /** Chips nominal cepat: tambah nominal berjalan tanpa mengetik. */
+  function bumpTransactionAmount(delta) {
+    const amountEl = document.getElementById('form-amount');
+    if (!amountEl) return;
+    const current = parseCurrencyValue(amountEl.value) || 0;
+    amountEl.value = new Intl.NumberFormat('id-ID').format(Math.max(0, current + delta));
   }
 
   function applyQuickTemplate(name, amount, type, categoryName) {
@@ -906,11 +938,11 @@
     const catVal = catEl ? catEl.value : '';
 
     if (!rawAmount || rawAmount <= 0) {
-      alert("Masukkan nominal transaksi yang valid (> 0).");
+      showToast("Masukkan nominal transaksi yang valid (> 0).");
       return;
     }
     if (!walletVal) {
-      alert("Pilih kantong dompet transaksi.");
+      showToast("Pilih kantong dompet transaksi.");
       return;
     }
 
@@ -918,27 +950,27 @@
     const yearNum = parseInt(String(dateVal).substring(0, 4), 10);
     const maxYear = new Date().getFullYear() + 1;
     if (!dateVal || isNaN(yearNum) || yearNum < 2000 || yearNum > maxYear) {
-      alert("Tanggal transaksi tidak valid. Periksa kembali tanggal yang dipilih.");
+      showToast("Tanggal transaksi tidak valid. Periksa kembali tanggal yang dipilih.");
       return;
     }
 
     // S-15: hentikan lebih awal bila perangkat sedang offline.
     if (navigator.onLine === false) {
-      alert("Perangkat sedang offline. Sambungkan internet lalu coba lagi.");
+      showToast("Perangkat sedang offline. Sambungkan internet lalu coba lagi.");
       return;
     }
 
     if (appState.form.type === 'Transfer') {
       if (!destWalletVal) {
-        alert("Pilih rekening tujuan transfer.");
+        showToast("Pilih rekening tujuan transfer.");
         return;
       }
       if (walletVal === destWalletVal) {
-        alert("Kantong asal dan kantong tujuan transfer tidak boleh sama.");
+        showToast("Kantong asal dan kantong tujuan transfer tidak boleh sama.");
         return;
       }
     } else if (!catVal) {
-      alert("Pilih kategori transaksi terlebih dahulu.");
+      showToast("Pilih kategori transaksi terlebih dahulu.");
       return;
     }
 
@@ -966,7 +998,7 @@
     const action = editId ? 'updateTransaction' : 'createTransaction';
 
     if (typeof google === 'undefined' || !google.script || !google.script.run) {
-      alert("Layanan Google Apps Script tidak tersedia di halaman ini.");
+      showToast("Layanan Google Apps Script tidak tersedia di halaman ini.");
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.innerText = origBtnText;
@@ -991,7 +1023,7 @@
           loadDashboardData();
         } else {
           if (handleAccessDenied_(res)) return;
-          alert("Gagal menyimpan transaksi: " + ((res && res.error) || "Terjadi kesalahan"));
+          showToast("Gagal menyimpan transaksi: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerText = origBtnText;
@@ -999,7 +1031,7 @@
         }
       })
       .withFailureHandler(err => {
-        alert("Gagal terhubung: " + err.message);
+        showToast("Gagal terhubung: " + err.message);
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerText = origBtnText;
@@ -1011,8 +1043,8 @@
   function submitBudgetForm() {
     const catId = document.getElementById('budget-cat').value;
     const rawLimit = parseCurrencyValue(document.getElementById('budget-limit').value);
-    if (!catId) return alert("Pilih kategori pengeluaran.");
-    if (!rawLimit || rawLimit <= 0) return alert("Masukkan nominal batas anggaran yang valid (> 0).");
+    if (!catId) return showToast("Pilih kategori pengeluaran.");
+    if (!rawLimit || rawLimit <= 0) return showToast("Masukkan nominal batas anggaran yang valid (> 0).");
 
     const submitBtn = document.getElementById('btn-submit-budget');
     const origBtnText = submitBtn ? submitBtn.innerText : 'Simpan Anggaran';
@@ -1032,7 +1064,7 @@
           loadDashboardData();
         } else {
           if (handleAccessDenied_(res)) return;
-          alert("Gagal menyimpan anggaran: " + ((res && res.error) || "Terjadi kesalahan"));
+          showToast("Gagal menyimpan anggaran: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerText = origBtnText;
@@ -1040,7 +1072,7 @@
         }
       })
       .withFailureHandler(err => {
-        alert("Gagal terhubung: " + err.message);
+        showToast("Gagal terhubung: " + err.message);
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerText = origBtnText;
@@ -1055,7 +1087,7 @@
     renderApp();
     google.script.run
       .withSuccessHandler(() => loadDashboardData())
-      .withFailureHandler(err => { alert(err.message); appState.isLoading = false; renderApp(); })
+      .withFailureHandler(err => { showToast(err.message); appState.isLoading = false; renderApp(); })
       .apiDispatcher('deleteBudget', { id: budgetId });
   }
 
@@ -1065,8 +1097,8 @@
     renderApp();
 
     google.script.run
-      .withSuccessHandler(res => { if (handleAccessDenied_(res)) return; if (res && res.success) loadDashboardData(); else alert("Gagal: " + (res.error || "Terjadi kesalahan")); })
-      .withFailureHandler(err => { alert(err.message); appState.isLoading = false; renderApp(); })
+      .withSuccessHandler(res => { if (handleAccessDenied_(res)) return; if (res && res.success) loadDashboardData(); else showToast("Gagal: " + (res.error || "Terjadi kesalahan")); })
+      .withFailureHandler(err => { showToast(err.message); appState.isLoading = false; renderApp(); })
       .apiDispatcher('deleteTransaction', { id: id });
   }
 
@@ -1119,7 +1151,7 @@
     const typeEl = document.getElementById('category-type');
     const name = nameEl ? nameEl.value.trim() : '';
     const type = typeEl ? typeEl.value : 'Expense';
-    if (!name) return alert("Nama kategori wajib diisi.");
+    if (!name) return showToast("Nama kategori wajib diisi.");
 
     const submitBtn = document.getElementById('btn-submit-cat');
     const origBtnText = submitBtn ? submitBtn.innerText : 'Simpan Kategori';
@@ -1150,7 +1182,7 @@
           loadDashboardData();
         } else {
           if (handleAccessDenied_(res)) return;
-          alert("Gagal menyimpan kategori: " + ((res && res.error) || "Terjadi kesalahan"));
+          showToast("Gagal menyimpan kategori: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerText = origBtnText;
@@ -1158,7 +1190,7 @@
         }
       })
       .withFailureHandler(err => {
-        alert("Gagal terhubung: " + err.message);
+        showToast("Gagal terhubung: " + err.message);
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerText = origBtnText;
@@ -1174,7 +1206,7 @@
     const name = nameEl ? nameEl.value.trim() : '';
     const type = typeEl ? typeEl.value : 'Cash';
     const initBal = parseCurrencyValue(balEl ? balEl.value : 0);
-    if (!name) return alert("Nama dompet wajib diisi.");
+    if (!name) return showToast("Nama dompet wajib diisi.");
 
     const submitBtn = document.getElementById('btn-submit-wallet');
     const origBtnText = submitBtn ? submitBtn.innerText : 'Simpan Dompet';
@@ -1196,7 +1228,7 @@
           loadDashboardData();
         } else {
           if (handleAccessDenied_(res)) return;
-          alert("Gagal menyimpan dompet: " + ((res && res.error) || "Terjadi kesalahan"));
+          showToast("Gagal menyimpan dompet: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerText = origBtnText;
@@ -1204,7 +1236,7 @@
         }
       })
       .withFailureHandler(err => {
-        alert("Gagal terhubung: " + err.message);
+        showToast("Gagal terhubung: " + err.message);
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerText = origBtnText;
@@ -1218,11 +1250,11 @@
     const targetW = appState.data.wallets.find(w => w.id === id);
     // R-06: blokir bila saldo tidak nol (termasuk negatif) dan bila ini dompet aktif terakhir.
     if (targetW && appState.data.wallets.length <= 1) {
-      alert("Aplikasi memerlukan minimal 1 kantong dompet aktif untuk mencatat keuangan.");
+      showToast("Aplikasi memerlukan minimal 1 kantong dompet aktif untuk mencatat keuangan.");
       return;
     }
     if (targetW && (Number(targetW.balance) || 0) !== 0) {
-      alert("Kantong dompet masih memiliki saldo (" + formatRupiah(targetW.balance) + "). Pindahkan atau kosongkan saldo dompet terlebih dahulu sebelum menghapus.");
+      showToast("Kantong dompet masih memiliki saldo (" + formatRupiah(targetW.balance) + "). Pindahkan atau kosongkan saldo dompet terlebih dahulu sebelum menghapus.");
       return;
     }
     if (!confirm("Hapus / nonaktifkan kantong dompet ini?")) return;
@@ -1236,13 +1268,13 @@
           loadDashboardData();
         } else {
           if (handleAccessDenied_(res)) return;
-          alert("Gagal menghapus dompet: " + ((res && res.error) || "Terjadi kesalahan"));
+          showToast("Gagal menghapus dompet: " + ((res && res.error) || "Terjadi kesalahan"));
           appState.isLoading = false;
           renderApp();
         }
       })
       .withFailureHandler(err => {
-        alert("Gagal terhubung: " + err.message);
+        showToast("Gagal terhubung: " + err.message);
         appState.isLoading = false;
         renderApp();
       })
@@ -1261,13 +1293,13 @@
           loadDashboardData();
         } else {
           if (handleAccessDenied_(res)) return;
-          alert("Gagal mengaktifkan dompet: " + ((res && res.error) || "Terjadi kesalahan"));
+          showToast("Gagal mengaktifkan dompet: " + ((res && res.error) || "Terjadi kesalahan"));
           appState.isLoading = false;
           renderApp();
         }
       })
       .withFailureHandler(err => {
-        alert("Gagal terhubung: " + err.message);
+        showToast("Gagal terhubung: " + err.message);
         appState.isLoading = false;
         renderApp();
       })
@@ -1717,6 +1749,142 @@
           </div>
         `}
       `;
+    } else if (appState.activeTab === 'settings') {
+      const inactiveWallets = d.inactiveWallets || [];
+      const incomeCats = d.categories.filter(c => c.type === 'Income');
+      const expenseCats = d.categories.filter(c => c.type === 'Expense');
+      contentHtml = `
+        <!-- Tab Pengaturan: kelola dompet, kategori, anggaran -->
+        <div class="section-header">
+          <div>
+            <div class="section-title">Kantong Saldo</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">${d.wallets.length} Aktif · ${inactiveWallets.length} Nonaktif</div>
+          </div>
+          <button class="btn btn-sm" onclick="openModal('wallet-modal')">+ Tambah Dompet</button>
+        </div>
+        <div class="wallets-grid">
+          ${d.wallets.length === 0 ? `
+            <div style="grid-column: 1 / -1; padding: 18px; background: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: 14px; font-size: 12.5px; color: var(--text-muted);">
+              Belum ada kantong dompet aktif. Klik <b>+ Tambah Dompet</b> untuk mendaftarkan rekening atau kas Anda.
+            </div>
+          ` : d.wallets.map(w => `
+            <div class="wallet-pill">
+              <div class="wallet-pill-top">
+                <span style="font-weight: 600;">${esc(w.name)}</span>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span class="user-badge">${esc(w.type)}</span>
+                  <button class="btn-delete-row" title="Hapus dompet" data-action="delete-wallet" data-id="${esc(w.id)}" aria-label="Hapus dompet ${esc(w.name)}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2m-9 0v14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="wallet-pill-val tabular">${formatRupiah(w.balance)}</div>
+            </div>
+          `).join('')}
+        </div>
+        ${inactiveWallets.length > 0 ? `
+        <div class="overview-panel" style="margin-bottom: 24px; padding: 12px 14px;">
+          <div class="section-header" style="margin-bottom: 8px;">
+            <div>
+              <div class="section-title">Dompet Nonaktif</div>
+              <div style="font-size: 11.5px; color: var(--text-muted);">Riwayat transaksinya tetap tersimpan di buku kas</div>
+            </div>
+          </div>
+          ${inactiveWallets.map(w => `
+            <div class="mini-bar-item" style="margin-bottom: 8px;">
+              <div class="mini-bar-header">
+                <span style="font-weight: 600;">${esc(w.name)} <span class="user-badge">${esc(w.type)}</span></span>
+                <button class="btn btn-sm touch-btn" data-action="restore-wallet" data-id="${esc(w.id)}">Aktifkan</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        ` : ''}
+
+        <!-- Kategori Pemasukan -->
+        <div class="section-header">
+          <div>
+            <div class="section-title">Kategori Pemasukan</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">${incomeCats.length} kategori</div>
+          </div>
+          <button class="btn btn-sm" onclick="openCategoryModal()">+ Tambah Kategori</button>
+        </div>
+        <div class="overview-panel" style="margin-bottom: 24px;">
+          ${incomeCats.length === 0 ? '<div style="font-size: 12.5px; color: var(--text-muted); padding: 10px 0;">Belum ada kategori pemasukan.</div>'
+            : incomeCats.map(c => `
+            <div class="mini-bar-item" style="margin-bottom: 6px;">
+              <div class="mini-bar-header">
+                <span style="font-weight: 600;">${esc(c.name)}</span>
+                <span class="user-badge">Income</span>
+              </div>
+            </div>`).join('')}
+        </div>
+
+        <!-- Kategori Pengeluaran -->
+        <div class="section-header">
+          <div>
+            <div class="section-title">Kategori Pengeluaran</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">${expenseCats.length} kategori</div>
+          </div>
+          <button class="btn btn-sm" onclick="openCategoryModal()">+ Tambah Kategori</button>
+        </div>
+        <div class="overview-panel" style="margin-bottom: 24px;">
+          ${expenseCats.length === 0 ? '<div style="font-size: 12.5px; color: var(--text-muted); padding: 10px 0;">Belum ada kategori pengeluaran.</div>'
+            : expenseCats.map(c => `
+            <div class="mini-bar-item" style="margin-bottom: 6px;">
+              <div class="mini-bar-header">
+                <span style="font-weight: 600;">${esc(c.name)}</span>
+                <span class="user-badge">Expense</span>
+              </div>
+            </div>`).join('')}
+        </div>
+
+        <!-- Anggaran -->
+        <div class="section-header">
+          <div>
+            <div class="section-title">Batas Anggaran Bulanan</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">${d.budgets.length} anggaran aktif</div>
+          </div>
+          <button class="btn btn-sm" onclick="openModal('budget-modal')">+ Atur Anggaran</button>
+        </div>
+        <div class="overview-panel" style="margin-bottom: 24px;">
+          ${d.budgets.length === 0 ? '<div style="font-size: 12.5px; color: var(--text-muted); padding: 10px 0;">Belum ada anggaran disetel. Klik tombol <b>+ Atur Anggaran</b> untuk membatasi belanja per kategori.</div>'
+            : d.budgets.map(b => {
+              const spent = currentMonthTxs.filter(t => t.type === 'Expense' && t.categoryId === b.categoryId).reduce((s, t) => s + (Number(t.amount) || 0), 0);
+              const limit = Number(b.limit) || 0;
+              const percent = limit > 0 ? Math.round((spent / limit) * 100) : 0;
+              const remaining = limit - spent;
+              return `
+              <div class="mini-bar-item" style="margin-bottom: 10px;">
+                <div class="mini-bar-header">
+                  <span style="font-weight: 600;">${esc(b.categoryName)}</span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="tabular font-medium">${formatRupiah(spent)} / <span style="color:var(--text-muted);">${formatRupiah(limit)}</span></span>
+                    <button class="btn-delete-row touch-btn" title="Hapus batas" data-action="delete-budget" data-id="${esc(b.id)}" aria-label="Hapus anggaran ${esc(b.categoryName)}">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2m-9 0v14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill ${percent >= 100 ? 'over' : ''}" style="width: ${Math.min(100, percent)}%;"></div>
+                </div>
+                <div style="font-size: 11px; color: var(--text-subtle); margin-top: 3px;">
+                  ${remaining >= 0 ? `Tersisa: ${formatRupiah(remaining)}` : `<span class="text-expense font-bold">Melebihi budget ${formatRupiah(Math.abs(remaining))}</span>`}
+                </div>
+              </div>`;
+            }).join('')}
+        </div>
+
+        <!-- Tentang aplikasi -->
+        <div class="overview-panel" style="padding: 14px;">
+          <div class="section-title" style="margin-bottom: 6px;">Tentang Aplikasi</div>
+          <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+            Finance Tracker · semua data tersimpan aman di Google Sheets Anda sendiri.
+            Untuk membuka cepat dari layar utama HP, gunakan <b>Add to Home Screen</b> pada Chrome/Safari —
+            ini pintasan browser, bukan aplikasi yang diinstal dari Play Store/App Store.
+          </div>
+        </div>
+      `;
     }
 
     root.innerHTML = contentHtml;
@@ -1773,9 +1941,25 @@
     buildOptions(destEl);
   }
 
+  /** FASE 3: onboarding pertama kali — tampil sekali, lalu diingat localStorage. */
+  function initOnboarding() {
+    const card = document.getElementById('onboarding-card');
+    if (!card) return;
+    let seen = false;
+    try { seen = localStorage.getItem('ft_onboarding_done') === '1'; } catch (e) {}
+    if (!seen) card.style.display = '';
+  }
+
+  function dismissOnboarding() {
+    const card = document.getElementById('onboarding-card');
+    if (card) card.style.display = 'none';
+    try { localStorage.setItem('ft_onboarding_done', '1'); } catch (e) {}
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
   } else {
     initApp();
   }
+  document.addEventListener('DOMContentLoaded', initOnboarding);
 </script>

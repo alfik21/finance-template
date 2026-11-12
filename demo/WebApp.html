@@ -5,6 +5,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Finance Tracker</title>
+  <meta name="theme-color" content="#40916c">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2340916c'/%3E%3Ctext x='32' y='42' font-family='system-ui,sans-serif' font-size='30' font-weight='700' fill='white' text-anchor='middle'%3EFT%3C/text%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2340916c'/%3E%3Ctext x='32' y='42' font-family='system-ui,sans-serif' font-size='30' font-weight='700' fill='white' text-anchor='middle'%3EFT%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <style>
@@ -974,6 +977,37 @@
     box-shadow: 0 1px 3px rgba(27, 67, 50, 0.25);
   }
 
+  /* Toast notifikasi non-blocking (pengganti alert) */
+  .toast-stack {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: min(92vw, 420px);
+    pointer-events: none;
+  }
+  .toast {
+    padding: 11px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.45;
+    color: #ffffff;
+    background: var(--sage-800);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+  }
+  .toast-show { opacity: 1; transform: translateY(0); }
+  .toast-error { background: #b91c1c; }
+  .toast-success { background: var(--sage-700); }
+  .toast-info { background: #2563eb; }
+
   /* Floating Mobile Bottom Navigation (Ergonomic 3-Column Touch Bar) */
   .mobile-nav {
     display: none;
@@ -989,10 +1023,11 @@
   }
   .mobile-nav-inner {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    /* 4 kolom: Ringkasan | Aksi (FAB) | Buku Kas | Pengaturan */
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     align-items: center;
     gap: 8px;
-    max-width: 440px;
+    max-width: 480px;
     margin: 0 auto;
     width: 100%;
   }
@@ -1055,7 +1090,7 @@
     .sidebar { display: none; }
     .mobile-header { display: flex; }
     .mobile-nav { display: flex; }
-    .main-content { padding: 14px 14px 92px; max-width: 100%; }
+    .main-content { padding: 14px 14px calc(92px + env(safe-area-inset-bottom, 0px)); max-width: 100%; }
 
     /* Balanced Transactions Toolbar */
     .tx-toolbar-wrapper {
@@ -1297,7 +1332,7 @@
   body.SIDEBAR .sidebar { display: none; }
   body.SIDEBAR .mobile-header { display: flex; }
   body.SIDEBAR .mobile-nav { display: flex; }
-  body.SIDEBAR .main-content { padding: 14px 14px 88px; max-width: 100%; }
+  body.SIDEBAR .main-content { padding: 14px 14px calc(88px + env(safe-area-inset-bottom, 0px)); max-width: 100%; }
   body.SIDEBAR .hero-card { padding: 16px; margin-bottom: 16px; }
   body.SIDEBAR .hero-top { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
   body.SIDEBAR .hero-action-btn { display: none; }
@@ -1346,6 +1381,27 @@
   Perangkat sedang offline. Perubahan tidak akan tersimpan sampai koneksi pulih.
 </div>
 
+<!-- Toast non-blocking (pengganti alert) -->
+<div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+<!-- Onboarding Pertama Kali (FASE 3): kartu panduan awal, bisa ditutup,
+     diingat via localStorage sehingga hanya muncul sekali. -->
+<div id="onboarding-card" style="display: none; margin: 12px 16px 0; border: 1px solid var(--sage-200, #d1e0d8); background: #f4f7f5; border-radius: 14px; padding: 12px 14px; max-width: 720px;">
+  <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;">
+    <div>
+      <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #1b4332;">Panduan Awal — 3 Langkah</div>
+      <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">Baru pertama kali membuka aplikasi? Ikuti urutan ini sampai data Anda tersambung.</div>
+    </div>
+    <button type="button" onclick="dismissOnboarding()" title="Tutup panduan" aria-label="Tutup panduan awal"
+      style="border: none; background: none; cursor: pointer; color: var(--text-muted); font-size: 16px; line-height: 1; padding: 2px 4px;">&times;</button>
+  </div>
+  <ol style="margin: 8px 0 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 11.5px; color: var(--text-main);">
+    <li><b>1.</b> Salin template ke Google Drive Anda dan jalankan menu <b>Finance Tracker &gt; Setup Awal</b> di spreadsheet.</li>
+    <li><b>2.</b> Otorisasi &amp; deploy: <b>Ekstensi &gt; Apps Script &gt; Deploy &gt; New deployment</b> (Execute as: <i>User accessing the web app</i>), lalu buka URL-nya di HP.</li>
+    <li><b>3.</b> Pasang pintasan (<b>Add to Home Screen</b>) dan kelola dompet/kategori/anggaran lewat tab <b>Pengaturan</b>.</li>
+  </ol>
+</div>
+
 <div id="demo-mode-banner" role="status" style="display: none; margin: 12px 16px 0; background: #FFFBEB; border: 1px solid #FCD34D; border-radius: 12px; padding: 8px 12px;">
   <div style="display: flex; align-items: flex-start; gap: 8px;">
     <svg style="width: 14px; height: 14px; color: #B45309; flex-shrink: 0; margin-top: 2px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1389,6 +1445,13 @@
           <path d="M7 14h5"></path>
         </svg>
         <span>Buku Kas</span>
+      </div>
+      <div class="nav-item touch-btn" data-tab="settings" role="button" tabindex="0" onclick="switchTab('settings')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab('settings');}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.08a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
+        </svg>
+        <span>Pengaturan</span>
       </div>
     </nav>
 
@@ -1448,6 +1511,13 @@
       </svg>
       <span>Buku Kas</span>
     </button>
+    <button type="button" class="mobile-nav-item touch-btn" data-tab="settings" onclick="switchTab('settings')" aria-label="Pengaturan" title="Pengaturan">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.08a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
+      </svg>
+      <span>Setelan</span>
+    </button>
   </div>
 </nav>
 
@@ -1486,6 +1556,15 @@
         <div style="position: relative; display: flex; align-items: center;">
           <span style="position: absolute; left: 14px; font-weight: 700; color: var(--text-muted); font-size: 15px;">Rp</span>
           <input type="text" inputmode="numeric" id="form-amount" class="form-input tabular" style="padding-left: 42px; font-size: 17px; font-weight: 700;" placeholder="0" required oninput="handleCurrencyInput(this)">
+        </div>
+        <div class="quick-chips-wrapper" style="margin-top: 8px; margin-bottom: 0;">
+          <div class="quick-chips-list">
+            <button type="button" class="quick-chip touch-btn" onclick="bumpTransactionAmount(10000)">+10rb</button>
+            <button type="button" class="quick-chip touch-btn" onclick="bumpTransactionAmount(20000)">+20rb</button>
+            <button type="button" class="quick-chip touch-btn" onclick="bumpTransactionAmount(50000)">+50rb</button>
+            <button type="button" class="quick-chip touch-btn" onclick="bumpTransactionAmount(100000)">+100rb</button>
+            <button type="button" class="quick-chip touch-btn" onclick="document.getElementById('form-amount').value=''">C</button>
+          </div>
         </div>
       </div>
 
@@ -2243,6 +2322,30 @@ try {
    * Utilitas dasar (S-01, S-05, S-10, S-14)
    * ========================================================================*/
 
+  /**
+   * Toast notifikasi non-blocking (mengganti showToast() yang menghentikan UI).
+   * type: 'error' (default) | 'success' | 'info'. Otomatis menghilang 3.5s.
+   */
+  function showToast(message, type) {
+    const stack = document.getElementById('toast-stack');
+    if (!stack) { alert(message); return; }
+    const kind = type || 'error';
+    const el = document.createElement('div');
+    el.className = 'toast toast-' + kind;
+    el.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+    el.textContent = message;
+    stack.appendChild(el);
+    // Paksa reflow agar animasi masuk berjalan.
+    void el.offsetWidth;
+    el.classList.add('toast-show');
+    setTimeout(() => {
+      el.classList.remove('toast-show');
+      el.addEventListener('transitionend', () => el.remove(), { once: true });
+      // Jaring pengaman bila transitionend tidak terpicu.
+      setTimeout(() => el.remove(), 400);
+    }, 3500);
+  }
+
   /** S-01: escape data dinamis sebelum masuk innerHTML/atribut. */
   function esc(value) {
     if (value === null || value === undefined) return '';
@@ -2355,7 +2458,7 @@ try {
             refreshOpenTransactionModal_();
           } else {
             if (handleAccessDenied_(res)) return;
-            alert("Kendala memuat data: " + ((res && res.error) || "Gagal memuat data") +
+            showToast("Kendala memuat data: " + ((res && res.error) || "Gagal memuat data") +
               ". Periksa koneksi internet lalu muat ulang.");
           }
           renderApp();
@@ -2363,7 +2466,7 @@ try {
         .withFailureHandler(err => {
           appState.isLoading = false;
           const msg = (err && err.message) ? err.message : 'Tidak terhubung ke server Apps Script.';
-          alert("Gagal terhubung: " + msg +
+          showToast("Gagal terhubung: " + msg +
             (navigator.onLine === false ? " (Perangkat sedang offline)" : "") +
             ". Klik tombol Muat Ulang bila berulang.");
           renderApp();
@@ -2504,6 +2607,14 @@ try {
     try {
       el.setSelectionRange(newCursorPos, newCursorPos);
     } catch (e) {}
+  }
+
+  /** Chips nominal cepat: tambah nominal berjalan tanpa mengetik. */
+  function bumpTransactionAmount(delta) {
+    const amountEl = document.getElementById('form-amount');
+    if (!amountEl) return;
+    const current = parseCurrencyValue(amountEl.value) || 0;
+    amountEl.value = new Intl.NumberFormat('id-ID').format(Math.max(0, current + delta));
   }
 
   function applyQuickTemplate(name, amount, type, categoryName) {
@@ -3124,11 +3235,11 @@ try {
     const catVal = catEl ? catEl.value : '';
 
     if (!rawAmount || rawAmount <= 0) {
-      alert("Masukkan nominal transaksi yang valid (> 0).");
+      showToast("Masukkan nominal transaksi yang valid (> 0).");
       return;
     }
     if (!walletVal) {
-      alert("Pilih kantong dompet transaksi.");
+      showToast("Pilih kantong dompet transaksi.");
       return;
     }
 
@@ -3136,27 +3247,27 @@ try {
     const yearNum = parseInt(String(dateVal).substring(0, 4), 10);
     const maxYear = new Date().getFullYear() + 1;
     if (!dateVal || isNaN(yearNum) || yearNum < 2000 || yearNum > maxYear) {
-      alert("Tanggal transaksi tidak valid. Periksa kembali tanggal yang dipilih.");
+      showToast("Tanggal transaksi tidak valid. Periksa kembali tanggal yang dipilih.");
       return;
     }
 
     // S-15: hentikan lebih awal bila perangkat sedang offline.
     if (navigator.onLine === false) {
-      alert("Perangkat sedang offline. Sambungkan internet lalu coba lagi.");
+      showToast("Perangkat sedang offline. Sambungkan internet lalu coba lagi.");
       return;
     }
 
     if (appState.form.type === 'Transfer') {
       if (!destWalletVal) {
-        alert("Pilih rekening tujuan transfer.");
+        showToast("Pilih rekening tujuan transfer.");
         return;
       }
       if (walletVal === destWalletVal) {
-        alert("Kantong asal dan kantong tujuan transfer tidak boleh sama.");
+        showToast("Kantong asal dan kantong tujuan transfer tidak boleh sama.");
         return;
       }
     } else if (!catVal) {
-      alert("Pilih kategori transaksi terlebih dahulu.");
+      showToast("Pilih kategori transaksi terlebih dahulu.");
       return;
     }
 
@@ -3184,7 +3295,7 @@ try {
     const action = editId ? 'updateTransaction' : 'createTransaction';
 
     if (typeof google === 'undefined' || !google.script || !google.script.run) {
-      alert("Layanan Google Apps Script tidak tersedia di halaman ini.");
+      showToast("Layanan Google Apps Script tidak tersedia di halaman ini.");
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.innerText = origBtnText;
@@ -3209,7 +3320,7 @@ try {
           loadDashboardData();
         } else {
           if (handleAccessDenied_(res)) return;
-          alert("Gagal menyimpan transaksi: " + ((res && res.error) || "Terjadi kesalahan"));
+          showToast("Gagal menyimpan transaksi: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerText = origBtnText;
@@ -3217,7 +3328,7 @@ try {
         }
       })
       .withFailureHandler(err => {
-        alert("Gagal terhubung: " + err.message);
+        showToast("Gagal terhubung: " + err.message);
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerText = origBtnText;
@@ -3229,8 +3340,8 @@ try {
   function submitBudgetForm() {
     const catId = document.getElementById('budget-cat').value;
     const rawLimit = parseCurrencyValue(document.getElementById('budget-limit').value);
-    if (!catId) return alert("Pilih kategori pengeluaran.");
-    if (!rawLimit || rawLimit <= 0) return alert("Masukkan nominal batas anggaran yang valid (> 0).");
+    if (!catId) return showToast("Pilih kategori pengeluaran.");
+    if (!rawLimit || rawLimit <= 0) return showToast("Masukkan nominal batas anggaran yang valid (> 0).");
 
     const submitBtn = document.getElementById('btn-submit-budget');
     const origBtnText = submitBtn ? submitBtn.innerText : 'Simpan Anggaran';
@@ -3250,7 +3361,7 @@ try {
           loadDashboardData();
         } else {
           if (handleAccessDenied_(res)) return;
-          alert("Gagal menyimpan anggaran: " + ((res && res.error) || "Terjadi kesalahan"));
+          showToast("Gagal menyimpan anggaran: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerText = origBtnText;
@@ -3258,7 +3369,7 @@ try {
         }
       })
       .withFailureHandler(err => {
-        alert("Gagal terhubung: " + err.message);
+        showToast("Gagal terhubung: " + err.message);
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerText = origBtnText;
@@ -3273,7 +3384,7 @@ try {
     renderApp();
     google.script.run
       .withSuccessHandler(() => loadDashboardData())
-      .withFailureHandler(err => { alert(err.message); appState.isLoading = false; renderApp(); })
+      .withFailureHandler(err => { showToast(err.message); appState.isLoading = false; renderApp(); })
       .apiDispatcher('deleteBudget', { id: budgetId });
   }
 
@@ -3283,8 +3394,8 @@ try {
     renderApp();
 
     google.script.run
-      .withSuccessHandler(res => { if (handleAccessDenied_(res)) return; if (res && res.success) loadDashboardData(); else alert("Gagal: " + (res.error || "Terjadi kesalahan")); })
-      .withFailureHandler(err => { alert(err.message); appState.isLoading = false; renderApp(); })
+      .withSuccessHandler(res => { if (handleAccessDenied_(res)) return; if (res && res.success) loadDashboardData(); else showToast("Gagal: " + (res.error || "Terjadi kesalahan")); })
+      .withFailureHandler(err => { showToast(err.message); appState.isLoading = false; renderApp(); })
       .apiDispatcher('deleteTransaction', { id: id });
   }
 
@@ -3337,7 +3448,7 @@ try {
     const typeEl = document.getElementById('category-type');
     const name = nameEl ? nameEl.value.trim() : '';
     const type = typeEl ? typeEl.value : 'Expense';
-    if (!name) return alert("Nama kategori wajib diisi.");
+    if (!name) return showToast("Nama kategori wajib diisi.");
 
     const submitBtn = document.getElementById('btn-submit-cat');
     const origBtnText = submitBtn ? submitBtn.innerText : 'Simpan Kategori';
@@ -3368,7 +3479,7 @@ try {
           loadDashboardData();
         } else {
           if (handleAccessDenied_(res)) return;
-          alert("Gagal menyimpan kategori: " + ((res && res.error) || "Terjadi kesalahan"));
+          showToast("Gagal menyimpan kategori: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerText = origBtnText;
@@ -3376,7 +3487,7 @@ try {
         }
       })
       .withFailureHandler(err => {
-        alert("Gagal terhubung: " + err.message);
+        showToast("Gagal terhubung: " + err.message);
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerText = origBtnText;
@@ -3392,7 +3503,7 @@ try {
     const name = nameEl ? nameEl.value.trim() : '';
     const type = typeEl ? typeEl.value : 'Cash';
     const initBal = parseCurrencyValue(balEl ? balEl.value : 0);
-    if (!name) return alert("Nama dompet wajib diisi.");
+    if (!name) return showToast("Nama dompet wajib diisi.");
 
     const submitBtn = document.getElementById('btn-submit-wallet');
     const origBtnText = submitBtn ? submitBtn.innerText : 'Simpan Dompet';
@@ -3414,7 +3525,7 @@ try {
           loadDashboardData();
         } else {
           if (handleAccessDenied_(res)) return;
-          alert("Gagal menyimpan dompet: " + ((res && res.error) || "Terjadi kesalahan"));
+          showToast("Gagal menyimpan dompet: " + ((res && res.error) || "Terjadi kesalahan"));
           if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerText = origBtnText;
@@ -3422,7 +3533,7 @@ try {
         }
       })
       .withFailureHandler(err => {
-        alert("Gagal terhubung: " + err.message);
+        showToast("Gagal terhubung: " + err.message);
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerText = origBtnText;
@@ -3436,11 +3547,11 @@ try {
     const targetW = appState.data.wallets.find(w => w.id === id);
     // R-06: blokir bila saldo tidak nol (termasuk negatif) dan bila ini dompet aktif terakhir.
     if (targetW && appState.data.wallets.length <= 1) {
-      alert("Aplikasi memerlukan minimal 1 kantong dompet aktif untuk mencatat keuangan.");
+      showToast("Aplikasi memerlukan minimal 1 kantong dompet aktif untuk mencatat keuangan.");
       return;
     }
     if (targetW && (Number(targetW.balance) || 0) !== 0) {
-      alert("Kantong dompet masih memiliki saldo (" + formatRupiah(targetW.balance) + "). Pindahkan atau kosongkan saldo dompet terlebih dahulu sebelum menghapus.");
+      showToast("Kantong dompet masih memiliki saldo (" + formatRupiah(targetW.balance) + "). Pindahkan atau kosongkan saldo dompet terlebih dahulu sebelum menghapus.");
       return;
     }
     if (!confirm("Hapus / nonaktifkan kantong dompet ini?")) return;
@@ -3454,13 +3565,13 @@ try {
           loadDashboardData();
         } else {
           if (handleAccessDenied_(res)) return;
-          alert("Gagal menghapus dompet: " + ((res && res.error) || "Terjadi kesalahan"));
+          showToast("Gagal menghapus dompet: " + ((res && res.error) || "Terjadi kesalahan"));
           appState.isLoading = false;
           renderApp();
         }
       })
       .withFailureHandler(err => {
-        alert("Gagal terhubung: " + err.message);
+        showToast("Gagal terhubung: " + err.message);
         appState.isLoading = false;
         renderApp();
       })
@@ -3479,13 +3590,13 @@ try {
           loadDashboardData();
         } else {
           if (handleAccessDenied_(res)) return;
-          alert("Gagal mengaktifkan dompet: " + ((res && res.error) || "Terjadi kesalahan"));
+          showToast("Gagal mengaktifkan dompet: " + ((res && res.error) || "Terjadi kesalahan"));
           appState.isLoading = false;
           renderApp();
         }
       })
       .withFailureHandler(err => {
-        alert("Gagal terhubung: " + err.message);
+        showToast("Gagal terhubung: " + err.message);
         appState.isLoading = false;
         renderApp();
       })
@@ -3935,6 +4046,142 @@ try {
           </div>
         `}
       `;
+    } else if (appState.activeTab === 'settings') {
+      const inactiveWallets = d.inactiveWallets || [];
+      const incomeCats = d.categories.filter(c => c.type === 'Income');
+      const expenseCats = d.categories.filter(c => c.type === 'Expense');
+      contentHtml = `
+        <!-- Tab Pengaturan: kelola dompet, kategori, anggaran -->
+        <div class="section-header">
+          <div>
+            <div class="section-title">Kantong Saldo</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">${d.wallets.length} Aktif · ${inactiveWallets.length} Nonaktif</div>
+          </div>
+          <button class="btn btn-sm" onclick="openModal('wallet-modal')">+ Tambah Dompet</button>
+        </div>
+        <div class="wallets-grid">
+          ${d.wallets.length === 0 ? `
+            <div style="grid-column: 1 / -1; padding: 18px; background: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: 14px; font-size: 12.5px; color: var(--text-muted);">
+              Belum ada kantong dompet aktif. Klik <b>+ Tambah Dompet</b> untuk mendaftarkan rekening atau kas Anda.
+            </div>
+          ` : d.wallets.map(w => `
+            <div class="wallet-pill">
+              <div class="wallet-pill-top">
+                <span style="font-weight: 600;">${esc(w.name)}</span>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span class="user-badge">${esc(w.type)}</span>
+                  <button class="btn-delete-row" title="Hapus dompet" data-action="delete-wallet" data-id="${esc(w.id)}" aria-label="Hapus dompet ${esc(w.name)}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2m-9 0v14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="wallet-pill-val tabular">${formatRupiah(w.balance)}</div>
+            </div>
+          `).join('')}
+        </div>
+        ${inactiveWallets.length > 0 ? `
+        <div class="overview-panel" style="margin-bottom: 24px; padding: 12px 14px;">
+          <div class="section-header" style="margin-bottom: 8px;">
+            <div>
+              <div class="section-title">Dompet Nonaktif</div>
+              <div style="font-size: 11.5px; color: var(--text-muted);">Riwayat transaksinya tetap tersimpan di buku kas</div>
+            </div>
+          </div>
+          ${inactiveWallets.map(w => `
+            <div class="mini-bar-item" style="margin-bottom: 8px;">
+              <div class="mini-bar-header">
+                <span style="font-weight: 600;">${esc(w.name)} <span class="user-badge">${esc(w.type)}</span></span>
+                <button class="btn btn-sm touch-btn" data-action="restore-wallet" data-id="${esc(w.id)}">Aktifkan</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        ` : ''}
+
+        <!-- Kategori Pemasukan -->
+        <div class="section-header">
+          <div>
+            <div class="section-title">Kategori Pemasukan</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">${incomeCats.length} kategori</div>
+          </div>
+          <button class="btn btn-sm" onclick="openCategoryModal()">+ Tambah Kategori</button>
+        </div>
+        <div class="overview-panel" style="margin-bottom: 24px;">
+          ${incomeCats.length === 0 ? '<div style="font-size: 12.5px; color: var(--text-muted); padding: 10px 0;">Belum ada kategori pemasukan.</div>'
+            : incomeCats.map(c => `
+            <div class="mini-bar-item" style="margin-bottom: 6px;">
+              <div class="mini-bar-header">
+                <span style="font-weight: 600;">${esc(c.name)}</span>
+                <span class="user-badge">Income</span>
+              </div>
+            </div>`).join('')}
+        </div>
+
+        <!-- Kategori Pengeluaran -->
+        <div class="section-header">
+          <div>
+            <div class="section-title">Kategori Pengeluaran</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">${expenseCats.length} kategori</div>
+          </div>
+          <button class="btn btn-sm" onclick="openCategoryModal()">+ Tambah Kategori</button>
+        </div>
+        <div class="overview-panel" style="margin-bottom: 24px;">
+          ${expenseCats.length === 0 ? '<div style="font-size: 12.5px; color: var(--text-muted); padding: 10px 0;">Belum ada kategori pengeluaran.</div>'
+            : expenseCats.map(c => `
+            <div class="mini-bar-item" style="margin-bottom: 6px;">
+              <div class="mini-bar-header">
+                <span style="font-weight: 600;">${esc(c.name)}</span>
+                <span class="user-badge">Expense</span>
+              </div>
+            </div>`).join('')}
+        </div>
+
+        <!-- Anggaran -->
+        <div class="section-header">
+          <div>
+            <div class="section-title">Batas Anggaran Bulanan</div>
+            <div style="font-size: 11.5px; color: var(--text-muted);">${d.budgets.length} anggaran aktif</div>
+          </div>
+          <button class="btn btn-sm" onclick="openModal('budget-modal')">+ Atur Anggaran</button>
+        </div>
+        <div class="overview-panel" style="margin-bottom: 24px;">
+          ${d.budgets.length === 0 ? '<div style="font-size: 12.5px; color: var(--text-muted); padding: 10px 0;">Belum ada anggaran disetel. Klik tombol <b>+ Atur Anggaran</b> untuk membatasi belanja per kategori.</div>'
+            : d.budgets.map(b => {
+              const spent = currentMonthTxs.filter(t => t.type === 'Expense' && t.categoryId === b.categoryId).reduce((s, t) => s + (Number(t.amount) || 0), 0);
+              const limit = Number(b.limit) || 0;
+              const percent = limit > 0 ? Math.round((spent / limit) * 100) : 0;
+              const remaining = limit - spent;
+              return `
+              <div class="mini-bar-item" style="margin-bottom: 10px;">
+                <div class="mini-bar-header">
+                  <span style="font-weight: 600;">${esc(b.categoryName)}</span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="tabular font-medium">${formatRupiah(spent)} / <span style="color:var(--text-muted);">${formatRupiah(limit)}</span></span>
+                    <button class="btn-delete-row touch-btn" title="Hapus batas" data-action="delete-budget" data-id="${esc(b.id)}" aria-label="Hapus anggaran ${esc(b.categoryName)}">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2m-9 0v14a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill ${percent >= 100 ? 'over' : ''}" style="width: ${Math.min(100, percent)}%;"></div>
+                </div>
+                <div style="font-size: 11px; color: var(--text-subtle); margin-top: 3px;">
+                  ${remaining >= 0 ? `Tersisa: ${formatRupiah(remaining)}` : `<span class="text-expense font-bold">Melebihi budget ${formatRupiah(Math.abs(remaining))}</span>`}
+                </div>
+              </div>`;
+            }).join('')}
+        </div>
+
+        <!-- Tentang aplikasi -->
+        <div class="overview-panel" style="padding: 14px;">
+          <div class="section-title" style="margin-bottom: 6px;">Tentang Aplikasi</div>
+          <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+            Finance Tracker · semua data tersimpan aman di Google Sheets Anda sendiri.
+            Untuk membuka cepat dari layar utama HP, gunakan <b>Add to Home Screen</b> pada Chrome/Safari —
+            ini pintasan browser, bukan aplikasi yang diinstal dari Play Store/App Store.
+          </div>
+        </div>
+      `;
     }
 
     root.innerHTML = contentHtml;
@@ -3991,11 +4238,27 @@ try {
     buildOptions(destEl);
   }
 
+  /** FASE 3: onboarding pertama kali — tampil sekali, lalu diingat localStorage. */
+  function initOnboarding() {
+    const card = document.getElementById('onboarding-card');
+    if (!card) return;
+    let seen = false;
+    try { seen = localStorage.getItem('ft_onboarding_done') === '1'; } catch (e) {}
+    if (!seen) card.style.display = '';
+  }
+
+  function dismissOnboarding() {
+    const card = document.getElementById('onboarding-card');
+    if (card) card.style.display = 'none';
+    try { localStorage.setItem('ft_onboarding_done', '1'); } catch (e) {}
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
   } else {
     initApp();
   }
+  document.addEventListener('DOMContentLoaded', initOnboarding);
 </script>
 
 </body>
