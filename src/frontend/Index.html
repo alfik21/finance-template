@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Finance Tracker</title>
+  <meta name="app-user-email" content="<?= typeof userEmail !== 'undefined' ? userEmail : 'Pengguna' ?>">
   <meta name="theme-color" content="#40916c">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2340916c'/%3E%3Ctext x='32' y='42' font-family='system-ui,sans-serif' font-size='30' font-weight='700' fill='white' text-anchor='middle'%3EFT%3C/text%3E%3C/svg%3E">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2340916c'/%3E%3Ctext x='32' y='42' font-family='system-ui,sans-serif' font-size='30' font-weight='700' fill='white' text-anchor='middle'%3EFT%3C/text%3E%3C/svg%3E">
@@ -35,7 +36,7 @@
   <ol style="margin: 8px 0 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 11.5px; color: var(--text-main);">
     <li><b>1.</b> Salin template ke Google Drive Anda dan jalankan menu <b>Finance Tracker &gt; Setup Awal</b> di spreadsheet.</li>
     <li><b>2.</b> Otorisasi &amp; deploy: <b>Ekstensi &gt; Apps Script &gt; Deploy &gt; New deployment</b> (Execute as: <i>User accessing the web app</i>), lalu buka URL-nya di HP.</li>
-    <li><b>3.</b> Pasang pintasan (<b>Add to Home Screen</b>) dan kelola dompet/kategori/anggaran lewat tab <b>Pengaturan</b>.</li>
+    <li><b>3.</b> Pasang pintasan (<b>Add to Home Screen</b>) dan kelola dompet/kategori/anggaran lewat tab <b>Kelola</b>.</li>
   </ol>
 </div>
 

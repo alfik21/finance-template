@@ -49,6 +49,17 @@
     }, 3500);
   }
 
+  /**
+   * Identitas pengguna untuk UI. Di Google Apps Script, `userEmail` hanya ada
+   * sebagai variabel template server (bukan variabel JS di browser), sehingga
+   * nilai final dibaca dari meta tag yang dirender Index.html.
+   */
+  function getUserEmailLabel() {
+    const meta = document.querySelector('meta[name="app-user-email"]');
+    const value = meta ? String(meta.getAttribute('content') || '').trim() : '';
+    return value || 'Pengguna';
+  }
+
   /** S-01: escape data dinamis sebelum masuk innerHTML/atribut. */
   function esc(value) {
     if (value === null || value === undefined) return '';
@@ -111,7 +122,7 @@
       '<h1 style="font-size:20px;margin:0 0 10px;color:var(--text-main,#1c1e21);">Anda tidak memiliki akses ke Finance Tracker</h1>' +
       '<div style="background:var(--bg-subtle,#f4f7f5);border:1px solid var(--border-color,#e1e5ea);border-radius:10px;' +
       'padding:12px 14px;font-size:13px;color:var(--text-main,#1c1e21);margin-bottom:14px;word-break:break-word;">' +
-      '<b>Email terdeteksi:</b><br>' + esc(typeof userEmail !== 'undefined' ? userEmail : '') + '</div>' +
+      '<b>Email terdeteksi:</b><br>' + esc(getUserEmailLabel()) + '</div>' +
       '<p style="font-size:14px;line-height:1.6;color:var(--text-muted,#656b73);margin:0 0 12px;">' + esc(message || '') + '</p>' +
       '<p style="font-size:14px;line-height:1.6;color:var(--text-muted,#656b73);margin:0 0 12px;"><b>Solusi:</b> ' +
       'Daftarkan email Anda pada sheet <b>PENGATURAN</b> (baris <b>Email Pemilik</b> / <b>Email Tambahan</b>, dipisah koma) ' +
@@ -206,6 +217,28 @@
         if (modalOpen) {
           e.preventDefault();
           closeModal(appState.modalStack[appState.modalStack.length - 1]);
+        }
+      } else if (e.key === 'Tab' && modalOpen) {
+        // S-09/S-16: jaga fokus keyboard tetap di dalam modal teratas.
+        const topModal = document.getElementById(appState.modalStack[appState.modalStack.length - 1]);
+        if (topModal) {
+          const focusables = Array.from(topModal.querySelectorAll(
+            'a[href], button:not([disabled]), input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          )).filter(el => el.offsetParent !== null);
+          if (focusables.length > 0) {
+            const first = focusables[0];
+            const last = focusables[focusables.length - 1];
+            const active = document.activeElement;
+            if (e.shiftKey) {
+              if (active === first || !topModal.contains(active)) {
+                e.preventDefault();
+                last.focus();
+              }
+            } else if (active === last || !topModal.contains(active)) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
         }
       } else if ((e.key === 'n' || e.key === 'N') && !modalOpen &&
           !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
@@ -736,7 +769,9 @@
       if (!appState.lastFocusedElement) appState.lastFocusedElement = document.activeElement;
       modal.style.display = 'flex';
       modal.setAttribute('aria-hidden', 'false');
-      const focusTarget = modal.querySelector('input:not([type="hidden"]), select, button');
+      const focusTarget = modal.querySelector(
+        'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])'
+      ) || modal.querySelector('button:not([disabled])');
       if (focusTarget) {
         try { focusTarget.focus({ preventScroll: true }); } catch (e) { focusTarget.focus(); }
       }
@@ -1086,7 +1121,16 @@
     appState.isLoading = true;
     renderApp();
     google.script.run
-      .withSuccessHandler(() => loadDashboardData())
+      .withSuccessHandler(res => {
+        if (res && res.success) {
+          loadDashboardData();
+        } else {
+          if (handleAccessDenied_(res)) return;
+          showToast("Gagal menghapus anggaran: " + ((res && res.error) || "Terjadi kesalahan"));
+          appState.isLoading = false;
+          renderApp();
+        }
+      })
       .withFailureHandler(err => { showToast(err.message); appState.isLoading = false; renderApp(); })
       .apiDispatcher('deleteBudget', { id: budgetId });
   }
@@ -1097,7 +1141,16 @@
     renderApp();
 
     google.script.run
-      .withSuccessHandler(res => { if (handleAccessDenied_(res)) return; if (res && res.success) loadDashboardData(); else showToast("Gagal: " + (res.error || "Terjadi kesalahan")); })
+      .withSuccessHandler(res => {
+        if (handleAccessDenied_(res)) return;
+        if (res && res.success) {
+          loadDashboardData();
+        } else {
+          showToast("Gagal: " + ((res && res.error) || "Terjadi kesalahan"));
+          appState.isLoading = false;
+          renderApp();
+        }
+      })
       .withFailureHandler(err => { showToast(err.message); appState.isLoading = false; renderApp(); })
       .apiDispatcher('deleteTransaction', { id: id });
   }
@@ -1898,7 +1951,7 @@
           <div class="mini-bar-item" style="margin-bottom: 10px;">
             <div class="mini-bar-header">
               <span style="font-weight: 600;">Email aktif</span>
-              <span style="font-size: 12px; color: var(--text-muted); word-break: break-all; text-align: right; margin-left: 12px;">${esc(typeof userEmail !== 'undefined' ? userEmail : 'Pengguna')}</span>
+              <span style="font-size: 12px; color: var(--text-muted); word-break: break-all; text-align: right; margin-left: 12px;">${esc(getUserEmailLabel())}</span>
             </div>
           </div>
           <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">

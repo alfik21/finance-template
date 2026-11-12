@@ -143,6 +143,8 @@ function recalculateMockSummary(db) {
 
   // D-17: urutkan seperti backend (tanggal desc, timestamp desc).
   (db.recentTransactions || []).sort(mockCompareTxRecent);
+  // Fidelitas struktur getDashboardData() backend.
+  db.txTotal = (db.recentTransactions || []).length;
 }
 
 if (!window.__MOCK_DB__) {
